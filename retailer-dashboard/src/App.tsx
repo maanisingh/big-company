@@ -24,6 +24,10 @@ import { OrderList, OrderShow } from './pages/orders';
 import { InventoryList, InventoryCreate, InventoryEdit } from './pages/inventory';
 import { POSPage } from './pages/pos';
 import { CreditOrderList, CreditOrderShow } from './pages/credit';
+import { LoginPage } from './pages/auth/Login';
+
+// Components
+import { Authenticated } from './components/Authenticated';
 
 // Icons
 import {
@@ -32,6 +36,7 @@ import {
   AppstoreOutlined,
   CreditCardOutlined,
   DollarOutlined,
+  ShopOutlined,
 } from '@ant-design/icons';
 
 const API_URL = import.meta.env.VITE_MEDUSA_BACKEND_URL || 'http://localhost:9000';
@@ -43,7 +48,7 @@ function App() {
         <ConfigProvider
           theme={{
             token: {
-              colorPrimary: '#0ea5e9',
+              colorPrimary: '#16a34a',
             },
           }}
         >
@@ -104,19 +109,26 @@ function App() {
               }}
             >
               <Routes>
+                {/* Login Route - Outside of authenticated wrapper */}
+                <Route path="/login" element={<LoginPage />} />
+
+                {/* Protected Routes */}
                 <Route
                   element={
-                    <ThemedLayoutV2
-                      Title={({ collapsed }) => (
-                        <ThemedTitleV2
-                          collapsed={collapsed}
-                          text="BIG Retailer"
-                        />
-                      )}
-                      Sider={() => <ThemedSiderV2 />}
-                    >
-                      <Outlet />
-                    </ThemedLayoutV2>
+                    <Authenticated>
+                      <ThemedLayoutV2
+                        Title={({ collapsed }) => (
+                          <ThemedTitleV2
+                            collapsed={collapsed}
+                            text="BIG Retailer"
+                            icon={<ShopOutlined style={{ color: '#16a34a' }} />}
+                          />
+                        )}
+                        Sider={() => <ThemedSiderV2 />}
+                      >
+                        <Outlet />
+                      </ThemedLayoutV2>
+                    </Authenticated>
                   }
                 >
                   <Route index element={<DashboardPage />} />

@@ -8,8 +8,8 @@ import { useWalletStore } from '@/lib/store';
 
 const predefinedAmounts = [300, 500, 1000, 2000, 5000, 10000];
 const paymentMethods = [
-  { id: 'mtn_momo', name: 'MTN Mobile Money', color: 'bg-yellow-500' },
-  { id: 'airtel_money', name: 'Airtel Money', color: 'bg-red-500' },
+  { id: 'mtn_momo' as const, name: 'MTN Mobile Money', color: 'bg-yellow-500' },
+  { id: 'airtel_money' as const, name: 'Airtel Money', color: 'bg-red-500' },
 ];
 
 export default function WalletPage() {
@@ -24,7 +24,7 @@ export default function WalletPage() {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(
     initialAmount ? parseInt(initialAmount) : null
   );
-  const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
+  const [selectedPayment, setSelectedPayment] = useState<'mtn_momo' | 'airtel_money' | null>(null);
   const [phone, setPhone] = useState('');
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consumer Login | BIG Company Rwanda</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#faf5ff',
+                            100: '#f3e8ff',
+                            200: '#e9d5ff',
+                            300: '#d8b4fe',
+                            400: '#c084fc',
+                            500: '#a855f7',
+                            600: '#9333ea',
+                            700: '#7e22ce',
+                            800: '#6b21a8',
+                            900: '#581c87',
+                        }
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                        'display': ['Space Grotesk', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #581c87 0%, #7e22ce 50%, #a855f7 100%);
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        .credential-box {
+            transition: all 0.3s ease;
+        }
+        .credential-box:hover {
+            transform: scale(1.02);
+        }
+        .copy-btn:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body class="font-sans antialiased min-h-screen gradient-bg">
+    <!-- Floating Background Elements -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-20 left-10 w-72 h-72 bg-purple-300/20 rounded-full blur-3xl floating"></div>
+        <div class="absolute bottom-20 right-10 w-96 h-96 bg-fuchsia-300/20 rounded-full blur-3xl floating" style="animation-delay: 2s;"></div>
+        <div class="absolute top-1/2 left-1/3 w-64 h-64 bg-pink-300/10 rounded-full blur-3xl floating" style="animation-delay: 4s;"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="relative z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <a href="../index.html" class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
+                    <span class="text-purple-700 font-display font-bold">BC</span>
+                </div>
+                <span class="text-white font-display font-bold text-xl">BIG Company</span>
+            </a>
+            <a href="../index.html" class="text-white/80 hover:text-white transition-colors flex items-center gap-2">
+                <i class="fas fa-arrow-left"></i>
+                <span>Back to Home</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="relative z-10 min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-12">
+        <div class="w-full max-w-5xl grid lg:grid-cols-2 gap-8 items-center">
+
+            <!-- Left Side - Info -->
+            <div class="text-center lg:text-left" data-aos="fade-right">
+                <div class="inline-flex items-center px-4 py-2 glass rounded-full text-white/90 text-sm font-medium mb-6">
+                    <i class="fas fa-shopping-bag mr-2"></i>
+                    Consumer Storefront
+                </div>
+
+                <h1 class="font-display text-4xl md:text-5xl font-bold text-white mb-6">
+                    Shop Your
+                    <span class="block text-pink-300">Favorite Products</span>
+                </h1>
+
+                <p class="text-purple-100 text-lg mb-8 max-w-md mx-auto lg:mx-0">
+                    Discover thousands of products from trusted sellers across Rwanda. Enjoy secure payments and fast delivery to your doorstep.
+                </p>
+
+                <!-- Features List -->
+                <div class="space-y-4 text-left max-w-md mx-auto lg:mx-0">
+                    <div class="flex items-center gap-3 text-white/90">
+                        <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-check text-pink-300"></i>
+                        </div>
+                        <span>Wide product selection</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-white/90">
+                        <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-check text-pink-300"></i>
+                        </div>
+                        <span>Secure payment options</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-white/90">
+                        <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-check text-pink-300"></i>
+                        </div>
+                        <span>Real-time order tracking</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-white/90">
+                        <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-check text-pink-300"></i>
+                        </div>
+                        <span>Fast delivery across Rwanda</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side - Login Card -->
+            <div class="w-full max-w-md mx-auto" data-aos="fade-left">
+                <div class="bg-white rounded-3xl shadow-2xl overflow-hidden">
+                    <!-- Card Header -->
+                    <div class="bg-gradient-to-r from-purple-600 to-purple-700 px-8 py-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+                                <i class="fas fa-shopping-bag text-white text-2xl"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-white font-display text-2xl font-bold">Consumer Login</h2>
+                                <p class="text-purple-100 text-sm">Access your shopping account</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card Body -->
+                    <div class="p-8">
+                        <!-- Demo Credentials Box -->
+                        <div class="credential-box bg-purple-50 border-2 border-purple-200 rounded-2xl p-6 mb-8">
+                            <div class="flex items-center gap-2 text-purple-700 font-semibold mb-4">
+                                <i class="fas fa-key"></i>
+                                <span>Demo Login Credentials</span>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between bg-white rounded-xl px-4 py-3 border border-purple-200">
+                                    <div>
+                                        <p class="text-xs text-gray-500 mb-1">Email Address</p>
+                                        <p class="font-mono text-purple-700 font-semibold" id="email">customer@test.com</p>
+                                    </div>
+                                    <button onclick="copyToClipboard('customer@test.com', this)" class="copy-btn w-10 h-10 bg-purple-100 hover:bg-purple-200 rounded-lg flex items-center justify-center text-purple-600 transition-all">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+
+                                <div class="flex items-center justify-between bg-white rounded-xl px-4 py-3 border border-purple-200">
+                                    <div>
+                                        <p class="text-xs text-gray-500 mb-1">Password</p>
+                                        <p class="font-mono text-purple-700 font-semibold" id="password">customer123</p>
+                                    </div>
+                                    <button onclick="copyToClipboard('customer123', this)" class="copy-btn w-10 h-10 bg-purple-100 hover:bg-purple-200 rounded-lg flex items-center justify-center text-purple-600 transition-all">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <p class="text-xs text-purple-600 mt-4 text-center">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Click the copy button to copy credentials
+                            </p>
+                        </div>
+
+                        <!-- Login Form -->
+                        <form id="loginForm" class="space-y-5">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                                <div class="relative">
+                                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                                        <i class="fas fa-envelope"></i>
+                                    </span>
+                                    <input type="email" id="emailInput" value="customer@test.com" class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all" placeholder="Enter your email">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                                <div class="relative">
+                                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                                        <i class="fas fa-lock"></i>
+                                    </span>
+                                    <input type="password" id="passwordInput" value="customer123" class="w-full pl-12 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all" placeholder="Enter your password">
+                                    <button type="button" onclick="togglePassword()" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                        <i class="fas fa-eye" id="eyeIcon"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between text-sm">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" checked class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
+                                    <span class="text-gray-600">Remember me</span>
+                                </label>
+                                <a href="#" class="text-purple-600 hover:text-purple-700 font-medium">Forgot password?</a>
+                            </div>
+
+                            <button type="submit" class="w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-purple-800 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
+                                <span>Sign In & Start Shopping</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </form>
+
+                        <!-- Direct Link -->
+                        <div class="mt-6 text-center">
+                            <p class="text-gray-500 text-sm mb-3">Or access the storefront directly:</p>
+                            <a href="https://bigcompany.alexandratechlab.com" target="_blank" class="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold transition-colors">
+                                <i class="fas fa-external-link-alt"></i>
+                                bigcompany.alexandratechlab.com
+                            </a>
+                        </div>
+
+                        <!-- Sign Up Link -->
+                        <div class="mt-6 pt-6 border-t border-gray-200 text-center">
+                            <p class="text-gray-600">
+                                Don't have an account?
+                                <a href="https://bigcompany.alexandratechlab.com/account/register" target="_blank" class="text-purple-600 hover:text-purple-700 font-semibold">
+                                    Sign up for free
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Other Portals -->
+                <div class="mt-6 flex justify-center gap-4">
+                    <a href="login-retailer.html" class="px-4 py-2 glass text-white rounded-full text-sm hover:bg-white/20 transition-all flex items-center gap-2">
+                        <i class="fas fa-store"></i> Retailer
+                    </a>
+                    <a href="login-wholesaler.html" class="px-4 py-2 glass text-white rounded-full text-sm hover:bg-white/20 transition-all flex items-center gap-2">
+                        <i class="fas fa-building"></i> Wholesaler
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-3">
+        <i class="fas fa-check-circle text-purple-400"></i>
+        <span id="toastMessage">Copied to clipboard!</span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            easing: 'ease-out-cubic',
+            once: true
+        });
+
+        // Toggle password visibility
+        function togglePassword() {
+            const passwordInput = document.getElementById('passwordInput');
+            const eyeIcon = document.getElementById('eyeIcon');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+            }
+        }
+
+        // Copy to clipboard
+        function copyToClipboard(text, button) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Show toast
+                const toast = document.getElementById('toast');
+                document.getElementById('toastMessage').textContent = `"${text}" copied!`;
+                toast.classList.remove('translate-y-20', 'opacity-0');
+
+                // Change button icon temporarily
+                const icon = button.querySelector('i');
+                icon.classList.remove('fa-copy');
+                icon.classList.add('fa-check');
+
+                setTimeout(() => {
+                    toast.classList.add('translate-y-20', 'opacity-0');
+                    icon.classList.remove('fa-check');
+                    icon.classList.add('fa-copy');
+                }, 2000);
+            });
+        }
+
+        // Form submission
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+
+            // Redirect to storefront with credentials
+            const storefrontUrl = 'https://bigcompany.alexandratechlab.com';
+
+            // Store credentials for autofill (optional)
+            sessionStorage.setItem('consumer_email', email);
+            sessionStorage.setItem('consumer_password', password);
+
+            // Open storefront in new tab
+            window.open(storefrontUrl, '_blank');
+        });
+    </script>
+</body>
+</html>

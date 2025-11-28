@@ -24,6 +24,10 @@ import { RetailerOrderList, RetailerOrderShow } from './pages/orders';
 import { InventoryList, InventoryCreate, InventoryEdit } from './pages/inventory';
 import { RetailersList, RetailerShow } from './pages/retailers';
 import { CreditApprovalList, CreditApprovalShow } from './pages/credit';
+import { LoginPage } from './pages/auth/Login';
+
+// Components
+import { Authenticated } from './components/Authenticated';
 
 // Icons
 import {
@@ -114,19 +118,26 @@ function App() {
               }}
             >
               <Routes>
+                {/* Login Route - Outside of authenticated wrapper */}
+                <Route path="/login" element={<LoginPage />} />
+
+                {/* Protected Routes */}
                 <Route
                   element={
-                    <ThemedLayoutV2
-                      Title={({ collapsed }) => (
-                        <ThemedTitleV2
-                          collapsed={collapsed}
-                          text="BIG Wholesaler"
-                        />
-                      )}
-                      Sider={() => <ThemedSiderV2 />}
-                    >
-                      <Outlet />
-                    </ThemedLayoutV2>
+                    <Authenticated>
+                      <ThemedLayoutV2
+                        Title={({ collapsed }) => (
+                          <ThemedTitleV2
+                            collapsed={collapsed}
+                            text="BIG Wholesaler"
+                            icon={<TeamOutlined style={{ color: '#7c3aed' }} />}
+                          />
+                        )}
+                        Sider={() => <ThemedSiderV2 />}
+                      >
+                        <Outlet />
+                      </ThemedLayoutV2>
+                    </Authenticated>
                   }
                 >
                   <Route index element={<DashboardPage />} />

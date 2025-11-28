@@ -5,6 +5,8 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3001,
+    host: true,
+    allowedHosts: ['bigcompany-retailer.alexandratechlab.com', 'localhost'],
     proxy: {
       '/api': {
         target: process.env.VITE_MEDUSA_BACKEND_URL || 'http://localhost:9000',

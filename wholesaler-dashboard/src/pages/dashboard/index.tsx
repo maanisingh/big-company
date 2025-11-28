@@ -1,11 +1,14 @@
-import { Card, Col, Row, Statistic, Table, Tag, Typography, Progress } from 'antd';
+import { useEffect, useState } from 'react';
+import { Card, Col, Row, Statistic, Table, Tag, Typography, Progress, Spin, Alert, Button } from 'antd';
 import {
   ShoppingCartOutlined,
   DollarOutlined,
   TeamOutlined,
   RiseOutlined,
   WarningOutlined,
+  ReloadOutlined,
   CheckCircleOutlined,
+  ClockCircleOutlined,
 } from '@ant-design/icons';
 import {
   AreaChart,
@@ -15,79 +18,181 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  BarChart,
-  Bar,
   PieChart,
   Pie,
   Cell,
 } from 'recharts';
+import { dashboardApi } from '../../lib/api';
 
 const { Title, Text } = Typography;
 
-// Mock wholesaler data
-const weeklySales = [
-  { date: 'Mon', sales: 2450000 },
-  { date: 'Tue', sales: 3200000 },
-  { date: 'Wed', sales: 2800000 },
-  { date: 'Thu', sales: 3650000 },
-  { date: 'Fri', sales: 4200000 },
-  { date: 'Sat', sales: 3900000 },
-  { date: 'Sun', sales: 2100000 },
-];
+interface DashboardStats {
+  weekly_revenue: number;
+  revenue_growth: number;
+  pending_orders: number;
+  urgent_orders: number;
+  active_retailers: number;
+  new_retailers_month: number;
+  pending_credit_requests: number;
+  low_stock_count: number;
+  total_orders_week: number;
+  total_products: number;
+}
 
-const topRetailers = [
-  { name: 'Huye Supermarket', orders: 62, revenue: 4500000, trend: '+15%' },
-  { name: 'Kigali Mini Mart', orders: 45, revenue: 2500000, trend: '+8%' },
-  { name: 'Musanze Corner Shop', orders: 28, revenue: 1200000, trend: '+12%' },
-  { name: 'Rubavu Store', orders: 22, revenue: 890000, trend: '-3%' },
-];
+interface WeeklySalesData {
+  date: string;
+  day: string;
+  sales: number;
+  orders: number;
+}
 
-const pendingOrders = [
-  { id: '1', retailer: 'Kigali Mini Mart', items: 25, total: 450000, time: '30 min ago' },
-  { id: '2', retailer: 'Musanze Corner Shop', items: 18, total: 235000, time: '1 hour ago' },
-  { id: '3', retailer: 'Rubavu Store', items: 32, total: 567000, time: '2 hours ago' },
-];
+interface TopRetailer {
+  id: string;
+  name: string;
+  orders: number;
+  revenue: number;
+  trend: string;
+  trend_percentage: number;
+}
 
-const creditDistribution = [
-  { name: 'Good Standing', value: 65, color: '#22c55e' },
-  { name: 'High Usage', value: 25, color: '#f97316' },
-  { name: 'Critical', value: 10, color: '#ef4444' },
-];
+interface PendingOrder {
+  id: string;
+  order_number: string;
+  retailer: string;
+  retailer_id: string;
+  items: number;
+  total: number;
+  time_ago: string;
+  created_at: string;
+  payment_type: string;
+}
 
-const lowStockItems = [
-  { id: '1', sku: 'RICE-5KG', name: 'Rice (5kg)', stock: 120, threshold: 200 },
-  { id: '2', sku: 'OIL-1L', name: 'Cooking Oil (1L)', stock: 85, threshold: 150 },
-  { id: '3', sku: 'SUGAR-1KG', name: 'Sugar (1kg)', stock: 45, threshold: 100 },
-];
+interface CreditHealthData {
+  good_standing: number;
+  high_usage: number;
+  critical: number;
+  total_retailers: number;
+}
+
+interface LowStockItem {
+  id: string;
+  sku: string;
+  name: string;
+  stock: number;
+  threshold: number;
+  category: string;
+}
 
 export const DashboardPage = () => {
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [weeklySales, setWeeklySales] = useState<WeeklySalesData[]>([]);
+  const [topRetailers, setTopRetailers] = useState<TopRetailer[]>([]);
+  const [pendingOrders, setPendingOrders] = useState<PendingOrder[]>([]);
+  const [creditHealth, setCreditHealth] = useState<CreditHealthData | null>(null);
+  const [lowStockItems, setLowStockItems] = useState<LowStockItem[]>([]);
+
+  const fetchDashboardData = async (showRefresh = false) => {
+    if (showRefresh) setRefreshing(true);
+    else setLoading(true);
+    setError(null);
+
+    try {
+      const [statsData, salesData, retailersData, ordersData, creditData, stockData] = await Promise.all([
+        dashboardApi.getStats(),
+        dashboardApi.getWeeklySales(),
+        dashboardApi.getTopRetailers(5),
+        dashboardApi.getPendingOrders(5),
+        dashboardApi.getCreditHealth(),
+        dashboardApi.getLowStockItems(5),
+      ]);
+
+      setStats(statsData);
+      setWeeklySales(salesData.data || []);
+      setTopRetailers(retailersData.retailers || []);
+      setPendingOrders(ordersData.orders || []);
+      setCreditHealth(creditData);
+      setLowStockItems(stockData.items || []);
+    } catch (err: any) {
+      console.error('Dashboard error:', err);
+      setError(err.response?.data?.error || 'Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+    // Auto-refresh every 2 minutes
+    const interval = setInterval(() => fetchDashboardData(true), 120000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Credit distribution for pie chart
+  const creditDistribution = creditHealth ? [
+    { name: 'Good Standing', value: creditHealth.good_standing, color: '#22c55e' },
+    { name: 'High Usage', value: creditHealth.high_usage, color: '#f97316' },
+    { name: 'Critical', value: creditHealth.critical, color: '#ef4444' },
+  ] : [];
+
   const orderColumns = [
+    {
+      title: 'Order',
+      dataIndex: 'order_number',
+      key: 'order_number',
+      render: (v: string) => <Text code>{v}</Text>,
+    },
     { title: 'Retailer', dataIndex: 'retailer', key: 'retailer' },
     { title: 'Items', dataIndex: 'items', key: 'items' },
     {
       title: 'Total',
       dataIndex: 'total',
       key: 'total',
-      render: (value: number) => `${value.toLocaleString()} RWF`,
+      render: (value: number) => (
+        <Text strong>{value.toLocaleString()} RWF</Text>
+      ),
     },
-    { title: 'Time', dataIndex: 'time', key: 'time' },
+    {
+      title: 'Time',
+      dataIndex: 'time_ago',
+      key: 'time_ago',
+      render: (v: string) => (
+        <Text type="secondary">
+          <ClockCircleOutlined style={{ marginRight: 4 }} />
+          {v}
+        </Text>
+      ),
+    },
   ];
 
   const retailerColumns = [
-    { title: 'Retailer', dataIndex: 'name', key: 'name', render: (v: string) => <strong>{v}</strong> },
+    {
+      title: 'Retailer',
+      dataIndex: 'name',
+      key: 'name',
+      render: (v: string) => <strong>{v}</strong>
+    },
     { title: 'Orders', dataIndex: 'orders', key: 'orders' },
     {
       title: 'Revenue',
       dataIndex: 'revenue',
       key: 'revenue',
-      render: (value: number) => `${(value / 1000000).toFixed(1)}M RWF`,
+      render: (value: number) => {
+        if (value >= 1000000) {
+          return `${(value / 1000000).toFixed(1)}M RWF`;
+        }
+        return `${value.toLocaleString()} RWF`;
+      },
     },
     {
       title: 'Trend',
       dataIndex: 'trend',
       key: 'trend',
-      render: (trend: string) => (
-        <span style={{ color: trend.startsWith('+') ? '#22c55e' : '#ef4444' }}>
+      render: (trend: string, record: TopRetailer) => (
+        <span style={{ color: record.trend_percentage >= 0 ? '#22c55e' : '#ef4444' }}>
           {trend}
         </span>
       ),
@@ -95,24 +200,62 @@ export const DashboardPage = () => {
   ];
 
   const stockColumns = [
-    { title: 'SKU', dataIndex: 'sku', key: 'sku', render: (v: string) => <code>{v}</code> },
+    {
+      title: 'SKU',
+      dataIndex: 'sku',
+      key: 'sku',
+      render: (v: string) => <code>{v}</code>
+    },
     { title: 'Product', dataIndex: 'name', key: 'name' },
     {
       title: 'Stock',
       dataIndex: 'stock',
       key: 'stock',
-      render: (stock: number, record: any) => (
-        <span style={{ color: stock < record.threshold / 2 ? '#ef4444' : '#f97316' }}>
+      render: (stock: number, record: LowStockItem) => (
+        <Text type={stock < record.threshold / 2 ? 'danger' : 'warning'} strong>
           {stock} units
-        </span>
+        </Text>
       ),
     },
-    { title: 'Threshold', dataIndex: 'threshold', key: 'threshold' },
+    {
+      title: 'Threshold',
+      dataIndex: 'threshold',
+      key: 'threshold',
+      render: (v: number) => `${v} units`,
+    },
   ];
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: '24px' }}>
-      <Title level={3}>Wholesaler Dashboard</Title>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <Title level={3} style={{ margin: 0 }}>Wholesaler Dashboard</Title>
+        <Button
+          icon={<ReloadOutlined spin={refreshing} />}
+          onClick={() => fetchDashboardData(true)}
+          loading={refreshing}
+        >
+          Refresh
+        </Button>
+      </div>
+
+      {error && (
+        <Alert
+          message="Error"
+          description={error}
+          type="error"
+          showIcon
+          closable
+          style={{ marginBottom: '24px' }}
+        />
+      )}
 
       {/* Stats Cards */}
       <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
@@ -120,13 +263,22 @@ export const DashboardPage = () => {
           <Card>
             <Statistic
               title="This Week's Revenue"
-              value={22300000}
+              value={stats?.weekly_revenue || 0}
               suffix="RWF"
               prefix={<DollarOutlined />}
               valueStyle={{ color: '#22c55e' }}
+              formatter={(value) => value?.toLocaleString()}
             />
             <Text type="secondary" style={{ fontSize: '12px' }}>
-              <RiseOutlined /> +18% from last week
+              {(stats?.revenue_growth || 0) >= 0 ? (
+                <span style={{ color: '#22c55e' }}>
+                  <RiseOutlined /> +{stats?.revenue_growth || 0}% from last week
+                </span>
+              ) : (
+                <span style={{ color: '#ef4444' }}>
+                  {stats?.revenue_growth || 0}% from last week
+                </span>
+              )}
             </Text>
           </Card>
         </Col>
@@ -134,12 +286,12 @@ export const DashboardPage = () => {
           <Card>
             <Statistic
               title="Pending Orders"
-              value={12}
+              value={stats?.pending_orders || 0}
               prefix={<ShoppingCartOutlined />}
               valueStyle={{ color: '#f97316' }}
             />
             <Text type="secondary" style={{ fontSize: '12px' }}>
-              3 need urgent processing
+              {stats?.urgent_orders || 0} need urgent processing
             </Text>
           </Card>
         </Col>
@@ -147,12 +299,12 @@ export const DashboardPage = () => {
           <Card>
             <Statistic
               title="Active Retailers"
-              value={48}
+              value={stats?.active_retailers || 0}
               prefix={<TeamOutlined />}
               valueStyle={{ color: '#7c3aed' }}
             />
             <Text type="secondary" style={{ fontSize: '12px' }}>
-              5 new this month
+              <span style={{ color: '#22c55e' }}>{stats?.new_retailers_month || 0}</span> new this month
             </Text>
           </Card>
         </Col>
@@ -160,9 +312,9 @@ export const DashboardPage = () => {
           <Card>
             <Statistic
               title="Credit Requests"
-              value={4}
+              value={stats?.pending_credit_requests || 0}
               prefix={<WarningOutlined />}
-              valueStyle={{ color: '#f97316' }}
+              valueStyle={{ color: (stats?.pending_credit_requests || 0) > 0 ? '#f97316' : '#22c55e' }}
             />
             <Text type="secondary" style={{ fontSize: '12px' }}>
               Pending approval
@@ -171,54 +323,102 @@ export const DashboardPage = () => {
         </Col>
       </Row>
 
+      {/* Secondary Stats */}
+      <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+        <Col xs={24} sm={8}>
+          <Card size="small">
+            <Statistic
+              title="Total Orders This Week"
+              value={stats?.total_orders_week || 0}
+              prefix={<CheckCircleOutlined />}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={8}>
+          <Card size="small">
+            <Statistic
+              title="Total Products"
+              value={stats?.total_products || 0}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={8}>
+          <Card size="small">
+            <Statistic
+              title="Low Stock Items"
+              value={stats?.low_stock_count || 0}
+              prefix={<WarningOutlined />}
+              valueStyle={{ color: (stats?.low_stock_count || 0) > 0 ? '#ef4444' : '#22c55e' }}
+            />
+          </Card>
+        </Col>
+      </Row>
+
       {/* Charts Row */}
       <Row gutter={[16, 16]} style={{ marginBottom: '16px' }}>
         <Col xs={24} lg={16}>
           <Card title="Weekly Sales Revenue">
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={weeklySales}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`} />
-                <Tooltip formatter={(value) => `${Number(value).toLocaleString()} RWF`} />
-                <Area
-                  type="monotone"
-                  dataKey="sales"
-                  stroke="#7c3aed"
-                  fill="#7c3aed"
-                  fillOpacity={0.3}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            {weeklySales.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={weeklySales}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="day" />
+                  <YAxis tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`} />
+                  <Tooltip
+                    formatter={(value: number) => [`${value.toLocaleString()} RWF`, 'Sales']}
+                    labelFormatter={(label) => `Day: ${label}`}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="sales"
+                    stroke="#7c3aed"
+                    fill="#7c3aed"
+                    fillOpacity={0.3}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '60px 0' }}>
+                <Text type="secondary">No sales data available</Text>
+              </div>
+            )}
           </Card>
         </Col>
         <Col xs={24} lg={8}>
           <Card title="Retailer Credit Health" style={{ height: '100%' }}>
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={creditDistribution}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {creditDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+            {creditHealth && creditHealth.total_retailers > 0 ? (
+              <>
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie
+                      data={creditDistribution}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {creditDistribution.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => `${value}%`} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div style={{ textAlign: 'center' }}>
+                  {creditDistribution.map((item) => (
+                    <Tag key={item.name} color={item.color} style={{ margin: '4px' }}>
+                      {item.name}: {item.value}%
+                    </Tag>
                   ))}
-                </Pie>
-                <Tooltip formatter={(value) => `${value}%`} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div style={{ textAlign: 'center' }}>
-              {creditDistribution.map((item) => (
-                <Tag key={item.name} color={item.color} style={{ margin: '4px' }}>
-                  {item.name}: {item.value}%
-                </Tag>
-              ))}
-            </div>
+                </div>
+              </>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '60px 0' }}>
+                <Text type="secondary">No credit data available</Text>
+              </div>
+            )}
           </Card>
         </Col>
       </Row>
@@ -227,16 +427,30 @@ export const DashboardPage = () => {
       <Row gutter={[16, 16]} style={{ marginBottom: '16px' }}>
         <Col xs={24} lg={12}>
           <Card
-            title="Pending Orders"
+            title={
+              <span>
+                <ClockCircleOutlined style={{ color: '#f97316', marginRight: '8px' }} />
+                Pending Orders
+              </span>
+            }
             extra={<a href="/orders">View All</a>}
           >
-            <Table
-              dataSource={pendingOrders}
-              columns={orderColumns}
-              pagination={false}
-              size="small"
-              rowKey="id"
-            />
+            {pendingOrders.length > 0 ? (
+              <Table
+                dataSource={pendingOrders}
+                columns={orderColumns}
+                pagination={false}
+                size="small"
+                rowKey="id"
+              />
+            ) : (
+              <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                <Text type="success">
+                  <CheckCircleOutlined style={{ marginRight: 8 }} />
+                  No pending orders
+                </Text>
+              </div>
+            )}
           </Card>
         </Col>
         <Col xs={24} lg={12}>
@@ -244,13 +458,19 @@ export const DashboardPage = () => {
             title="Top Retailers"
             extra={<a href="/retailers">View All</a>}
           >
-            <Table
-              dataSource={topRetailers}
-              columns={retailerColumns}
-              pagination={false}
-              size="small"
-              rowKey="name"
-            />
+            {topRetailers.length > 0 ? (
+              <Table
+                dataSource={topRetailers}
+                columns={retailerColumns}
+                pagination={false}
+                size="small"
+                rowKey="id"
+              />
+            ) : (
+              <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                <Text type="secondary">No retailer data available</Text>
+              </div>
+            )}
           </Card>
         </Col>
       </Row>
@@ -265,14 +485,23 @@ export const DashboardPage = () => {
                 Low Stock Alert
               </span>
             }
-            extra={<a href="/inventory">Manage Inventory</a>}
+            extra={<a href="/inventory?low_stock=true">Manage Inventory</a>}
           >
-            <Table
-              dataSource={lowStockItems}
-              columns={stockColumns}
-              pagination={false}
-              rowKey="id"
-            />
+            {lowStockItems.length > 0 ? (
+              <Table
+                dataSource={lowStockItems}
+                columns={stockColumns}
+                pagination={false}
+                rowKey="id"
+              />
+            ) : (
+              <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                <Text type="success">
+                  <CheckCircleOutlined style={{ marginRight: 8 }} />
+                  All products are well-stocked!
+                </Text>
+              </div>
+            )}
           </Card>
         </Col>
       </Row>

@@ -1,296 +1,774 @@
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
-  List,
-  Create,
-  Edit,
-  useForm,
-  useTable,
-  EditButton,
-  DeleteButton,
-  NumberField,
-} from '@refinedev/antd';
-import { Table, Space, Form, Input, InputNumber, Select, Card, Tag, Progress, Typography } from 'antd';
+  Table,
+  Space,
+  Card,
+  Typography,
+  Button,
+  Tag,
+  Progress,
+  Row,
+  Col,
+  Input,
+  Select,
+  Modal,
+  Form,
+  InputNumber,
+  message,
+  Spin,
+  Statistic,
+  Divider,
+  Descriptions,
+  Empty,
+  Badge,
+  Tabs,
+  Upload,
+} from 'antd';
+import {
+  SearchOutlined,
+  ReloadOutlined,
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  WarningOutlined,
+  AppstoreOutlined,
+  DollarOutlined,
+  InboxOutlined,
+  UploadOutlined,
+  DownloadOutlined,
+  BarcodeOutlined,
+  MinusOutlined,
+} from '@ant-design/icons';
+import { inventoryApi } from '../../lib/api';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
-// Mock inventory data
-const mockInventory = [
-  {
-    id: '1',
-    sku: 'RICE-5KG',
-    name: 'Rice (5kg)',
-    category: 'Grains',
-    quantity: 45,
-    reorder_level: 20,
-    unit_cost: 8000,
-    selling_price: 12000,
-    status: 'in_stock',
-  },
-  {
-    id: '2',
-    sku: 'OIL-1L',
-    name: 'Cooking Oil (1L)',
-    category: 'Cooking Essentials',
-    quantity: 8,
-    reorder_level: 15,
-    unit_cost: 3500,
-    selling_price: 5000,
-    status: 'low_stock',
-  },
-  {
-    id: '3',
-    sku: 'SUGAR-1KG',
-    name: 'Sugar (1kg)',
-    category: 'Cooking Essentials',
-    quantity: 5,
-    reorder_level: 25,
-    unit_cost: 4000,
-    selling_price: 6000,
-    status: 'critical',
-  },
-  {
-    id: '4',
-    sku: 'FLOUR-2KG',
-    name: 'Wheat Flour (2kg)',
-    category: 'Grains',
-    quantity: 30,
-    reorder_level: 15,
-    unit_cost: 5500,
-    selling_price: 8000,
-    status: 'in_stock',
-  },
-  {
-    id: '5',
-    sku: 'BEANS-1KG',
-    name: 'Beans (1kg)',
-    category: 'Grains',
-    quantity: 60,
-    reorder_level: 20,
-    unit_cost: 2500,
-    selling_price: 4000,
-    status: 'in_stock',
-  },
-];
+interface Product {
+  id: string;
+  sku: string;
+  name: string;
+  category: string;
+  stock: number;
+  low_stock_threshold: number;
+  cost_price: number;
+  selling_price: number;
+  barcode?: string;
+  image?: string;
+  status: 'active' | 'inactive';
+  created_at: string;
+  updated_at: string;
+}
+
+interface InventoryStats {
+  total_products: number;
+  total_value: number;
+  low_stock_count: number;
+  out_of_stock_count: number;
+  categories: number;
+}
 
 const categories = [
-  'Grains',
+  'Grains & Cereals',
   'Cooking Essentials',
   'Beverages',
   'Snacks',
-  'Dairy',
+  'Dairy & Eggs',
   'Meat & Fish',
   'Fruits & Vegetables',
+  'Household Items',
+  'Personal Care',
+  'Baby Products',
 ];
 
 export const InventoryList = () => {
-  const getStockStatus = (quantity: number, reorderLevel: number) => {
-    const percentage = (quantity / reorderLevel) * 100;
-    if (percentage <= 25) return { color: 'red', text: 'Critical', status: 'exception' };
-    if (percentage <= 75) return { color: 'orange', text: 'Low Stock', status: 'normal' };
-    return { color: 'green', text: 'In Stock', status: 'success' };
+  const navigate = useNavigate();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [stats, setStats] = useState<InventoryStats | null>(null);
+
+  // Filters
+  const [categoryFilter, setCategoryFilter] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showLowStock, setShowLowStock] = useState(false);
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 20, total: 0 });
+
+  // Stock adjustment modal
+  const [stockModal, setStockModal] = useState<{
+    visible: boolean;
+    product: Product | null;
+    type: 'add' | 'remove' | 'set';
+  }>({ visible: false, product: null, type: 'add' });
+  const [stockQuantity, setStockQuantity] = useState(0);
+  const [stockReason, setStockReason] = useState('');
+  const [stockLoading, setStockLoading] = useState(false);
+
+  // Price update modal
+  const [priceModal, setPriceModal] = useState<{
+    visible: boolean;
+    product: Product | null;
+  }>({ visible: false, product: null });
+  const [newSellingPrice, setNewSellingPrice] = useState(0);
+  const [newCostPrice, setNewCostPrice] = useState(0);
+  const [priceLoading, setPriceLoading] = useState(false);
+
+  // Create product modal
+  const [createModal, setCreateModal] = useState(false);
+  const [createForm] = Form.useForm();
+  const [createLoading, setCreateLoading] = useState(false);
+
+  useEffect(() => {
+    loadProducts();
+  }, [categoryFilter, showLowStock, pagination.current]);
+
+  const loadProducts = async (silent = false) => {
+    if (!silent) setLoading(true);
+    else setRefreshing(true);
+
+    try {
+      const data = await inventoryApi.getProducts({
+        category: categoryFilter || undefined,
+        low_stock: showLowStock || undefined,
+        search: searchTerm || undefined,
+        limit: pagination.pageSize,
+        offset: (pagination.current - 1) * pagination.pageSize,
+      });
+
+      setProducts(data.products || []);
+      setPagination((prev) => ({ ...prev, total: data.total || 0 }));
+
+      // Calculate stats
+      const allProducts = data.products || [];
+      const totalValue = allProducts.reduce(
+        (sum: number, p: Product) => sum + p.stock * p.cost_price,
+        0
+      );
+      const uniqueCategories = new Set(allProducts.map((p: Product) => p.category));
+
+      setStats({
+        total_products: data.total || allProducts.length,
+        total_value: totalValue,
+        low_stock_count: allProducts.filter(
+          (p: Product) => p.stock > 0 && p.stock <= p.low_stock_threshold
+        ).length,
+        out_of_stock_count: allProducts.filter((p: Product) => p.stock === 0).length,
+        categories: uniqueCategories.size,
+      });
+    } catch (error) {
+      console.error('Failed to load inventory:', error);
+      message.error('Failed to load inventory');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const handleStockUpdate = async () => {
+    if (!stockModal.product) return;
+
+    setStockLoading(true);
+    try {
+      await inventoryApi.updateStock(
+        stockModal.product.id,
+        stockQuantity,
+        stockModal.type,
+        stockReason
+      );
+
+      message.success('Stock updated successfully');
+      setStockModal({ visible: false, product: null, type: 'add' });
+      setStockQuantity(0);
+      setStockReason('');
+      loadProducts();
+    } catch (error: any) {
+      message.error(error.response?.data?.error || 'Failed to update stock');
+    } finally {
+      setStockLoading(false);
+    }
+  };
+
+  const handlePriceUpdate = async () => {
+    if (!priceModal.product) return;
+
+    setPriceLoading(true);
+    try {
+      await inventoryApi.updatePrice(priceModal.product.id, newSellingPrice, newCostPrice);
+
+      message.success('Prices updated successfully');
+      setPriceModal({ visible: false, product: null });
+      loadProducts();
+    } catch (error: any) {
+      message.error(error.response?.data?.error || 'Failed to update prices');
+    } finally {
+      setPriceLoading(false);
+    }
+  };
+
+  const handleCreateProduct = async (values: any) => {
+    setCreateLoading(true);
+    try {
+      await inventoryApi.createProduct(values);
+
+      message.success('Product created successfully');
+      setCreateModal(false);
+      createForm.resetFields();
+      loadProducts();
+    } catch (error: any) {
+      message.error(error.response?.data?.error || 'Failed to create product');
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const getStockStatus = (stock: number, threshold: number) => {
+    if (stock === 0) return { color: 'red', text: 'Out of Stock', status: 'exception' as const };
+    if (stock <= threshold) return { color: 'orange', text: 'Low Stock', status: 'normal' as const };
+    return { color: 'green', text: 'In Stock', status: 'success' as const };
   };
 
   const columns = [
     {
-      title: 'SKU',
-      dataIndex: 'sku',
-      key: 'sku',
-      render: (value: string) => <code>{value}</code>,
-    },
-    {
       title: 'Product',
-      dataIndex: 'name',
-      key: 'name',
-      render: (value: string) => <strong>{value}</strong>,
+      key: 'product',
+      render: (_: any, record: Product) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {record.image ? (
+            <img
+              src={record.image}
+              alt={record.name}
+              style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 4 }}
+            />
+          ) : (
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                background: '#f0f0f0',
+                borderRadius: 4,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <InboxOutlined style={{ color: '#999' }} />
+            </div>
+          )}
+          <div>
+            <Text strong>{record.name}</Text>
+            <br />
+            <Text type="secondary" style={{ fontSize: '12px' }}>
+              SKU: {record.sku}
+            </Text>
+          </div>
+        </div>
+      ),
     },
     {
       title: 'Category',
       dataIndex: 'category',
       key: 'category',
       render: (value: string) => <Tag>{value}</Tag>,
+      filters: categories.map((c) => ({ text: c, value: c })),
     },
     {
-      title: 'Stock Level',
-      key: 'stock_level',
-      render: (_: any, record: any) => {
-        const status = getStockStatus(record.quantity, record.reorder_level);
+      title: 'Stock',
+      key: 'stock',
+      render: (_: any, record: Product) => {
+        const status = getStockStatus(record.stock, record.low_stock_threshold);
+        const percentage = Math.min((record.stock / (record.low_stock_threshold * 2)) * 100, 100);
         return (
           <div style={{ width: 150 }}>
             <Progress
-              percent={Math.min((record.quantity / record.reorder_level) * 100, 100)}
+              percent={percentage}
               size="small"
-              status={status.status as any}
-              format={() => `${record.quantity} units`}
+              status={status.status}
+              format={() => `${record.stock} units`}
             />
           </div>
         );
       },
+      sorter: (a: Product, b: Product) => a.stock - b.stock,
     },
     {
       title: 'Status',
       key: 'status',
-      render: (_: any, record: any) => {
-        const status = getStockStatus(record.quantity, record.reorder_level);
-        return <Tag color={status.color}>{status.text}</Tag>;
+      render: (_: any, record: Product) => {
+        const status = getStockStatus(record.stock, record.low_stock_threshold);
+        return (
+          <Badge
+            status={status.status === 'exception' ? 'error' : status.status === 'normal' ? 'warning' : 'success'}
+            text={<Tag color={status.color}>{status.text}</Tag>}
+          />
+        );
       },
+      filters: [
+        { text: 'In Stock', value: 'in_stock' },
+        { text: 'Low Stock', value: 'low_stock' },
+        { text: 'Out of Stock', value: 'out_of_stock' },
+      ],
     },
     {
-      title: 'Unit Cost',
-      dataIndex: 'unit_cost',
-      key: 'unit_cost',
+      title: 'Cost Price',
+      dataIndex: 'cost_price',
+      key: 'cost_price',
       render: (value: number) => `${value.toLocaleString()} RWF`,
+      sorter: (a: Product, b: Product) => a.cost_price - b.cost_price,
     },
     {
       title: 'Selling Price',
       dataIndex: 'selling_price',
       key: 'selling_price',
-      render: (value: number) => `${value.toLocaleString()} RWF`,
+      render: (value: number) => (
+        <Text strong style={{ color: '#0ea5e9' }}>{value.toLocaleString()} RWF</Text>
+      ),
+      sorter: (a: Product, b: Product) => a.selling_price - b.selling_price,
     },
     {
       title: 'Margin',
       key: 'margin',
-      render: (_: any, record: any) => {
-        const margin = ((record.selling_price - record.unit_cost) / record.unit_cost) * 100;
-        return <span style={{ color: 'green' }}>{margin.toFixed(1)}%</span>;
+      render: (_: any, record: Product) => {
+        const margin = ((record.selling_price - record.cost_price) / record.cost_price) * 100;
+        return (
+          <Text style={{ color: margin >= 20 ? '#52c41a' : margin >= 10 ? '#faad14' : '#ff4d4f' }}>
+            {margin.toFixed(1)}%
+          </Text>
+        );
       },
     },
     {
       title: 'Actions',
       key: 'actions',
-      render: (_: any, record: any) => (
+      render: (_: any, record: Product) => (
         <Space>
-          <EditButton hideText size="small" recordItemId={record.id} />
-          <DeleteButton hideText size="small" recordItemId={record.id} />
+          <Button
+            type="text"
+            icon={<PlusOutlined />}
+            onClick={() => {
+              setStockModal({ visible: true, product: record, type: 'add' });
+              setStockQuantity(0);
+            }}
+            title="Add Stock"
+          />
+          <Button
+            type="text"
+            icon={<MinusOutlined />}
+            onClick={() => {
+              setStockModal({ visible: true, product: record, type: 'remove' });
+              setStockQuantity(0);
+            }}
+            title="Remove Stock"
+          />
+          <Button
+            type="text"
+            icon={<DollarOutlined />}
+            onClick={() => {
+              setPriceModal({ visible: true, product: record });
+              setNewSellingPrice(record.selling_price);
+              setNewCostPrice(record.cost_price);
+            }}
+            title="Update Price"
+          />
+          <Button
+            type="text"
+            icon={<EditOutlined />}
+            onClick={() => navigate(`/inventory/${record.id}/edit`)}
+            title="Edit"
+          />
         </Space>
       ),
     },
   ];
 
   return (
-    <List>
-      <Table dataSource={mockInventory} columns={columns} rowKey="id" />
-    </List>
+    <div style={{ padding: '24px' }}>
+      <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
+        <Title level={3} style={{ margin: 0 }}>Inventory</Title>
+        <Space>
+          <Button
+            icon={<ReloadOutlined spin={refreshing} />}
+            onClick={() => loadProducts(true)}
+          >
+            Refresh
+          </Button>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setCreateModal(true)}
+          >
+            Add Product
+          </Button>
+        </Space>
+      </Row>
+
+      {/* Stats Cards */}
+      {stats && (
+        <Row gutter={16} style={{ marginBottom: 24 }}>
+          <Col span={5}>
+            <Card size="small">
+              <Statistic
+                title="Total Products"
+                value={stats.total_products}
+                prefix={<AppstoreOutlined />}
+              />
+            </Card>
+          </Col>
+          <Col span={5}>
+            <Card size="small">
+              <Statistic
+                title="Inventory Value"
+                value={stats.total_value}
+                suffix="RWF"
+                valueStyle={{ fontSize: '18px' }}
+                prefix={<DollarOutlined />}
+                formatter={(value) => value?.toLocaleString()}
+              />
+            </Card>
+          </Col>
+          <Col span={5}>
+            <Card size="small">
+              <Statistic
+                title="Low Stock"
+                value={stats.low_stock_count}
+                valueStyle={{ color: '#faad14' }}
+                prefix={<WarningOutlined />}
+              />
+            </Card>
+          </Col>
+          <Col span={5}>
+            <Card size="small">
+              <Statistic
+                title="Out of Stock"
+                value={stats.out_of_stock_count}
+                valueStyle={{ color: '#ff4d4f' }}
+                prefix={<WarningOutlined />}
+              />
+            </Card>
+          </Col>
+          <Col span={4}>
+            <Card size="small">
+              <Statistic
+                title="Categories"
+                value={stats.categories}
+              />
+            </Card>
+          </Col>
+        </Row>
+      )}
+
+      {/* Filters */}
+      <Card size="small" style={{ marginBottom: 16 }}>
+        <Row gutter={16} align="middle">
+          <Col span={6}>
+            <Input.Search
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onSearch={() => loadProducts()}
+              prefix={<SearchOutlined />}
+              allowClear
+            />
+          </Col>
+          <Col span={4}>
+            <Select
+              placeholder="Category"
+              value={categoryFilter}
+              onChange={setCategoryFilter}
+              style={{ width: '100%' }}
+              allowClear
+            >
+              <Select.Option value="">All Categories</Select.Option>
+              {categories.map((cat) => (
+                <Select.Option key={cat} value={cat}>{cat}</Select.Option>
+              ))}
+            </Select>
+          </Col>
+          <Col span={4}>
+            <Button
+              type={showLowStock ? 'primary' : 'default'}
+              danger={showLowStock}
+              icon={<WarningOutlined />}
+              onClick={() => setShowLowStock(!showLowStock)}
+            >
+              Low Stock Only
+            </Button>
+          </Col>
+        </Row>
+      </Card>
+
+      {/* Products Table */}
+      <Card>
+        <Table
+          dataSource={products}
+          columns={columns}
+          rowKey="id"
+          loading={loading}
+          pagination={{
+            ...pagination,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total) => `Total ${total} products`,
+            onChange: (page, pageSize) => setPagination({ ...pagination, current: page, pageSize }),
+          }}
+          rowClassName={(record) =>
+            record.stock === 0
+              ? 'ant-table-row-out-of-stock'
+              : record.stock <= record.low_stock_threshold
+              ? 'ant-table-row-low-stock'
+              : ''
+          }
+        />
+      </Card>
+
+      {/* Stock Adjustment Modal */}
+      <Modal
+        title={`${stockModal.type === 'add' ? 'Add' : stockModal.type === 'remove' ? 'Remove' : 'Set'} Stock`}
+        open={stockModal.visible}
+        onCancel={() => {
+          setStockModal({ visible: false, product: null, type: 'add' });
+          setStockQuantity(0);
+          setStockReason('');
+        }}
+        onOk={handleStockUpdate}
+        confirmLoading={stockLoading}
+      >
+        {stockModal.product && (
+          <>
+            <Descriptions column={1} size="small" style={{ marginBottom: 16 }}>
+              <Descriptions.Item label="Product">{stockModal.product.name}</Descriptions.Item>
+              <Descriptions.Item label="Current Stock">
+                <Tag color={stockModal.product.stock > 0 ? 'blue' : 'red'}>
+                  {stockModal.product.stock} units
+                </Tag>
+              </Descriptions.Item>
+            </Descriptions>
+
+            <Form layout="vertical">
+              <Form.Item label="Quantity" required>
+                <InputNumber
+                  value={stockQuantity}
+                  onChange={(val) => setStockQuantity(val || 0)}
+                  min={0}
+                  max={stockModal.type === 'remove' ? stockModal.product.stock : 99999}
+                  style={{ width: '100%' }}
+                  placeholder="Enter quantity"
+                />
+              </Form.Item>
+              <Form.Item label="Reason">
+                <Input.TextArea
+                  value={stockReason}
+                  onChange={(e) => setStockReason(e.target.value)}
+                  placeholder="e.g., New shipment, Damaged goods, Inventory count..."
+                  rows={2}
+                />
+              </Form.Item>
+
+              {stockQuantity > 0 && (
+                <div style={{ background: '#f5f5f5', padding: 12, borderRadius: 4 }}>
+                  <Text>
+                    New Stock:{' '}
+                    <Text strong>
+                      {stockModal.type === 'add'
+                        ? stockModal.product.stock + stockQuantity
+                        : stockModal.type === 'remove'
+                        ? stockModal.product.stock - stockQuantity
+                        : stockQuantity}{' '}
+                      units
+                    </Text>
+                  </Text>
+                </div>
+              )}
+            </Form>
+          </>
+        )}
+      </Modal>
+
+      {/* Price Update Modal */}
+      <Modal
+        title="Update Prices"
+        open={priceModal.visible}
+        onCancel={() => setPriceModal({ visible: false, product: null })}
+        onOk={handlePriceUpdate}
+        confirmLoading={priceLoading}
+      >
+        {priceModal.product && (
+          <Form layout="vertical">
+            <div style={{ marginBottom: 16 }}>
+              <Text strong>{priceModal.product.name}</Text>
+            </div>
+
+            <Form.Item label="Cost Price (RWF)">
+              <InputNumber
+                value={newCostPrice}
+                onChange={(val) => setNewCostPrice(val || 0)}
+                min={0}
+                style={{ width: '100%' }}
+                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                parser={(value) => parseInt(value?.replace(/\$\s?|(,*)/g, '') || '0')}
+              />
+            </Form.Item>
+            <Form.Item label="Selling Price (RWF)">
+              <InputNumber
+                value={newSellingPrice}
+                onChange={(val) => setNewSellingPrice(val || 0)}
+                min={0}
+                style={{ width: '100%' }}
+                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                parser={(value) => parseInt(value?.replace(/\$\s?|(,*)/g, '') || '0')}
+              />
+            </Form.Item>
+
+            {newCostPrice > 0 && newSellingPrice > 0 && (
+              <div style={{ background: '#f5f5f5', padding: 12, borderRadius: 4 }}>
+                <Row justify="space-between">
+                  <Text>Profit Margin:</Text>
+                  <Text
+                    strong
+                    style={{
+                      color: ((newSellingPrice - newCostPrice) / newCostPrice) * 100 >= 15
+                        ? '#52c41a'
+                        : '#faad14',
+                    }}
+                  >
+                    {(((newSellingPrice - newCostPrice) / newCostPrice) * 100).toFixed(1)}%
+                  </Text>
+                </Row>
+                <Row justify="space-between">
+                  <Text>Profit per unit:</Text>
+                  <Text strong>{(newSellingPrice - newCostPrice).toLocaleString()} RWF</Text>
+                </Row>
+              </div>
+            )}
+          </Form>
+        )}
+      </Modal>
+
+      {/* Create Product Modal */}
+      <Modal
+        title="Add New Product"
+        open={createModal}
+        onCancel={() => {
+          setCreateModal(false);
+          createForm.resetFields();
+        }}
+        onOk={() => createForm.submit()}
+        confirmLoading={createLoading}
+        width={600}
+      >
+        <Form
+          form={createForm}
+          layout="vertical"
+          onFinish={handleCreateProduct}
+        >
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="name"
+                label="Product Name"
+                rules={[{ required: true, message: 'Please enter product name' }]}
+              >
+                <Input placeholder="e.g., Rice (5kg)" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="sku"
+                label="SKU"
+                rules={[{ required: true, message: 'Please enter SKU' }]}
+              >
+                <Input placeholder="e.g., RICE-5KG" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="category"
+                label="Category"
+                rules={[{ required: true, message: 'Please select category' }]}
+              >
+                <Select placeholder="Select category">
+                  {categories.map((cat) => (
+                    <Select.Option key={cat} value={cat}>{cat}</Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="barcode"
+                label="Barcode"
+              >
+                <Input placeholder="Optional barcode" prefix={<BarcodeOutlined />} />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item
+                name="cost_price"
+                label="Cost Price (RWF)"
+                rules={[{ required: true, message: 'Please enter cost price' }]}
+              >
+                <InputNumber min={0} style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="selling_price"
+                label="Selling Price (RWF)"
+                rules={[{ required: true, message: 'Please enter selling price' }]}
+              >
+                <InputNumber min={0} style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="stock"
+                label="Initial Stock"
+                rules={[{ required: true, message: 'Please enter initial stock' }]}
+              >
+                <InputNumber min={0} style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item
+            name="low_stock_threshold"
+            label="Low Stock Threshold"
+            rules={[{ required: true, message: 'Please enter low stock threshold' }]}
+          >
+            <InputNumber min={1} style={{ width: '100%' }} placeholder="Alert when stock falls below this" />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <style>{`
+        .ant-table-row-out-of-stock {
+          background-color: #fff1f0;
+        }
+        .ant-table-row-out-of-stock:hover > td {
+          background-color: #ffccc7 !important;
+        }
+        .ant-table-row-low-stock {
+          background-color: #fff7e6;
+        }
+        .ant-table-row-low-stock:hover > td {
+          background-color: #fff1b8 !important;
+        }
+      `}</style>
+    </div>
   );
 };
 
 export const InventoryCreate = () => {
-  const { formProps, saveButtonProps } = useForm();
-
-  return (
-    <Create saveButtonProps={saveButtonProps}>
-      <Form {...formProps} layout="vertical">
-        <Form.Item
-          label="SKU"
-          name="sku"
-          rules={[{ required: true, message: 'Please enter SKU' }]}
-        >
-          <Input placeholder="e.g., RICE-5KG" />
-        </Form.Item>
-
-        <Form.Item
-          label="Product Name"
-          name="name"
-          rules={[{ required: true, message: 'Please enter product name' }]}
-        >
-          <Input placeholder="e.g., Rice (5kg)" />
-        </Form.Item>
-
-        <Form.Item
-          label="Category"
-          name="category"
-          rules={[{ required: true, message: 'Please select category' }]}
-        >
-          <Select placeholder="Select category">
-            {categories.map((cat) => (
-              <Select.Option key={cat} value={cat}>{cat}</Select.Option>
-            ))}
-          </Select>
-        </Form.Item>
-
-        <Form.Item
-          label="Initial Quantity"
-          name="quantity"
-          rules={[{ required: true, message: 'Please enter quantity' }]}
-        >
-          <InputNumber min={0} style={{ width: '100%' }} />
-        </Form.Item>
-
-        <Form.Item
-          label="Reorder Level"
-          name="reorder_level"
-          rules={[{ required: true, message: 'Please enter reorder level' }]}
-        >
-          <InputNumber min={1} style={{ width: '100%' }} />
-        </Form.Item>
-
-        <Form.Item
-          label="Unit Cost (RWF)"
-          name="unit_cost"
-          rules={[{ required: true, message: 'Please enter unit cost' }]}
-        >
-          <InputNumber min={0} style={{ width: '100%' }} />
-        </Form.Item>
-
-        <Form.Item
-          label="Selling Price (RWF)"
-          name="selling_price"
-          rules={[{ required: true, message: 'Please enter selling price' }]}
-        >
-          <InputNumber min={0} style={{ width: '100%' }} />
-        </Form.Item>
-      </Form>
-    </Create>
-  );
+  return <InventoryList />;
 };
 
 export const InventoryEdit = () => {
-  const { formProps, saveButtonProps, queryResult } = useForm();
-  const record = mockInventory[0]; // Mock data
-
-  return (
-    <Edit saveButtonProps={saveButtonProps}>
-      <Form
-        {...formProps}
-        layout="vertical"
-        initialValues={record}
-      >
-        <Form.Item label="SKU" name="sku">
-          <Input disabled />
-        </Form.Item>
-
-        <Form.Item
-          label="Product Name"
-          name="name"
-          rules={[{ required: true }]}
-        >
-          <Input />
-        </Form.Item>
-
-        <Form.Item label="Category" name="category" rules={[{ required: true }]}>
-          <Select>
-            {categories.map((cat) => (
-              <Select.Option key={cat} value={cat}>{cat}</Select.Option>
-            ))}
-          </Select>
-        </Form.Item>
-
-        <Form.Item label="Quantity" name="quantity" rules={[{ required: true }]}>
-          <InputNumber min={0} style={{ width: '100%' }} />
-        </Form.Item>
-
-        <Form.Item label="Reorder Level" name="reorder_level" rules={[{ required: true }]}>
-          <InputNumber min={1} style={{ width: '100%' }} />
-        </Form.Item>
-
-        <Form.Item label="Unit Cost (RWF)" name="unit_cost" rules={[{ required: true }]}>
-          <InputNumber min={0} style={{ width: '100%' }} />
-        </Form.Item>
-
-        <Form.Item label="Selling Price (RWF)" name="selling_price" rules={[{ required: true }]}>
-          <InputNumber min={0} style={{ width: '100%' }} />
-        </Form.Item>
-      </Form>
-    </Edit>
-  );
+  return <InventoryList />;
 };
 
 export default InventoryList;

@@ -76,15 +76,19 @@ export default function CardsPage() {
     }
   };
 
-  const handleRemoveCard = async (cardId: string) => {
-    if (!confirm('Are you sure you want to unlink this card?')) return;
+  const handleRemoveCard = async (cardUid: string) => {
+    const cardPin = prompt('Enter your 4-digit card PIN to confirm removal:');
+    if (!cardPin || cardPin.length !== 4) {
+      alert('Please enter a valid 4-digit PIN');
+      return;
+    }
 
     try {
-      await nfcApi.unlinkCard(cardId);
+      await nfcApi.unlinkCard(cardUid, cardPin);
       await fetchCards();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to unlink card:', error);
-      alert('Failed to unlink card');
+      alert(error.response?.data?.error || 'Failed to unlink card. Please check your PIN.');
     }
   };
 
@@ -156,7 +160,7 @@ export default function CardsPage() {
                     </div>
                   </div>
                   <button
-                    onClick={() => handleRemoveCard(card.id)}
+                    onClick={() => handleRemoveCard(card.card_uid)}
                     className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
                   >
                     <Trash2 className="w-5 h-5" />

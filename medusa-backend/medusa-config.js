@@ -81,9 +81,8 @@ const projectConfig = {
   database_url: DATABASE_URL,
   admin_cors: ADMIN_CORS,
   redis_url: REDIS_URL,
-  database_extra: process.env.NODE_ENV === "production"
-    ? { ssl: { rejectUnauthorized: false } }
-    : {},
+  // No SSL for internal Docker PostgreSQL
+  database_extra: {},
 };
 
 /** @type {import('@medusajs/medusa').ConfigModule} */

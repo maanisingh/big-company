@@ -68,7 +68,7 @@ export default function GasPage() {
 
     setProcessing(true);
     try {
-      const data = await gasApi.topUp(selectedMeter.id, selectedAmount);
+      const data = await gasApi.topUp(selectedMeter.meter_number, selectedAmount, 'wallet');
       setResult(data);
     } catch (error: any) {
       console.error('Gas top-up failed:', error);

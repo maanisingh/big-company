@@ -9,6 +9,11 @@ RUN npm install
 # Copy source code
 COPY . .
 
+# Build for production
+ENV NODE_ENV=production
+RUN npm run build || echo "Build step - development mode"
+
 EXPOSE 3000
 
-CMD ["npm", "run", "dev"]
+# Run in production mode
+CMD ["npm", "run", "start"]

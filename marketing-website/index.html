@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIG Company Rwanda | E-Commerce Platform for Wholesalers & Retailers</title>
+    <meta name="description" content="Rwanda's leading B2B e-commerce platform connecting wholesalers, retailers, and consumers. Streamline your supply chain today.">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- AOS Animation Library -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- Swiper CSS for Carousels -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                        secondary: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        },
+                        accent: {
+                            50: '#fefce8',
+                            100: '#fef9c3',
+                            200: '#fef08a',
+                            300: '#fde047',
+                            400: '#facc15',
+                            500: '#eab308',
+                            600: '#ca8a04',
+                            700: '#a16207',
+                            800: '#854d0e',
+                            900: '#713f12',
+                        },
+                        rwanda: {
+                            blue: '#00A1DE',
+                            yellow: '#FAD201',
+                            green: '#20603D',
+                        }
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                        'display': ['Space Grotesk', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'gradient': 'gradient 8s ease infinite',
+                        'slide-up': 'slideUp 0.5s ease-out',
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        gradient: {
+                            '0%, 100%': { backgroundPosition: '0% 50%' },
+                            '50%': { backgroundPosition: '100% 50%' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #3b82f6, #2563eb);
+            border-radius: 5px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #2563eb, #1d4ed8);
+        }
+
+        /* Gradient Text */
+        .gradient-text {
+            background: linear-gradient(135deg, #3b82f6 0%, #22c55e 50%, #facc15 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Animated Gradient Background */
+        .gradient-bg {
+            background: linear-gradient(-45deg, #1e3a8a, #2563eb, #16a34a, #00A1DE);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+
+        /* Glass Morphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Card Hover Effect */
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        /* Shimmer Effect */
+        .shimmer {
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        /* Portal Card Styles */
+        .portal-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .portal-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+        .portal-card:hover::before {
+            left: 100%;
+        }
+
+        /* Stats Counter Animation */
+        .counter {
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Rwanda Flag Gradient */
+        .rwanda-gradient {
+            background: linear-gradient(135deg, #00A1DE 0%, #FAD201 50%, #20603D 100%);
+        }
+
+        /* Floating Elements */
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+        .floating-delayed {
+            animation: float 6s ease-in-out infinite;
+            animation-delay: 2s;
+        }
+        .floating-delayed-2 {
+            animation: float 6s ease-in-out infinite;
+            animation-delay: 4s;
+        }
+
+        /* Particle Background */
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+
+        /* Blob Shapes */
+        .blob {
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased bg-gray-50 text-gray-900">
+
+    <!-- Navigation -->
+    <nav id="navbar" class="fixed w-full top-0 z-50 transition-all duration-300 bg-transparent">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 rwanda-gradient rounded-xl flex items-center justify-center shadow-lg">
+                        <span class="text-white font-display font-bold text-xl">BC</span>
+                    </div>
+                    <div>
+                        <h1 class="font-display font-bold text-xl text-white">BIG Company</h1>
+                        <p class="text-xs text-blue-200">Rwanda E-Commerce</p>
+                    </div>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#features" class="text-white/90 hover:text-white transition-colors font-medium">Features</a>
+                    <a href="#dashboards" class="text-white/90 hover:text-white transition-colors font-medium">Dashboards</a>
+                    <a href="#portals" class="text-white/90 hover:text-white transition-colors font-medium">Portals</a>
+                    <a href="#stats" class="text-white/90 hover:text-white transition-colors font-medium">Statistics</a>
+                    <a href="#contact" class="text-white/90 hover:text-white transition-colors font-medium">Contact</a>
+                </div>
+
+                <!-- CTA Buttons -->
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="#portals" class="px-6 py-2.5 bg-white text-primary-600 rounded-full font-semibold hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl">
+                        Get Started
+                    </a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-btn" class="md:hidden text-white p-2">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white/95 backdrop-blur-lg border-t">
+            <div class="px-4 py-6 space-y-4">
+                <a href="#features" class="block text-gray-700 hover:text-primary-600 font-medium py-2">Features</a>
+                <a href="#dashboards" class="block text-gray-700 hover:text-primary-600 font-medium py-2">Dashboards</a>
+                <a href="#portals" class="block text-gray-700 hover:text-primary-600 font-medium py-2">Portals</a>
+                <a href="#stats" class="block text-gray-700 hover:text-primary-600 font-medium py-2">Statistics</a>
+                <a href="#contact" class="block text-gray-700 hover:text-primary-600 font-medium py-2">Contact</a>
+                <a href="#portals" class="block w-full text-center px-6 py-3 bg-primary-600 text-white rounded-full font-semibold">Get Started</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-screen gradient-bg overflow-hidden">
+        <!-- Particle Background -->
+        <div id="particles-js"></div>
+
+        <!-- Decorative Blobs -->
+        <div class="absolute top-20 left-10 w-72 h-72 bg-blue-400/30 rounded-full blur-3xl floating"></div>
+        <div class="absolute bottom-20 right-10 w-96 h-96 bg-green-400/30 rounded-full blur-3xl floating-delayed"></div>
+        <div class="absolute top-1/2 left-1/2 w-64 h-64 bg-yellow-400/20 rounded-full blur-3xl floating-delayed-2"></div>
+
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-20">
+            <div class="grid lg:grid-cols-2 gap-12 items-center min-h-[70vh]">
+                <!-- Hero Content -->
+                <div class="text-center lg:text-left" data-aos="fade-right" data-aos-duration="1000">
+                    <div class="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-white/90 text-sm font-medium mb-6 border border-white/20">
+                        <span class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
+                        🇷🇼 Rwanda's Leading B2B Platform
+                    </div>
+
+                    <h1 class="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
+                        Connect Your
+                        <span class="block mt-2">
+                            <span class="text-yellow-300">Supply Chain</span>
+                        </span>
+                        <span class="block mt-2">Seamlessly</span>
+                    </h1>
+
+                    <p class="text-lg md:text-xl text-blue-100 mb-8 max-w-xl mx-auto lg:mx-0">
+                        Empowering wholesalers, retailers, and consumers across Rwanda with a unified e-commerce ecosystem. Real-time inventory, instant orders, and powerful analytics.
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                        <a href="#portals" class="group px-8 py-4 bg-white text-primary-700 rounded-full font-bold text-lg hover:bg-gray-100 transition-all shadow-2xl hover:shadow-white/25 flex items-center justify-center">
+                            Start Trading Now
+                            <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+                        </a>
+                        <a href="#features" class="px-8 py-4 glass text-white rounded-full font-semibold text-lg hover:bg-white/20 transition-all flex items-center justify-center">
+                            <i class="fas fa-play-circle mr-2"></i>
+                            Watch Demo
+                        </a>
+                    </div>
+
+                    <!-- Trust Badges -->
+                    <div class="mt-12 flex items-center justify-center lg:justify-start gap-8">
+                        <div class="text-center">
+                            <p class="text-3xl font-bold text-white">500+</p>
+                            <p class="text-blue-200 text-sm">Active Retailers</p>
+                        </div>
+                        <div class="w-px h-12 bg-white/20"></div>
+                        <div class="text-center">
+                            <p class="text-3xl font-bold text-white">50+</p>
+                            <p class="text-blue-200 text-sm">Wholesalers</p>
+                        </div>
+                        <div class="w-px h-12 bg-white/20"></div>
+                        <div class="text-center">
+                            <p class="text-3xl font-bold text-white">10K+</p>
+                            <p class="text-blue-200 text-sm">Products</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hero Image/Dashboard Preview -->
+                <div class="relative" data-aos="fade-left" data-aos-duration="1000" data-aos-delay="200">
+                    <div class="relative">
+                        <!-- Main Dashboard Preview -->
+                        <div class="glass rounded-2xl p-2 shadow-2xl">
+                            <div class="bg-gray-900 rounded-xl overflow-hidden">
+                                <div class="flex items-center gap-2 px-4 py-3 bg-gray-800">
+                                    <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                                    <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                                    <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                                    <span class="ml-4 text-gray-400 text-sm">dashboard.bigcompany.rw</span>
+                                </div>
+                                <img src="https://placehold.co/600x400/1e40af/ffffff?text=Retailer+Dashboard" alt="Dashboard Preview" class="w-full">
+                            </div>
+                        </div>
+
+                        <!-- Floating Cards -->
+                        <div class="absolute -top-6 -right-6 glass rounded-xl p-4 shadow-xl floating" data-aos="zoom-in" data-aos-delay="600">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-chart-line text-white text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-white font-bold">+32%</p>
+                                    <p class="text-blue-200 text-sm">Sales Growth</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="absolute -bottom-4 -left-6 glass rounded-xl p-4 shadow-xl floating-delayed" data-aos="zoom-in" data-aos-delay="800">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-box text-white text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-white font-bold">1,234</p>
+                                    <p class="text-blue-200 text-sm">Orders Today</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wave Divider -->
+        <div class="absolute bottom-0 left-0 w-full">
+            <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" fill="#f9fafb"/>
+            </svg>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-24 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Section Header -->
+            <div class="text-center mb-16" data-aos="fade-up">
+                <span class="inline-block px-4 py-2 bg-primary-100 text-primary-700 rounded-full text-sm font-semibold mb-4">
+                    POWERFUL FEATURES
+                </span>
+                <h2 class="font-display text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                    Everything You Need to
+                    <span class="gradient-text">Scale Your Business</span>
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Our comprehensive platform provides all the tools wholesalers, retailers, and consumers need to thrive in Rwanda's digital economy.
+                </p>
+            </div>
+
+            <!-- Features Grid -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="group bg-white rounded-2xl p-8 shadow-lg card-hover border border-gray-100" data-aos="fade-up" data-aos-delay="100">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-lg shadow-blue-500/30">
+                        <i class="fas fa-warehouse text-white text-2xl"></i>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-gray-900 mb-3">Inventory Management</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        Real-time stock tracking, low inventory alerts, and automated reordering. Never miss a sale due to stockouts.
+                    </p>
+                    <div class="mt-6 flex items-center text-blue-600 font-semibold group-hover:gap-2 transition-all">
+                        Learn more <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="group bg-white rounded-2xl p-8 shadow-lg card-hover border border-gray-100" data-aos="fade-up" data-aos-delay="200">
+                    <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-lg shadow-green-500/30">
+                        <i class="fas fa-cash-register text-white text-2xl"></i>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-gray-900 mb-3">POS Integration</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        Seamless point-of-sale system with barcode scanning, receipt printing, and instant inventory updates.
+                    </p>
+                    <div class="mt-6 flex items-center text-green-600 font-semibold group-hover:gap-2 transition-all">
+                        Learn more <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="group bg-white rounded-2xl p-8 shadow-lg card-hover border border-gray-100" data-aos="fade-up" data-aos-delay="300">
+                    <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-lg shadow-purple-500/30">
+                        <i class="fas fa-chart-pie text-white text-2xl"></i>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-gray-900 mb-3">Analytics Dashboard</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        Comprehensive analytics with sales trends, customer insights, and performance metrics at your fingertips.
+                    </p>
+                    <div class="mt-6 flex items-center text-purple-600 font-semibold group-hover:gap-2 transition-all">
+                        Learn more <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="group bg-white rounded-2xl p-8 shadow-lg card-hover border border-gray-100" data-aos="fade-up" data-aos-delay="400">
+                    <div class="w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-lg shadow-yellow-500/30">
+                        <i class="fas fa-shipping-fast text-white text-2xl"></i>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-gray-900 mb-3">Order Management</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        End-to-end order tracking from placement to delivery. Manage bulk orders with ease.
+                    </p>
+                    <div class="mt-6 flex items-center text-yellow-600 font-semibold group-hover:gap-2 transition-all">
+                        Learn more <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+
+                <!-- Feature 5 -->
+                <div class="group bg-white rounded-2xl p-8 shadow-lg card-hover border border-gray-100" data-aos="fade-up" data-aos-delay="500">
+                    <div class="w-16 h-16 bg-gradient-to-br from-pink-500 to-rose-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-lg shadow-pink-500/30">
+                        <i class="fas fa-wallet text-white text-2xl"></i>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-gray-900 mb-3">Credit & Wallet System</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        Flexible payment options including credit limits, digital wallets, and installment plans.
+                    </p>
+                    <div class="mt-6 flex items-center text-pink-600 font-semibold group-hover:gap-2 transition-all">
+                        Learn more <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+
+                <!-- Feature 6 -->
+                <div class="group bg-white rounded-2xl p-8 shadow-lg card-hover border border-gray-100" data-aos="fade-up" data-aos-delay="600">
+                    <div class="w-16 h-16 bg-gradient-to-br from-cyan-500 to-teal-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-lg shadow-cyan-500/30">
+                        <i class="fas fa-mobile-alt text-white text-2xl"></i>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-gray-900 mb-3">Mobile Friendly</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        Access your business anywhere with our responsive design. Works perfectly on phones and tablets.
+                    </p>
+                    <div class="mt-6 flex items-center text-cyan-600 font-semibold group-hover:gap-2 transition-all">
+                        Learn more <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard Showcase Section -->
+    <section id="dashboards" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Section Header -->
+            <div class="text-center mb-16" data-aos="fade-up">
+                <span class="inline-block px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-semibold mb-4">
+                    DASHBOARD PREVIEWS
+                </span>
+                <h2 class="font-display text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                    Powerful Dashboards for
+                    <span class="gradient-text">Every User</span>
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Each user type gets a specialized dashboard designed for their specific needs and workflows.
+                </p>
+            </div>
+
+            <!-- Dashboard Tabs -->
+            <div class="flex justify-center mb-12" data-aos="fade-up">
+                <div class="inline-flex bg-gray-100 rounded-full p-1.5">
+                    <button class="dashboard-tab active px-6 py-3 rounded-full font-semibold transition-all" data-tab="wholesaler">
+                        <i class="fas fa-building mr-2"></i>Wholesaler
+                    </button>
+                    <button class="dashboard-tab px-6 py-3 rounded-full font-semibold transition-all" data-tab="retailer">
+                        <i class="fas fa-store mr-2"></i>Retailer
+                    </button>
+                    <button class="dashboard-tab px-6 py-3 rounded-full font-semibold transition-all" data-tab="consumer">
+                        <i class="fas fa-user mr-2"></i>Consumer
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div class="relative">
+                <!-- Wholesaler Dashboard -->
+                <div id="wholesaler-dashboard" class="dashboard-content" data-aos="fade-up">
+                    <div class="grid lg:grid-cols-2 gap-12 items-center">
+                        <div>
+                            <div class="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium mb-6">
+                                <i class="fas fa-building mr-2"></i> Wholesaler Dashboard
+                            </div>
+                            <h3 class="font-display text-3xl font-bold text-gray-900 mb-4">
+                                Manage Your Distribution Empire
+                            </h3>
+                            <p class="text-gray-600 text-lg mb-8">
+                                Complete control over your wholesale operations. Manage retailers, track large orders, set pricing tiers, and monitor your entire distribution network.
+                            </p>
+                            <ul class="space-y-4">
+                                <li class="flex items-start gap-4">
+                                    <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-check text-blue-600"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">Retailer Management</h4>
+                                        <p class="text-gray-600">Track all your retail partners, their orders, and credit limits.</p>
+                                    </div>
+                                </li>
+                                <li class="flex items-start gap-4">
+                                    <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-check text-blue-600"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">Bulk Pricing Controls</h4>
+                                        <p class="text-gray-600">Set tiered pricing based on order quantities and retailer levels.</p>
+                                    </div>
+                                </li>
+                                <li class="flex items-start gap-4">
+                                    <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-check text-blue-600"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">Distribution Analytics</h4>
+                                        <p class="text-gray-600">Track sales by region, retailer performance, and market trends.</p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="relative">
+                            <div class="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-4 shadow-2xl">
+                                <img src="https://placehold.co/700x500/1e3a8a/ffffff?text=Wholesaler+Dashboard%0A%0A📊+Retailer+Management%0A📦+Bulk+Orders%0A💰+Revenue+Tracking%0A📈+Distribution+Analytics" alt="Wholesaler Dashboard" class="rounded-xl w-full">
+                            </div>
+                            <div class="absolute -bottom-6 -right-6 bg-white rounded-xl p-4 shadow-xl">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-users text-blue-600 text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-gray-900">500+</p>
+                                        <p class="text-gray-500 text-sm">Active Retailers</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Retailer Dashboard -->
+                <div id="retailer-dashboard" class="dashboard-content hidden" data-aos="fade-up">
+                    <div class="grid lg:grid-cols-2 gap-12 items-center">
+                        <div>
+                            <div class="inline-flex items-center px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-medium mb-6">
+                                <i class="fas fa-store mr-2"></i> Retailer Dashboard
+                            </div>
+                            <h3 class="font-display text-3xl font-bold text-gray-900 mb-4">
+                                Run Your Store Smarter
+                            </h3>
+                            <p class="text-gray-600 text-lg mb-8">
+                                Everything you need to manage your retail business. Order from wholesalers, manage inventory, process sales, and grow your customer base.
+                            </p>
+                            <ul class="space-y-4">
+                                <li class="flex items-start gap-4">
+                                    <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-check text-green-600"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">Easy Reordering</h4>
+                                        <p class="text-gray-600">One-click reorders from your trusted wholesalers.</p>
+                                    </div>
+                                </li>
+                                <li class="flex items-start gap-4">
+                                    <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-check text-green-600"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">Built-in POS</h4>
+                                        <p class="text-gray-600">Process walk-in sales with barcode scanning support.</p>
+                                    </div>
+                                </li>
+                                <li class="flex items-start gap-4">
+                                    <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-check text-green-600"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">Sales Reports</h4>
+                                        <p class="text-gray-600">Daily, weekly, and monthly sales analytics at a glance.</p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="relative">
+                            <div class="bg-gradient-to-br from-green-600 to-green-800 rounded-2xl p-4 shadow-2xl">
+                                <img src="https://placehold.co/700x500/166534/ffffff?text=Retailer+Dashboard%0A%0A🛒+Order+Products%0A📦+Inventory+Status%0A💳+POS+System%0A📊+Sales+Analytics" alt="Retailer Dashboard" class="rounded-xl w-full">
+                            </div>
+                            <div class="absolute -bottom-6 -left-6 bg-white rounded-xl p-4 shadow-xl">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-chart-line text-green-600 text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-gray-900">+45%</p>
+                                        <p class="text-gray-500 text-sm">Avg. Efficiency</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Consumer Dashboard -->
+                <div id="consumer-dashboard" class="dashboard-content hidden" data-aos="fade-up">
+                    <div class="grid lg:grid-cols-2 gap-12 items-center">
+                        <div>
+                            <div class="inline-flex items-center px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-medium mb-6">
+                                <i class="fas fa-user mr-2"></i> Consumer Storefront
+                            </div>
+                            <h3 class="font-display text-3xl font-bold text-gray-900 mb-4">
+                                Shop With Confidence
+                            </h3>
+                            <p class="text-gray-600 text-lg mb-8">
+                                Beautiful shopping experience with a wide product selection, secure payments, and fast delivery across Rwanda.
+                            </p>
+                            <ul class="space-y-4">
+                                <li class="flex items-start gap-4">
+                                    <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-check text-purple-600"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">Wide Selection</h4>
+                                        <p class="text-gray-600">Thousands of products from verified sellers.</p>
+                                    </div>
+                                </li>
+                                <li class="flex items-start gap-4">
+                                    <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-check text-purple-600"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">Secure Payments</h4>
+                                        <p class="text-gray-600">Mobile money, card payments, and cash on delivery.</p>
+                                    </div>
+                                </li>
+                                <li class="flex items-start gap-4">
+                                    <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-check text-purple-600"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">Track Orders</h4>
+                                        <p class="text-gray-600">Real-time delivery tracking to your doorstep.</p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="relative">
+                            <div class="bg-gradient-to-br from-purple-600 to-purple-800 rounded-2xl p-4 shadow-2xl">
+                                <img src="https://placehold.co/700x500/581c87/ffffff?text=Consumer+Storefront%0A%0A🛍️+Product+Catalog%0A🔍+Smart+Search%0A🛒+Easy+Checkout%0A📱+Mobile+Friendly" alt="Consumer Storefront" class="rounded-xl w-full">
+                            </div>
+                            <div class="absolute -bottom-6 -right-6 bg-white rounded-xl p-4 shadow-xl">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-star text-purple-600 text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-gray-900">4.8/5</p>
+                                        <p class="text-gray-500 text-sm">User Rating</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Login Portals Section -->
+    <section id="portals" class="py-24 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
+        <!-- Background Elements -->
+        <div class="absolute inset-0 opacity-30">
+            <div class="absolute top-0 left-0 w-96 h-96 bg-blue-500 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-0 right-0 w-96 h-96 bg-green-500 rounded-full blur-3xl"></div>
+            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-500 rounded-full blur-3xl"></div>
+        </div>
+
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Section Header -->
+            <div class="text-center mb-16" data-aos="fade-up">
+                <span class="inline-block px-4 py-2 bg-white/10 text-white rounded-full text-sm font-semibold mb-4 backdrop-blur-sm">
+                    ACCESS YOUR PORTAL
+                </span>
+                <h2 class="font-display text-4xl md:text-5xl font-bold text-white mb-4">
+                    Choose Your
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-green-400 to-yellow-400">Portal</span>
+                </h2>
+                <p class="text-xl text-gray-300 max-w-3xl mx-auto">
+                    Select your user type to access the appropriate dashboard. Use the demo credentials provided to explore all features.
+                </p>
+            </div>
+
+            <!-- Portal Cards -->
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Consumer Portal -->
+                <div class="portal-card group bg-gradient-to-br from-purple-600/20 to-purple-900/20 backdrop-blur-xl rounded-3xl p-8 border border-purple-500/30 card-hover" data-aos="fade-up" data-aos-delay="100">
+                    <div class="text-center">
+                        <div class="w-20 h-20 mx-auto bg-gradient-to-br from-purple-500 to-purple-700 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-purple-500/30 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-shopping-bag text-white text-3xl"></i>
+                        </div>
+                        <h3 class="font-display text-2xl font-bold text-white mb-2">Consumer</h3>
+                        <p class="text-purple-200 mb-6">Shop from our wide product catalog</p>
+
+                        <!-- Demo Credentials -->
+                        <div class="bg-black/30 rounded-xl p-4 mb-6 text-left">
+                            <p class="text-purple-300 text-sm font-medium mb-2">
+                                <i class="fas fa-key mr-2"></i>Demo Credentials
+                            </p>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400 text-sm">Email:</span>
+                                    <code class="text-purple-300 text-sm bg-purple-900/50 px-2 py-1 rounded">customer@test.com</code>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400 text-sm">Password:</span>
+                                    <code class="text-purple-300 text-sm bg-purple-900/50 px-2 py-1 rounded">customer123</code>
+                                </div>
+                            </div>
+                        </div>
+
+                        <a href="https://bigcompany.alexandratechlab.com" target="_blank" class="block w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-purple-800 transition-all shadow-lg hover:shadow-purple-500/25">
+                            <i class="fas fa-external-link-alt mr-2"></i>Open Storefront
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Retailer Portal -->
+                <div class="portal-card group bg-gradient-to-br from-green-600/20 to-green-900/20 backdrop-blur-xl rounded-3xl p-8 border border-green-500/30 card-hover transform md:scale-105" data-aos="fade-up" data-aos-delay="200">
+                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                        <span class="px-4 py-1 bg-green-500 text-white text-sm font-bold rounded-full shadow-lg">
+                            MOST POPULAR
+                        </span>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-20 h-20 mx-auto bg-gradient-to-br from-green-500 to-green-700 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-green-500/30 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-store text-white text-3xl"></i>
+                        </div>
+                        <h3 class="font-display text-2xl font-bold text-white mb-2">Retailer</h3>
+                        <p class="text-green-200 mb-6">Manage your retail business</p>
+
+                        <!-- Demo Credentials -->
+                        <div class="bg-black/30 rounded-xl p-4 mb-6 text-left">
+                            <p class="text-green-300 text-sm font-medium mb-2">
+                                <i class="fas fa-key mr-2"></i>Demo Credentials
+                            </p>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400 text-sm">Email:</span>
+                                    <code class="text-green-300 text-sm bg-green-900/50 px-2 py-1 rounded">retailer@bigcompany.rw</code>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400 text-sm">Password:</span>
+                                    <code class="text-green-300 text-sm bg-green-900/50 px-2 py-1 rounded">retailer123</code>
+                                </div>
+                            </div>
+                        </div>
+
+                        <a href="https://bigcompany-retailer.alexandratechlab.com" target="_blank" class="block w-full py-4 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl font-semibold hover:from-green-700 hover:to-green-800 transition-all shadow-lg hover:shadow-green-500/25">
+                            <i class="fas fa-external-link-alt mr-2"></i>Open Retailer Portal
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Wholesaler Portal -->
+                <div class="portal-card group bg-gradient-to-br from-blue-600/20 to-blue-900/20 backdrop-blur-xl rounded-3xl p-8 border border-blue-500/30 card-hover" data-aos="fade-up" data-aos-delay="300">
+                    <div class="text-center">
+                        <div class="w-20 h-20 mx-auto bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-building text-white text-3xl"></i>
+                        </div>
+                        <h3 class="font-display text-2xl font-bold text-white mb-2">Wholesaler</h3>
+                        <p class="text-blue-200 mb-6">Distribution management hub</p>
+
+                        <!-- Demo Credentials -->
+                        <div class="bg-black/30 rounded-xl p-4 mb-6 text-left">
+                            <p class="text-blue-300 text-sm font-medium mb-2">
+                                <i class="fas fa-key mr-2"></i>Demo Credentials
+                            </p>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400 text-sm">Email:</span>
+                                    <code class="text-blue-300 text-sm bg-blue-900/50 px-2 py-1 rounded">wholesaler@bigcompany.rw</code>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400 text-sm">Password:</span>
+                                    <code class="text-blue-300 text-sm bg-blue-900/50 px-2 py-1 rounded">wholesaler123</code>
+                                </div>
+                            </div>
+                        </div>
+
+                        <a href="https://bigcompany-wholesaler.alexandratechlab.com" target="_blank" class="block w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-blue-500/25">
+                            <i class="fas fa-external-link-alt mr-2"></i>Open Wholesaler Portal
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Login Buttons -->
+            <div class="mt-16 text-center" data-aos="fade-up">
+                <p class="text-gray-400 mb-6">Or jump directly to a login page:</p>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <a href="pages/login-consumer.html" class="px-6 py-3 bg-purple-600/20 border border-purple-500/30 text-purple-300 rounded-full hover:bg-purple-600/30 transition-all backdrop-blur-sm">
+                        <i class="fas fa-user mr-2"></i>Consumer Login
+                    </a>
+                    <a href="pages/login-retailer.html" class="px-6 py-3 bg-green-600/20 border border-green-500/30 text-green-300 rounded-full hover:bg-green-600/30 transition-all backdrop-blur-sm">
+                        <i class="fas fa-store mr-2"></i>Retailer Login
+                    </a>
+                    <a href="pages/login-wholesaler.html" class="px-6 py-3 bg-blue-600/20 border border-blue-500/30 text-blue-300 rounded-full hover:bg-blue-600/30 transition-all backdrop-blur-sm">
+                        <i class="fas fa-building mr-2"></i>Wholesaler Login
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Statistics Section -->
+    <section id="stats" class="py-24 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <span class="inline-block px-4 py-2 bg-yellow-100 text-yellow-700 rounded-full text-sm font-semibold mb-4">
+                    PLATFORM STATISTICS
+                </span>
+                <h2 class="font-display text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                    Trusted Across
+                    <span class="gradient-text">Rwanda</span>
+                </h2>
+            </div>
+
+            <div class="grid md:grid-cols-4 gap-8">
+                <div class="text-center" data-aos="zoom-in" data-aos-delay="100">
+                    <div class="w-20 h-20 mx-auto bg-blue-100 rounded-2xl flex items-center justify-center mb-4">
+                        <i class="fas fa-users text-blue-600 text-3xl"></i>
+                    </div>
+                    <p class="text-5xl font-bold text-gray-900 counter" data-target="500">0</p>
+                    <p class="text-gray-600 mt-2">Active Retailers</p>
+                </div>
+                <div class="text-center" data-aos="zoom-in" data-aos-delay="200">
+                    <div class="w-20 h-20 mx-auto bg-green-100 rounded-2xl flex items-center justify-center mb-4">
+                        <i class="fas fa-building text-green-600 text-3xl"></i>
+                    </div>
+                    <p class="text-5xl font-bold text-gray-900 counter" data-target="50">0</p>
+                    <p class="text-gray-600 mt-2">Wholesalers</p>
+                </div>
+                <div class="text-center" data-aos="zoom-in" data-aos-delay="300">
+                    <div class="w-20 h-20 mx-auto bg-purple-100 rounded-2xl flex items-center justify-center mb-4">
+                        <i class="fas fa-box text-purple-600 text-3xl"></i>
+                    </div>
+                    <p class="text-5xl font-bold text-gray-900 counter" data-target="10000">0</p>
+                    <p class="text-gray-600 mt-2">Products Listed</p>
+                </div>
+                <div class="text-center" data-aos="zoom-in" data-aos-delay="400">
+                    <div class="w-20 h-20 mx-auto bg-yellow-100 rounded-2xl flex items-center justify-center mb-4">
+                        <i class="fas fa-shopping-cart text-yellow-600 text-3xl"></i>
+                    </div>
+                    <p class="text-5xl font-bold text-gray-900 counter" data-target="25000">0</p>
+                    <p class="text-gray-600 mt-2">Orders Processed</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <span class="inline-block px-4 py-2 bg-pink-100 text-pink-700 rounded-full text-sm font-semibold mb-4">
+                    TESTIMONIALS
+                </span>
+                <h2 class="font-display text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                    What Our Users
+                    <span class="gradient-text">Say</span>
+                </h2>
+            </div>
+
+            <!-- Swiper Carousel -->
+            <div class="swiper testimonials-swiper" data-aos="fade-up">
+                <div class="swiper-wrapper pb-12">
+                    <!-- Testimonial 1 -->
+                    <div class="swiper-slide">
+                        <div class="bg-gradient-to-br from-blue-50 to-white rounded-2xl p-8 shadow-lg border border-blue-100">
+                            <div class="flex items-center gap-1 text-yellow-400 mb-4">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <p class="text-gray-700 text-lg mb-6">
+                                "BIG Company has transformed how we manage our retail business. The inventory tracking alone has saved us countless hours and reduced stockouts by 80%."
+                            </p>
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                                    JM
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-900">Jean-Marie K.</p>
+                                    <p class="text-gray-500">Retailer, Kigali</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Testimonial 2 -->
+                    <div class="swiper-slide">
+                        <div class="bg-gradient-to-br from-green-50 to-white rounded-2xl p-8 shadow-lg border border-green-100">
+                            <div class="flex items-center gap-1 text-yellow-400 mb-4">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <p class="text-gray-700 text-lg mb-6">
+                                "As a wholesaler, I can now manage all my retailers from one dashboard. The credit management feature has significantly reduced payment delays."
+                            </p>
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                                    AN
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-900">Alice N.</p>
+                                    <p class="text-gray-500">Wholesaler, Huye</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Testimonial 3 -->
+                    <div class="swiper-slide">
+                        <div class="bg-gradient-to-br from-purple-50 to-white rounded-2xl p-8 shadow-lg border border-purple-100">
+                            <div class="flex items-center gap-1 text-yellow-400 mb-4">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                            </div>
+                            <p class="text-gray-700 text-lg mb-6">
+                                "The shopping experience is seamless! I love being able to track my orders in real-time and the wide variety of products available."
+                            </p>
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                                    PM
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-900">Patrick M.</p>
+                                    <p class="text-gray-500">Consumer, Rubavu</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="swiper-pagination"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-24 rwanda-gradient relative overflow-hidden">
+        <div class="absolute inset-0 bg-black/20"></div>
+        <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center" data-aos="zoom-in">
+            <h2 class="font-display text-4xl md:text-5xl font-bold text-white mb-6">
+                Ready to Transform Your Business?
+            </h2>
+            <p class="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+                Join hundreds of businesses already using BIG Company to streamline their supply chain and boost sales.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="#portals" class="px-8 py-4 bg-white text-primary-700 rounded-full font-bold text-lg hover:bg-gray-100 transition-all shadow-2xl">
+                    Get Started Free
+                </a>
+                <a href="#contact" class="px-8 py-4 bg-white/10 text-white border-2 border-white rounded-full font-semibold text-lg hover:bg-white/20 transition-all backdrop-blur-sm">
+                    Contact Sales
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-24 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-2 gap-16">
+                <div data-aos="fade-right">
+                    <span class="inline-block px-4 py-2 bg-cyan-100 text-cyan-700 rounded-full text-sm font-semibold mb-4">
+                        GET IN TOUCH
+                    </span>
+                    <h2 class="font-display text-4xl font-bold text-gray-900 mb-4">
+                        We'd Love to Hear From You
+                    </h2>
+                    <p class="text-gray-600 text-lg mb-8">
+                        Have questions about our platform? Want to request a demo? Our team is here to help you succeed.
+                    </p>
+
+                    <div class="space-y-6">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-map-marker-alt text-blue-600"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">Address</h4>
+                                <p class="text-gray-600">KG 123 Street, Kigali, Rwanda</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-phone text-green-600"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">Phone</h4>
+                                <p class="text-gray-600">+250 788 123 456</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-envelope text-purple-600"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">Email</h4>
+                                <p class="text-gray-600">info@bigcompany.rw</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Social Links -->
+                    <div class="mt-8 flex gap-4">
+                        <a href="#" class="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center text-gray-600 hover:bg-blue-500 hover:text-white transition-all">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center text-gray-600 hover:bg-sky-500 hover:text-white transition-all">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center text-gray-600 hover:bg-pink-500 hover:text-white transition-all">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center text-gray-600 hover:bg-blue-700 hover:text-white transition-all">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Contact Form -->
+                <div class="bg-white rounded-2xl p-8 shadow-xl" data-aos="fade-left">
+                    <form class="space-y-6">
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                                <input type="text" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all" placeholder="John">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                                <input type="text" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all" placeholder="Doe">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                            <input type="email" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all" placeholder="john@example.com">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">I am a...</label>
+                            <select class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all">
+                                <option>Consumer</option>
+                                <option>Retailer</option>
+                                <option>Wholesaler</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                            <textarea rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none" placeholder="How can we help you?"></textarea>
+                        </div>
+                        <button type="submit" class="w-full py-4 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl font-semibold hover:from-primary-700 hover:to-primary-800 transition-all shadow-lg hover:shadow-xl">
+                            Send Message
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-400 py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-12">
+                <!-- Brand -->
+                <div>
+                    <div class="flex items-center space-x-3 mb-6">
+                        <div class="w-12 h-12 rwanda-gradient rounded-xl flex items-center justify-center">
+                            <span class="text-white font-display font-bold text-xl">BC</span>
+                        </div>
+                        <div>
+                            <h3 class="font-display font-bold text-xl text-white">BIG Company</h3>
+                            <p class="text-xs text-gray-500">Rwanda E-Commerce</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-500 mb-6">
+                        Empowering Rwanda's digital economy by connecting wholesalers, retailers, and consumers.
+                    </p>
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl">🇷🇼</span>
+                        <span class="text-sm">Made in Rwanda</span>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div>
+                    <h4 class="font-semibold text-white mb-6">Quick Links</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#features" class="hover:text-white transition-colors">Features</a></li>
+                        <li><a href="#dashboards" class="hover:text-white transition-colors">Dashboards</a></li>
+                        <li><a href="#portals" class="hover:text-white transition-colors">Portals</a></li>
+                        <li><a href="#contact" class="hover:text-white transition-colors">Contact</a></li>
+                    </ul>
+                </div>
+
+                <!-- Portals -->
+                <div>
+                    <h4 class="font-semibold text-white mb-6">Access Portals</h4>
+                    <ul class="space-y-3">
+                        <li><a href="https://bigcompany.alexandratechlab.com" target="_blank" class="hover:text-white transition-colors">Consumer Store</a></li>
+                        <li><a href="https://bigcompany-retailer.alexandratechlab.com" target="_blank" class="hover:text-white transition-colors">Retailer Portal</a></li>
+                        <li><a href="https://bigcompany-wholesaler.alexandratechlab.com" target="_blank" class="hover:text-white transition-colors">Wholesaler Portal</a></li>
+                        <li><a href="https://bigcompany-api.alexandratechlab.com" target="_blank" class="hover:text-white transition-colors">API Status</a></li>
+                    </ul>
+                </div>
+
+                <!-- Newsletter -->
+                <div>
+                    <h4 class="font-semibold text-white mb-6">Stay Updated</h4>
+                    <p class="text-gray-500 mb-4">Subscribe to our newsletter for the latest updates.</p>
+                    <form class="flex gap-2">
+                        <input type="email" placeholder="Enter email" class="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-white">
+                        <button class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-500 text-sm">
+                    © 2024 BIG Company Rwanda. All rights reserved.
+                </p>
+                <div class="flex gap-6 mt-4 md:mt-0">
+                    <a href="#" class="text-gray-500 hover:text-white text-sm transition-colors">Privacy Policy</a>
+                    <a href="#" class="text-gray-500 hover:text-white text-sm transition-colors">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <!-- AOS Animation -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+    <!-- Swiper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <!-- Particles.js -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+
+    <!-- GSAP for advanced animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            easing: 'ease-out-cubic',
+            once: true,
+            offset: 50
+        });
+
+        // Initialize Swiper
+        new Swiper('.testimonials-swiper', {
+            slidesPerView: 1,
+            spaceBetween: 30,
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+            breakpoints: {
+                768: {
+                    slidesPerView: 2,
+                },
+                1024: {
+                    slidesPerView: 3,
+                }
+            },
+            autoplay: {
+                delay: 5000,
+            }
+        });
+
+        // Particles.js Configuration
+        if (document.getElementById('particles-js')) {
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 80, density: { enable: true, value_area: 800 } },
+                    color: { value: '#ffffff' },
+                    shape: { type: 'circle' },
+                    opacity: { value: 0.3, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: { enable: true, distance: 150, color: '#ffffff', opacity: 0.2, width: 1 },
+                    move: { enable: true, speed: 2, direction: 'none', random: true, straight: false, out_mode: 'out' }
+                },
+                interactivity: {
+                    detect_on: 'canvas',
+                    events: {
+                        onhover: { enable: true, mode: 'grab' },
+                        onclick: { enable: true, mode: 'push' },
+                        resize: true
+                    },
+                    modes: {
+                        grab: { distance: 140, line_linked: { opacity: 0.5 } },
+                        push: { particles_nb: 4 }
+                    }
+                },
+                retina_detect: true
+            });
+        }
+
+        // Navbar scroll effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('bg-white/95', 'backdrop-blur-lg', 'shadow-lg');
+                navbar.classList.remove('bg-transparent');
+                navbar.querySelectorAll('a:not(.px-6)').forEach(a => {
+                    a.classList.remove('text-white/90', 'text-blue-200');
+                    a.classList.add('text-gray-700');
+                });
+                navbar.querySelector('h1').classList.remove('text-white');
+                navbar.querySelector('h1').classList.add('text-gray-900');
+                navbar.querySelector('p').classList.remove('text-blue-200');
+                navbar.querySelector('p').classList.add('text-gray-500');
+            } else {
+                navbar.classList.remove('bg-white/95', 'backdrop-blur-lg', 'shadow-lg');
+                navbar.classList.add('bg-transparent');
+                navbar.querySelectorAll('a:not(.px-6)').forEach(a => {
+                    a.classList.add('text-white/90');
+                    a.classList.remove('text-gray-700');
+                });
+                navbar.querySelector('h1').classList.add('text-white');
+                navbar.querySelector('h1').classList.remove('text-gray-900');
+                navbar.querySelector('p').classList.add('text-blue-200');
+                navbar.querySelector('p').classList.remove('text-gray-500');
+            }
+        });
+
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Dashboard tabs
+        const dashboardTabs = document.querySelectorAll('.dashboard-tab');
+        const dashboardContents = document.querySelectorAll('.dashboard-content');
+
+        dashboardTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active from all tabs
+                dashboardTabs.forEach(t => {
+                    t.classList.remove('bg-white', 'text-primary-600', 'shadow-md');
+                    t.classList.add('text-gray-600');
+                });
+
+                // Add active to clicked tab
+                tab.classList.add('bg-white', 'text-primary-600', 'shadow-md');
+                tab.classList.remove('text-gray-600');
+
+                // Hide all contents
+                dashboardContents.forEach(content => content.classList.add('hidden'));
+
+                // Show selected content
+                const tabName = tab.getAttribute('data-tab');
+                document.getElementById(`${tabName}-dashboard`).classList.remove('hidden');
+            });
+        });
+
+        // Set initial active tab
+        dashboardTabs[0].classList.add('bg-white', 'text-primary-600', 'shadow-md');
+
+        // Counter animation
+        const counters = document.querySelectorAll('.counter');
+        const animateCounter = (counter) => {
+            const target = parseInt(counter.getAttribute('data-target'));
+            const duration = 2000;
+            const increment = target / (duration / 16);
+            let current = 0;
+
+            const updateCounter = () => {
+                current += increment;
+                if (current < target) {
+                    counter.textContent = Math.floor(current).toLocaleString();
+                    requestAnimationFrame(updateCounter);
+                } else {
+                    counter.textContent = target.toLocaleString() + '+';
+                }
+            };
+
+            updateCounter();
+        };
+
+        // Intersection Observer for counters
+        const observerOptions = { threshold: 0.5 };
+        const counterObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    animateCounter(entry.target);
+                    counterObserver.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        counters.forEach(counter => counterObserver.observe(counter));
+
+        // GSAP ScrollTrigger animations
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Parallax effect for hero section
+        gsap.to('.floating', {
+            y: -30,
+            duration: 2,
+            ease: 'power1.inOut',
+            yoyo: true,
+            repeat: -1
+        });
+    </script>
+</body>
+</html>

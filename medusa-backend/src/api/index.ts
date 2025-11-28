@@ -4,6 +4,8 @@ import gasRoutes from './routes/gas';
 import loansRoutes from './routes/loans';
 import ussdRoutes from './routes/ussd';
 import nfcRoutes from './routes/nfc';
+import retailerRoutes from './routes/retailer';
+import wholesalerRoutes from './routes/wholesaler';
 
 export default (rootDirectory: string): Router | Router[] => {
   const router = Router();
@@ -21,6 +23,12 @@ export default (rootDirectory: string): Router | Router[] => {
 
   // POS routes (retailer-facing)
   router.use('/pos/nfc', nfcRoutes);
+
+  // Retailer Dashboard API routes
+  router.use('/retailer', retailerRoutes);
+
+  // Wholesaler Dashboard API routes
+  router.use('/wholesaler', wholesalerRoutes);
 
   // Health check
   router.get('/health', (req, res) => {
