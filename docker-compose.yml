@@ -1,0 +1,161 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: bigcompany-postgres
+    environment:
+      POSTGRES_DB: bigcompany
+      POSTGRES_USER: bigcompany
+      POSTGRES_PASSWORD: bigcompany_secure_2024
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bigcompany -d bigcompany"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching and queues
+  redis:
+    image: redis:7-alpine
+    container_name: bigcompany-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Blnk Finance - Wallet/Ledger System
+  blnk:
+    image: jerryenebeli/blnk:latest
+    container_name: bigcompany-blnk
+    volumes:
+      - ./blnk.json:/blnk.json:ro
+    ports:
+      - "5001:5001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Medusa Backend
+  medusa:
+    build:
+      context: ./medusa-backend
+      dockerfile: Dockerfile
+    container_name: bigcompany-medusa
+    environment:
+      DATABASE_URL: postgres://bigcompany:bigcompany_secure_2024@postgres:5432/bigcompany
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: bigcompany_jwt_secret_2024_very_secure
+      COOKIE_SECRET: bigcompany_cookie_secret_2024
+      STORE_CORS: http://store.128.140.82.187.nip.io,http://localhost:3000
+      ADMIN_CORS: http://retailer.128.140.82.187.nip.io,http://wholesaler.128.140.82.187.nip.io,http://localhost:3001,http://localhost:3002
+      BLNK_API_URL: http://blnk:5001
+      NODE_ENV: development
+    ports:
+      - "9000:9000"
+      - "7001:7001"
+    volumes:
+      - ./medusa-backend:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      blnk:
+        condition: service_started
+    restart: unless-stopped
+
+  # Customer Storefront (Next.js)
+  storefront:
+    build:
+      context: ./storefront
+      dockerfile: Dockerfile
+    container_name: bigcompany-storefront
+    environment:
+      NEXT_PUBLIC_MEDUSA_BACKEND_URL: http://api.128.140.82.187.nip.io
+      NEXT_PUBLIC_BLNK_API_URL: http://blnk.128.140.82.187.nip.io
+      MEDUSA_BACKEND_URL: http://medusa:9000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./storefront:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - medusa
+    restart: unless-stopped
+
+  # Retailer Dashboard (Refine.dev)
+  retailer-dashboard:
+    build:
+      context: ./retailer-dashboard
+      dockerfile: Dockerfile
+    container_name: bigcompany-retailer
+    environment:
+      VITE_MEDUSA_BACKEND_URL: http://api.128.140.82.187.nip.io
+      VITE_BLNK_API_URL: http://blnk.128.140.82.187.nip.io
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./retailer-dashboard:/app
+      - /app/node_modules
+    depends_on:
+      - medusa
+    restart: unless-stopped
+
+  # Wholesaler Dashboard (Refine.dev)
+  wholesaler-dashboard:
+    build:
+      context: ./wholesaler-dashboard
+      dockerfile: Dockerfile
+    container_name: bigcompany-wholesaler
+    environment:
+      VITE_MEDUSA_BACKEND_URL: http://api.128.140.82.187.nip.io
+      VITE_BLNK_API_URL: http://blnk.128.140.82.187.nip.io
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./wholesaler-dashboard:/app
+      - /app/node_modules
+    depends_on:
+      - medusa
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy for internal routing
+  nginx:
+    image: nginx:alpine
+    container_name: bigcompany-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - medusa
+      - storefront
+      - retailer-dashboard
+      - wholesaler-dashboard
+      - blnk
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    name: bigcompany-network

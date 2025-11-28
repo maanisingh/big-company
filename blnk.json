@@ -1,0 +1,22 @@
+{
+  "project_name": "BIG Company",
+  "data_source": {
+    "dns": "postgres://bigcompany:bigcompany_secure_2024@postgres:5432/bigcompany?sslmode=disable"
+  },
+  "redis": {
+    "dns": "redis://redis:6379"
+  },
+  "server": {
+    "port": "5001",
+    "ssl": false
+  },
+  "notification": {
+    "slack": {
+      "webhook_url": ""
+    },
+    "webhook": {
+      "url": "",
+      "headers": {}
+    }
+  }
+}
