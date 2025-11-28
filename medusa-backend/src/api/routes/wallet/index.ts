@@ -547,4 +547,67 @@ router.get('/amounts', wrapHandler(async (_req, res) => {
   });
 }));
 
+/**
+ * Get available payment methods
+ * GET /store/wallet/methods
+ */
+router.get('/methods', wrapHandler(async (_req, res) => {
+  res.json({
+    methods: [
+      {
+        id: 'mtn_momo',
+        name: 'MTN Mobile Money',
+        icon: 'mtn',
+        prefixes: ['078', '079'],
+        description: 'Pay with MTN Mobile Money',
+        fees: {
+          percentage: 0,
+          fixed: 0,
+        },
+        limits: {
+          min: 300,
+          max: 500000,
+          daily: 1000000,
+        },
+        enabled: true,
+      },
+      {
+        id: 'airtel_money',
+        name: 'Airtel Money',
+        icon: 'airtel',
+        prefixes: ['072', '073'],
+        description: 'Pay with Airtel Money',
+        fees: {
+          percentage: 0,
+          fixed: 0,
+        },
+        limits: {
+          min: 300,
+          max: 500000,
+          daily: 1000000,
+        },
+        enabled: true,
+      },
+      {
+        id: 'nfc_card',
+        name: 'BIG Shop Card',
+        icon: 'card',
+        description: 'Pay with your BIG Shop Card at any retailer',
+        fees: {
+          percentage: 0,
+          fixed: 0,
+        },
+        limits: {
+          min: 100,
+          max: 100000,
+          daily: 500000,
+        },
+        enabled: true,
+        requiresCard: true,
+      },
+    ],
+    currency: 'RWF',
+  });
+}));
+
 export default router;

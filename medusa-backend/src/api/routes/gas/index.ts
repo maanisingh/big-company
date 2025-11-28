@@ -554,4 +554,110 @@ router.get('/amounts', wrapHandler(async (_req, res) => {
   });
 }));
 
+/**
+ * Get gas/utility providers
+ * GET /store/gas/providers
+ */
+router.get('/providers', wrapHandler(async (_req, res) => {
+  res.json({
+    providers: [
+      {
+        id: 'eucl',
+        name: 'EUCL (Energy Utility Corporation Limited)',
+        shortName: 'EUCL',
+        type: 'electricity',
+        country: 'RW',
+        meterPrefixes: ['01', '04', '05'],
+        minAmount: 300,
+        maxAmount: 100000,
+        fees: {
+          percentage: 0,
+          fixed: 0,
+        },
+        enabled: true,
+        description: 'Rwanda electricity prepaid meters',
+      },
+      {
+        id: 'gas_rwanda',
+        name: 'Gas Rwanda Ltd',
+        shortName: 'GAS RW',
+        type: 'gas',
+        country: 'RW',
+        meterPrefixes: ['GS', 'GR'],
+        minAmount: 500,
+        maxAmount: 50000,
+        fees: {
+          percentage: 0,
+          fixed: 0,
+        },
+        enabled: true,
+        description: 'LPG cooking gas meters',
+      },
+      {
+        id: 'wasac',
+        name: 'WASAC (Water and Sanitation Corporation)',
+        shortName: 'WASAC',
+        type: 'water',
+        country: 'RW',
+        meterPrefixes: ['WA', 'WS'],
+        minAmount: 500,
+        maxAmount: 50000,
+        fees: {
+          percentage: 0,
+          fixed: 0,
+        },
+        enabled: true,
+        description: 'Water utility prepaid meters',
+      },
+    ],
+  });
+}));
+
+/**
+ * Get current gas/utility rates
+ * GET /store/gas/rates
+ */
+router.get('/rates', wrapHandler(async (_req, res) => {
+  res.json({
+    rates: [
+      {
+        providerId: 'eucl',
+        type: 'electricity',
+        tiers: [
+          { from: 0, to: 15, rate: 89, unit: 'kWh', description: 'Lifeline (subsidized)' },
+          { from: 15, to: 50, rate: 212, unit: 'kWh', description: 'Standard domestic' },
+          { from: 50, to: null, rate: 249, unit: 'kWh', description: 'Standard above 50 kWh' },
+        ],
+        vat: 18,
+        currency: 'RWF',
+        effectiveDate: '2024-01-01',
+      },
+      {
+        providerId: 'gas_rwanda',
+        type: 'gas',
+        tiers: [
+          { from: 0, to: null, rate: 1200, unit: 'kg', description: 'LPG standard rate' },
+        ],
+        vat: 18,
+        currency: 'RWF',
+        effectiveDate: '2024-01-01',
+      },
+      {
+        providerId: 'wasac',
+        type: 'water',
+        tiers: [
+          { from: 0, to: 5, rate: 252, unit: 'm³', description: 'Basic usage' },
+          { from: 5, to: 20, rate: 504, unit: 'm³', description: 'Standard usage' },
+          { from: 20, to: null, rate: 756, unit: 'm³', description: 'Above 20 m³' },
+        ],
+        vat: 18,
+        currency: 'RWF',
+        effectiveDate: '2024-01-01',
+      },
+    ],
+    lastUpdated: new Date().toISOString(),
+    note: 'Rates are subject to change by respective utility companies',
+  });
+}));
+
 export default router;

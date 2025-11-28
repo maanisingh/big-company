@@ -399,22 +399,36 @@ router.delete('/cards/:id', wrapHandler(async (req, res) => {
  * POST /pos/nfc/validate
  */
 router.post('/validate', wrapHandler(async (req, res) => {
-  const { card_uid } = req.body;
+  const card_uid = req.body?.card_uid;
 
   if (!card_uid) {
-    return res.status(400).json({ error: 'Card UID is required' });
+    return res.status(400).json({
+      valid: false,
+      error: 'Card UID is required'
+    });
   }
 
   try {
     const normalizedUid = card_uid.toUpperCase().trim();
 
-    const card = await db.query(`
-      SELECT c.id, c.dashboard_id, c.card_alias, c.is_active, c.user_id,
-             u.first_name, u.last_name
-      FROM bigcompany.nfc_cards c
-      LEFT JOIN customer u ON c.user_id = u.id
-      WHERE c.card_uid = $1
-    `, [normalizedUid]);
+    // Try to validate card
+    let card;
+    try {
+      card = await db.query(`
+        SELECT c.id, c.dashboard_id, c.card_alias, c.is_active, c.user_id,
+               u.first_name, u.last_name
+        FROM bigcompany.nfc_cards c
+        LEFT JOIN customer u ON c.user_id = u.id
+        WHERE c.card_uid = $1
+      `, [normalizedUid]);
+    } catch (dbError: any) {
+      // Schema or table doesn't exist - return valid:false with message
+      console.error('NFC validate DB error:', dbError.message);
+      return res.status(404).json({
+        valid: false,
+        error: 'Card validation service unavailable',
+      });
+    }
 
     if (card.rows.length === 0) {
       return res.status(404).json({
@@ -436,7 +450,8 @@ router.post('/validate', wrapHandler(async (req, res) => {
         : null,
     });
   } catch (error: any) {
-    res.status(500).json({ error: 'Validation failed' });
+    console.error('NFC validate error:', error);
+    res.status(500).json({ valid: false, error: 'Validation failed' });
   }
 }));
 

@@ -35,8 +35,10 @@ import {
   PrinterOutlined,
   DollarOutlined,
   ScanOutlined,
+  CameraOutlined,
 } from '@ant-design/icons';
 import { posApi, inventoryApi } from '../../lib/api';
+import BarcodeScanner from '../../components/BarcodeScanner';
 
 const { Title, Text } = Typography;
 
@@ -499,22 +501,27 @@ export const POSPage = () => {
             title="Products"
             extra={
               <Space>
+                <BarcodeScanner
+                  onScan={handleBarcodeScan}
+                  buttonText="Camera"
+                  buttonIcon={<CameraOutlined />}
+                />
                 <Input
-                  placeholder="Scan barcode"
+                  placeholder="Manual barcode"
                   prefix={<BarcodeOutlined />}
                   value={barcodeInput}
                   ref={barcodeInputRef}
                   onChange={(e) => setBarcodeInput(e.target.value)}
                   onPressEnter={() => handleBarcodeScan(barcodeInput)}
-                  style={{ width: 180 }}
+                  style={{ width: 150 }}
                 />
                 <Input.Search
-                  placeholder="Search products..."
+                  placeholder="Search..."
                   prefix={<SearchOutlined />}
                   value={searchTerm}
                   onChange={(e) => handleSearch(e.target.value)}
                   loading={searchLoading}
-                  style={{ width: 200 }}
+                  style={{ width: 150 }}
                   allowClear
                 />
               </Space>
