@@ -1,0 +1,530 @@
+{
+  "store": {
+    "currencies": ["rwf", "usd"],
+    "default_currency_code": "rwf"
+  },
+  "regions": [
+    {
+      "id": "reg_rwanda",
+      "name": "Rwanda",
+      "currency_code": "rwf",
+      "tax_rate": 18,
+      "payment_providers": ["manual"],
+      "fulfillment_providers": ["manual"],
+      "countries": ["rw"]
+    }
+  ],
+  "shipping_options": [
+    {
+      "name": "Standard Delivery - Kigali",
+      "region_id": "reg_rwanda",
+      "provider_id": "manual",
+      "data": {
+        "id": "manual-fulfillment"
+      },
+      "price_type": "flat_rate",
+      "amount": 2000
+    },
+    {
+      "name": "Express Delivery - Kigali",
+      "region_id": "reg_rwanda",
+      "provider_id": "manual",
+      "data": {
+        "id": "manual-fulfillment"
+      },
+      "price_type": "flat_rate",
+      "amount": 5000
+    },
+    {
+      "name": "Provincial Delivery",
+      "region_id": "reg_rwanda",
+      "provider_id": "manual",
+      "data": {
+        "id": "manual-fulfillment"
+      },
+      "price_type": "flat_rate",
+      "amount": 8000
+    }
+  ],
+  "products": [
+    {
+      "title": "Inyange Water 500ml",
+      "handle": "inyange-water-500ml",
+      "description": "Pure natural mineral water from Rwanda's pristine sources. Refreshing and clean drinking water.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "Single Bottle",
+          "prices": [{"currency_code": "rwf", "amount": 300}],
+          "options": [{"value": "500ml"}],
+          "inventory_quantity": 500,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "Inyange Water 1.5L",
+      "handle": "inyange-water-1-5l",
+      "description": "Large bottle of pure natural mineral water. Perfect for families and offices.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "Single Bottle",
+          "prices": [{"currency_code": "rwf", "amount": 600}],
+          "options": [{"value": "1.5L"}],
+          "inventory_quantity": 300,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "Bralirwa Primus Beer 500ml",
+      "handle": "bralirwa-primus-500ml",
+      "description": "Rwanda's favorite lager beer. Brewed locally with the finest ingredients.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "Single Bottle",
+          "prices": [{"currency_code": "rwf", "amount": 1200}],
+          "options": [{"value": "500ml"}],
+          "inventory_quantity": 400,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "Bralirwa Mutzig Beer 500ml",
+      "handle": "bralirwa-mutzig-500ml",
+      "description": "Premium Rwandan beer with a rich, full-bodied taste.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "Single Bottle",
+          "prices": [{"currency_code": "rwf", "amount": 1300}],
+          "options": [{"value": "500ml"}],
+          "inventory_quantity": 350,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "Urwagwa Traditional Banana Wine",
+      "handle": "urwagwa-banana-wine-1l",
+      "description": "Traditional Rwandan banana wine. A cultural favorite for celebrations.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "1 Liter",
+          "prices": [{"currency_code": "rwf", "amount": 8000}],
+          "options": [{"value": "1L"}],
+          "inventory_quantity": 100,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "Inyange Apple Juice",
+      "handle": "inyange-juice-apple-1l",
+      "description": "100% pure apple juice from Inyange Industries. No added sugar.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "1 Liter",
+          "prices": [{"currency_code": "rwf", "amount": 2500}],
+          "options": [{"value": "1L"}],
+          "inventory_quantity": 200,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "Inyange Passion Fruit Juice",
+      "handle": "inyange-juice-passion-1l",
+      "description": "Delicious passion fruit juice. Made from locally grown passion fruits.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "1 Liter",
+          "prices": [{"currency_code": "rwf", "amount": 2500}],
+          "options": [{"value": "1L"}],
+          "inventory_quantity": 200,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "Inyange Fresh Milk 500ml",
+      "handle": "inyange-milk-500ml",
+      "description": "Fresh pasteurized milk from Rwandan dairy farms. Rich in calcium and vitamins.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "500ml",
+          "prices": [{"currency_code": "rwf", "amount": 800}],
+          "options": [{"value": "500ml"}],
+          "inventory_quantity": 300,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "Inyange Fresh Milk 1L",
+      "handle": "inyange-milk-1l",
+      "description": "Fresh pasteurized milk in convenient 1 liter packaging.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "1 Liter",
+          "prices": [{"currency_code": "rwf", "amount": 1500}],
+          "options": [{"value": "1L"}],
+          "inventory_quantity": 250,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "Ikivuguto (Traditional Yogurt)",
+      "handle": "ikivuguto-500ml",
+      "description": "Traditional Rwandan fermented milk. Probiotic-rich and delicious.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "500ml",
+          "prices": [{"currency_code": "rwf", "amount": 1200}],
+          "options": [{"value": "500ml"}],
+          "inventory_quantity": 150,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "Inyange Strawberry Yogurt",
+      "handle": "inyange-yogurt-strawberry",
+      "description": "Creamy strawberry flavored yogurt. Perfect for breakfast or snacks.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "250ml",
+          "prices": [{"currency_code": "rwf", "amount": 900}],
+          "options": [{"value": "250ml"}],
+          "inventory_quantity": 200,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "Inyange Butter",
+      "handle": "inyange-butter-250g",
+      "description": "Pure creamy butter made from fresh Rwandan milk.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "250g",
+          "prices": [{"currency_code": "rwf", "amount": 3500}],
+          "options": [{"value": "250g"}],
+          "inventory_quantity": 100,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "Rice (Local) 5kg",
+      "handle": "rice-local-5kg",
+      "description": "Premium Rwandan rice. Locally grown and harvested.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "5kg Bag",
+          "prices": [{"currency_code": "rwf", "amount": 7500}],
+          "options": [{"value": "5kg"}],
+          "inventory_quantity": 200,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "Isombe (Cassava Leaves)",
+      "handle": "isombe-500g",
+      "description": "Pre-prepared cassava leaves. Traditional Rwandan delicacy.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "500g Pack",
+          "prices": [{"currency_code": "rwf", "amount": 2000}],
+          "options": [{"value": "500g"}],
+          "inventory_quantity": 150,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "Ubugari (Cassava Flour)",
+      "handle": "ubugari-flour-2kg",
+      "description": "Fine cassava flour for making traditional ubugari.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "2kg Bag",
+          "prices": [{"currency_code": "rwf", "amount": 3500}],
+          "options": [{"value": "2kg"}],
+          "inventory_quantity": 180,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "Red Beans",
+      "handle": "beans-red-1kg",
+      "description": "Premium red kidney beans. Staple of Rwandan cuisine.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "1kg Bag",
+          "prices": [{"currency_code": "rwf", "amount": 2200}],
+          "options": [{"value": "1kg"}],
+          "inventory_quantity": 250,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "Maize Flour",
+      "handle": "maize-flour-2kg",
+      "description": "Fine maize flour for ugali and other dishes.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "2kg Bag",
+          "prices": [{"currency_code": "rwf", "amount": 2800}],
+          "options": [{"value": "2kg"}],
+          "inventory_quantity": 200,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "Sugar",
+      "handle": "sugar-1kg",
+      "description": "Refined white sugar. Essential kitchen staple.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "1kg Bag",
+          "prices": [{"currency_code": "rwf", "amount": 1800}],
+          "options": [{"value": "1kg"}],
+          "inventory_quantity": 300,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "Ubuki (Rwandan Honey)",
+      "handle": "ubuki-honey-500g",
+      "description": "Pure natural honey from Rwandan beekeepers. Rich and flavorful.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "500g Jar",
+          "prices": [{"currency_code": "rwf", "amount": 12000}],
+          "options": [{"value": "500g"}],
+          "inventory_quantity": 80,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "Akabanga Extra Hot Chili Oil",
+      "handle": "akabanga-chili-oil-100ml",
+      "description": "Famous Rwandan hot chili oil. A little goes a long way!",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "100ml Bottle",
+          "prices": [{"currency_code": "rwf", "amount": 6000}],
+          "options": [{"value": "100ml"}],
+          "inventory_quantity": 200,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "Vegetable Cooking Oil",
+      "handle": "vegetable-oil-1l",
+      "description": "Pure vegetable cooking oil. For all your cooking needs.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "1L Bottle",
+          "prices": [{"currency_code": "rwf", "amount": 4500}],
+          "options": [{"value": "1L"}],
+          "inventory_quantity": 250,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "Palm Oil",
+      "handle": "palm-oil-500ml",
+      "description": "Traditional palm oil for authentic African cooking.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "500ml Bottle",
+          "prices": [{"currency_code": "rwf", "amount": 3500}],
+          "options": [{"value": "500ml"}],
+          "inventory_quantity": 150,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "Iodized Salt",
+      "handle": "salt-1kg",
+      "description": "Iodized table salt. Essential for every kitchen.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "1kg Pack",
+          "prices": [{"currency_code": "rwf", "amount": 800}],
+          "options": [{"value": "1kg"}],
+          "inventory_quantity": 400,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "Tomato Paste",
+      "handle": "tomato-paste-400g",
+      "description": "Concentrated tomato paste for rich sauces and stews.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "400g Tin",
+          "prices": [{"currency_code": "rwf", "amount": 2500}],
+          "options": [{"value": "400g"}],
+          "inventory_quantity": 180,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "Geisha Soap Bar",
+      "handle": "soap-geisha-175g",
+      "description": "Gentle cleansing soap bar. For smooth, healthy skin.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "Single Bar",
+          "prices": [{"currency_code": "rwf", "amount": 1200}],
+          "options": [{"value": "175g"}],
+          "inventory_quantity": 300,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "Close Up Toothpaste",
+      "handle": "toothpaste-closeup-100ml",
+      "description": "Fresh breath toothpaste for complete oral care.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "100ml Tube",
+          "prices": [{"currency_code": "rwf", "amount": 2000}],
+          "options": [{"value": "100ml"}],
+          "inventory_quantity": 200,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "Moisturizing Body Lotion",
+      "handle": "body-lotion-400ml",
+      "description": "Moisturizing body lotion for soft, hydrated skin.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "400ml Bottle",
+          "prices": [{"currency_code": "rwf", "amount": 5500}],
+          "options": [{"value": "400ml"}],
+          "inventory_quantity": 120,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "OMO Washing Powder",
+      "handle": "washing-powder-1kg",
+      "description": "Powerful cleaning detergent for sparkling clean clothes.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "1kg Pack",
+          "prices": [{"currency_code": "rwf", "amount": 4000}],
+          "options": [{"value": "1kg"}],
+          "inventory_quantity": 180,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "LPG Gas Cylinder 6kg",
+      "handle": "lpg-gas-6kg",
+      "description": "6kg LPG cooking gas cylinder. Safe and efficient for home cooking.",
+      "options": [{"title": "Type"}],
+      "variants": [
+        {
+          "title": "Refill Only",
+          "prices": [{"currency_code": "rwf", "amount": 8500}],
+          "options": [{"value": "Refill"}],
+          "inventory_quantity": 100,
+          "manage_inventory": true
+        },
+        {
+          "title": "New Cylinder + Gas",
+          "prices": [{"currency_code": "rwf", "amount": 35000}],
+          "options": [{"value": "New"}],
+          "inventory_quantity": 50,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "LPG Gas Cylinder 12kg",
+      "handle": "lpg-gas-12kg",
+      "description": "12kg LPG cooking gas cylinder. Ideal for families and restaurants.",
+      "options": [{"title": "Type"}],
+      "variants": [
+        {
+          "title": "Refill Only",
+          "prices": [{"currency_code": "rwf", "amount": 16500}],
+          "options": [{"value": "Refill"}],
+          "inventory_quantity": 80,
+          "manage_inventory": true
+        },
+        {
+          "title": "New Cylinder + Gas",
+          "prices": [{"currency_code": "rwf", "amount": 55000}],
+          "options": [{"value": "New"}],
+          "inventory_quantity": 30,
+          "manage_inventory": true
+        }
+      ]
+    },
+    {
+      "title": "Charcoal",
+      "handle": "charcoal-50kg",
+      "description": "Premium quality charcoal for grilling and cooking.",
+      "options": [{"title": "Size"}],
+      "variants": [
+        {
+          "title": "50kg Bag",
+          "prices": [{"currency_code": "rwf", "amount": 25000}],
+          "options": [{"value": "50kg"}],
+          "inventory_quantity": 60,
+          "manage_inventory": true
+        }
+      ]
+    }
+  ]
+}

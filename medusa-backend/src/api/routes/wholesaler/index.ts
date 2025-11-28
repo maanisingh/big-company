@@ -222,6 +222,60 @@ router.use(corsMiddleware);
     }
   });
 
+  // Weekly sales endpoint (alias for dashboard/sales with week period)
+  router.get('/dashboard/weekly-sales', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const weeklySales = [
+        { date: '2024-11-22', sales: 4500000, orders: 45, day: 'Fri' },
+        { date: '2024-11-23', sales: 7800000, orders: 78, day: 'Sat' },
+        { date: '2024-11-24', sales: 5600000, orders: 56, day: 'Sun' },
+        { date: '2024-11-25', sales: 9200000, orders: 92, day: 'Mon' },
+        { date: '2024-11-26', sales: 6700000, orders: 67, day: 'Tue' },
+        { date: '2024-11-27', sales: 8400000, orders: 84, day: 'Wed' },
+        { date: '2024-11-28', sales: 8500000, orders: 85, day: 'Thu' },
+      ];
+      res.json(weeklySales);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Pending orders for dashboard
+  router.get('/dashboard/pending-orders', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { limit = 5 } = req.query;
+      const pendingOrders = [
+        { id: 'whl_ord_001', retailer: 'Kigali Shop', total: 1500000, items: 45, created_at: '2024-11-28T10:30:00Z', priority: 'high' },
+        { id: 'whl_ord_005', retailer: 'Nyagatare Supplies', total: 1980000, items: 56, created_at: '2024-11-27T14:50:00Z', priority: 'normal' },
+        { id: 'whl_ord_006', retailer: 'Muhanga Store', total: 2350000, items: 68, created_at: '2024-11-27T11:20:00Z', priority: 'normal' },
+        { id: 'whl_ord_007', retailer: 'Rwamagana Market', total: 890000, items: 24, created_at: '2024-11-27T09:45:00Z', priority: 'low' },
+        { id: 'whl_ord_008', retailer: 'Karongi Traders', total: 3200000, items: 92, created_at: '2024-11-26T16:30:00Z', priority: 'high' },
+      ];
+      res.json(pendingOrders.slice(0, Number(limit)));
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Credit health dashboard endpoint
+  router.get('/dashboard/credit-health', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      res.json({
+        total_credit_limit: 50000000,
+        total_credit_used: 35000000,
+        available_credit: 15000000,
+        utilization_rate: 70,
+        retailers_with_credit: 45,
+        overdue_amount: 5200000,
+        overdue_count: 8,
+        on_time_payments_rate: 92,
+        currency: 'RWF',
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // ==================== RETAILERS MANAGEMENT ====================
 
   router.get('/retailers', authMiddleware, async (req: Request, res: Response) => {
@@ -304,6 +358,27 @@ router.use(corsMiddleware);
   });
 
   // ==================== ORDERS ROUTES ====================
+
+  // Orders stats endpoint
+  router.get('/orders/stats', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      res.json({
+        total_orders: 892,
+        pending: 45,
+        processing: 38,
+        shipped: 52,
+        delivered: 745,
+        cancelled: 12,
+        total_revenue: 156000000,
+        average_order_value: 174888,
+        orders_today: 34,
+        revenue_today: 8500000,
+        currency: 'RWF',
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
 
   router.get('/orders', authMiddleware, async (req: Request, res: Response) => {
     try {
