@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "medusa develop",
-    "start": "medusa start",
+    "start": "npm run migrations:run && medusa start",
+    "start:prod": "medusa start",
     "build": "medusa build",
     "seed": "medusa seed -f ./data/seed.json",
     "migrations:run": "medusa migrations run",

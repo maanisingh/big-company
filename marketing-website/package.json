@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "BIG Company Marketing Website - Static Site",
   "scripts": {
-    "start": "serve -s . -l ${PORT:-3000}"
+    "start": "serve -s . -l ${PORT:-3000}",
+    "preview": "serve -s . -l ${PORT:-3000}",
+    "build": "echo 'Static site - no build needed'"
   },
   "dependencies": {
     "serve": "^14.2.0"
