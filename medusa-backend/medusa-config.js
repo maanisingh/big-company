@@ -50,8 +50,10 @@ const plugins = [
   {
     resolve: "@medusajs/admin",
     options: {
-      autoRebuild: process.env.NODE_ENV !== "production",
-      serve: process.env.NODE_ENV === "production",
+      // Disable admin UI in production - it requires build files that Railway doesn't persist
+      // Admin can be accessed separately via a dedicated admin deployment
+      autoRebuild: false,
+      serve: false,
       develop: {
         open: false,
       },
