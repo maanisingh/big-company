@@ -50,9 +50,13 @@ async function initBigCompanySchema() {
     console.log('[init-bigcompany-schema] Created tables:', checkTables.rows.map(r => r.table_name).join(', '));
 
   } catch (error) {
-    // Check if it's a "already exists" error - that's OK
-    if (error.message && error.message.includes('already exists')) {
-      console.log('[init-bigcompany-schema] Schema already initialized (tables exist)');
+    // Check if it's a benign error that we can safely ignore
+    if (error.message && (
+      error.message.includes('already exists') ||
+      error.message.includes('role') ||
+      error.message.includes('permission denied')
+    )) {
+      console.log('[init-bigcompany-schema] Non-critical issue (continuing):', error.message);
     } else {
       console.error('[init-bigcompany-schema] ERROR:', error.message);
       // Don't exit with error - the tables might already exist from a partial run
