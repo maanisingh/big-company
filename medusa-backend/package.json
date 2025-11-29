@@ -5,14 +5,16 @@
   "main": "index.js",
   "scripts": {
     "dev": "medusa develop",
-    "start": "npm run migrations:run && medusa start",
+    "start": "npm run init:bigcompany && npm run migrations:run && medusa start",
     "start:prod": "medusa start",
     "build": "medusa build",
     "seed": "medusa seed -f ./data/seed.json",
     "migrations:run": "medusa migrations run",
-    "migrations:generate": "medusa migrations generate"
+    "migrations:generate": "medusa migrations generate",
+    "init:bigcompany": "node scripts/init-bigcompany-schema.js"
   },
   "dependencies": {
+    "pg": "^8.11.0",
     "@medusajs/admin": "^7.1.0",
     "@medusajs/cache-inmemory": "^1.8.0",
     "@medusajs/cache-redis": "^1.9.0",
