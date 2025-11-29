@@ -38,6 +38,8 @@ const BLNK_API_URL = process.env.BLNK_API_URL || "http://localhost:5001";
 const JWT_SECRET = process.env.JWT_SECRET || "bigcompany_jwt_secret_2024";
 const COOKIE_SECRET = process.env.COOKIE_SECRET || "bigcompany_cookie_secret_2024";
 
+// Minimal plugins for Railway deployment - remove admin to prevent startup issues
+// See: https://stackoverflow.com/questions/79387415/error-starting-server-in-railway-deployment
 const plugins = [
   `medusa-fulfillment-manual`,
   `medusa-payment-manual`,
@@ -47,18 +49,8 @@ const plugins = [
       upload_dir: "uploads",
     },
   },
-  {
-    resolve: "@medusajs/admin",
-    options: {
-      // Disable admin UI in production - it requires build files that Railway doesn't persist
-      // Admin can be accessed separately via a dedicated admin deployment
-      autoRebuild: false,
-      serve: false,
-      develop: {
-        open: false,
-      },
-    },
-  },
+  // Admin plugin disabled - causes "Error starting server" on Railway
+  // Deploy admin UI separately or use medusa-admin CLI locally
 ];
 
 // IMPORTANT: Use local event bus and cache to avoid Redis connection issues during startup
@@ -82,7 +74,8 @@ const projectConfig = {
   store_cors: STORE_CORS,
   database_url: DATABASE_URL,
   admin_cors: ADMIN_CORS,
-  redis_url: REDIS_URL,
+  // REMOVED: redis_url - not needed since we use local event bus and in-memory cache
+  // Redis is only used by BullMQ workers separately
   // Use Railway's PORT environment variable or default to 9000
   http: {
     port: parseInt(process.env.PORT) || 9000,
