@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "medusa develop",
-    "start": "npm run init:bigcompany && npm run migrations:run && npm run ensure:defaults && node scripts/start-with-error-capture.js 2>&1",
+    "start": "npm run init:bigcompany && npm run migrations:run && npm run ensure:defaults && NODE_OPTIONS='--enable-source-maps --trace-warnings --trace-uncaught' medusa start 2>&1",
     "ensure:defaults": "node scripts/ensure-defaults.js",
     "start:prod": "medusa start",
     "build": "echo 'No build step needed - admin plugin disabled'",

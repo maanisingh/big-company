@@ -1,49 +1,68 @@
 #!/usr/bin/env node
 /**
  * Start Medusa with error capture
- * This wraps the Medusa startup to capture any uncaught errors
+ * This directly runs Medusa in the same process to capture all errors
  */
 
-// Capture all uncaught exceptions
+// IMPORTANT: Capture errors before anything else runs
 process.on('uncaughtException', (error) => {
+  console.error('=========================================');
   console.error('[UNCAUGHT EXCEPTION]');
   console.error('Message:', error.message);
   console.error('Name:', error.name);
   console.error('Stack:', error.stack);
+  console.error('=========================================');
   process.exit(1);
 });
 
-// Capture all unhandled promise rejections
 process.on('unhandledRejection', (reason, promise) => {
+  console.error('=========================================');
   console.error('[UNHANDLED REJECTION]');
   console.error('Reason:', reason);
   if (reason instanceof Error) {
     console.error('Stack:', reason.stack);
   }
+  console.error('=========================================');
   process.exit(1);
 });
 
-// Log startup
+// Enable source maps and warnings
+process.env.NODE_OPTIONS = '--enable-source-maps --trace-warnings';
+
 console.log('[start-wrapper] Starting Medusa with error capture...');
+console.log('[start-wrapper] Working directory:', process.cwd());
+console.log('[start-wrapper] Node version:', process.version);
 
-// Import and run Medusa
-const { spawn } = require('child_process');
+// Wrap the entire startup in a try-catch
+async function start() {
+  try {
+    // Use the Medusa CLI directly via require
+    // This keeps everything in the same process so we catch all errors
+    const { execSync } = require('child_process');
 
-const medusa = spawn('npx', ['medusa', 'start'], {
-  stdio: 'inherit',
-  env: {
-    ...process.env,
-    NODE_OPTIONS: '--enable-source-maps --trace-warnings'
+    // Run medusa start synchronously to capture any exit codes
+    execSync('npx medusa start', {
+      stdio: 'inherit',
+      env: {
+        ...process.env,
+        NODE_OPTIONS: '--enable-source-maps --trace-warnings'
+      }
+    });
+  } catch (error) {
+    console.error('=========================================');
+    console.error('[STARTUP ERROR]');
+    console.error('Message:', error.message);
+    console.error('Status:', error.status);
+    console.error('Signal:', error.signal);
+    if (error.stderr) {
+      console.error('Stderr:', error.stderr.toString());
+    }
+    if (error.stdout) {
+      console.error('Stdout:', error.stdout.toString());
+    }
+    console.error('=========================================');
+    process.exit(error.status || 1);
   }
-});
+}
 
-medusa.on('error', (error) => {
-  console.error('[SPAWN ERROR]');
-  console.error('Message:', error.message);
-  console.error('Stack:', error.stack);
-});
-
-medusa.on('exit', (code, signal) => {
-  console.log(`[start-wrapper] Medusa exited with code ${code}, signal ${signal}`);
-  process.exit(code || 0);
-});
+start();
