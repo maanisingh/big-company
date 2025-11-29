@@ -58,7 +58,8 @@ const plugins = [
   },
 ];
 
-const modules = {
+// Use Redis if available, otherwise fallback to local modules
+const modules = REDIS_URL && REDIS_URL !== "redis://localhost:6379" ? {
   eventBus: {
     resolve: "@medusajs/event-bus-redis",
     options: {
@@ -71,6 +72,13 @@ const modules = {
       redisUrl: REDIS_URL
     }
   },
+} : {
+  eventBus: {
+    resolve: "@medusajs/event-bus-local"
+  },
+  cacheService: {
+    resolve: "@medusajs/cache-inmemory"
+  },
 };
 
 /** @type {import('@medusajs/medusa').ConfigModule["projectConfig"]} */
@@ -81,8 +89,12 @@ const projectConfig = {
   database_url: DATABASE_URL,
   admin_cors: ADMIN_CORS,
   redis_url: REDIS_URL,
-  // No SSL for internal Docker PostgreSQL
-  database_extra: {},
+  // SSL configuration for Railway PostgreSQL (requires SSL in production)
+  database_extra: process.env.NODE_ENV === "production" ? {
+    ssl: {
+      rejectUnauthorized: false
+    }
+  } : {},
 };
 
 /** @type {import('@medusajs/medusa').ConfigModule} */

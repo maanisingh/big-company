@@ -1,0 +1,14 @@
+{
+  "name": "bigcompany-marketing-website",
+  "version": "1.0.0",
+  "description": "BIG Company Marketing Website - Static Site",
+  "scripts": {
+    "start": "serve -s . -l ${PORT:-3000}"
+  },
+  "dependencies": {
+    "serve": "^14.2.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
