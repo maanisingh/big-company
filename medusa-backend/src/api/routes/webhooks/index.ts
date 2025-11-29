@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { addPaymentJob, addCreditJob } from '../../../jobs/queue';
+import { addPaymentJob, addCreditJob } from '../../../workers/queue';
 
 const router = Router();
 
