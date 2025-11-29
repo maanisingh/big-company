@@ -61,21 +61,12 @@ const plugins = [
   },
 ];
 
-// Use Redis if available, otherwise fallback to local modules
-const modules = REDIS_URL && REDIS_URL !== "redis://localhost:6379" ? {
-  eventBus: {
-    resolve: "@medusajs/event-bus-redis",
-    options: {
-      redisUrl: REDIS_URL
-    }
-  },
-  cacheService: {
-    resolve: "@medusajs/cache-redis",
-    options: {
-      redisUrl: REDIS_URL
-    }
-  },
-} : {
+// IMPORTANT: Use local event bus and cache to avoid Redis connection issues during startup
+// The @medusajs/event-bus-redis and @medusajs/cache-redis modules can cause
+// "Error starting server" during "Initializing defaults" on Railway due to
+// connection timing issues. BullMQ workers use Redis separately and work fine.
+// See: https://github.com/medusajs/medusa/issues/4141
+const modules = {
   eventBus: {
     resolve: "@medusajs/event-bus-local"
   },
