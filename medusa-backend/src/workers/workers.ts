@@ -3,14 +3,31 @@ import { connection, PaymentJobData, SmsJobData, LoanJobData, GasJobData, Credit
 import SmsService from '../services/sms';
 import BlnkService from '../services/blnk';
 
-// Only initialize workers if REDIS_URL is set and we're in production
-const shouldStartWorkers = process.env.REDIS_URL && process.env.NODE_ENV === 'production';
+// Only initialize workers if REDIS_URL is properly set
+const REDIS_URL = process.env.REDIS_URL;
+const shouldStartWorkers = REDIS_URL && REDIS_URL !== 'redis://localhost:6379' && REDIS_URL.includes('://');
 
-const smsService = new SmsService();
-const blnkService = new BlnkService();
+// Lazy initialization - only create instances when workers actually start
+let smsService: SmsService;
+let blnkService: BlnkService;
+
+// Worker instances (initialized lazily)
+let paymentWorker: Worker<PaymentJobData> | null = null;
+let smsWorker: Worker<SmsJobData> | null = null;
+let loanWorker: Worker<LoanJobData> | null = null;
+let gasWorker: Worker<GasJobData> | null = null;
+let creditWorker: Worker<CreditJobData> | null = null;
+
+// Only create workers if Redis is properly configured
+if (!shouldStartWorkers) {
+  console.log('[Workers] Skipping worker initialization - Redis not configured');
+} else {
+  console.log('[Workers] Initializing workers with Redis:', REDIS_URL?.substring(0, 20) + '...');
+  smsService = new SmsService();
+  blnkService = new BlnkService();
 
 // Payment Worker - handles MoMo/Airtel callbacks and wallet operations
-const paymentWorker = new Worker<PaymentJobData>(
+paymentWorker = new Worker<PaymentJobData>(
   'payments',
   async (job: Job<PaymentJobData>) => {
     const { type, customerId, amount, reference, provider, phone, status } = job.data;
@@ -224,8 +241,9 @@ const creditWorker = new Worker<CreditJobData>(
   { connection, concurrency: 3 }
 );
 
-// Error handlers
-[paymentWorker, smsWorker, loanWorker, gasWorker, creditWorker].forEach((worker) => {
+// Error handlers - only attach if workers were created
+const workers = [paymentWorker, smsWorker, loanWorker, gasWorker, creditWorker].filter(Boolean) as Worker[];
+workers.forEach((worker) => {
   worker.on('failed', (job, err) => {
     console.error(`[${worker.name}] Job ${job?.id} failed:`, err.message);
   });
@@ -235,11 +253,15 @@ const creditWorker = new Worker<CreditJobData>(
   });
 });
 
+} // End of if (shouldStartWorkers) block
+
 export { paymentWorker, smsWorker, loanWorker, gasWorker, creditWorker };
 
 // Start all workers
 export const startWorkers = () => {
-  console.log('Starting all job workers...');
-  // Workers are already started when instantiated
-  console.log('All workers started successfully');
+  if (!shouldStartWorkers) {
+    console.log('[Workers] Workers not started - Redis not configured');
+    return;
+  }
+  console.log('[Workers] All job workers started successfully');
 };
