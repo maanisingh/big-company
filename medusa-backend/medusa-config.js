@@ -50,9 +50,10 @@ const plugins = [
   {
     resolve: "@medusajs/admin",
     options: {
-      autoRebuild: true,
+      autoRebuild: process.env.NODE_ENV !== "production",
+      serve: process.env.NODE_ENV === "production",
       develop: {
-        open: process.env.OPEN_BROWSER !== "false",
+        open: false,
       },
     },
   },
@@ -89,6 +90,10 @@ const projectConfig = {
   database_url: DATABASE_URL,
   admin_cors: ADMIN_CORS,
   redis_url: REDIS_URL,
+  // Use Railway's PORT environment variable or default to 9000
+  http: {
+    port: parseInt(process.env.PORT) || 9000,
+  },
   // SSL configuration for Railway PostgreSQL (requires SSL in production)
   database_extra: process.env.NODE_ENV === "production" ? {
     ssl: {

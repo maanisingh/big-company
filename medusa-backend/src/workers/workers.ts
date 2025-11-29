@@ -3,6 +3,9 @@ import { connection, PaymentJobData, SmsJobData, LoanJobData, GasJobData, Credit
 import SmsService from '../services/sms';
 import BlnkService from '../services/blnk';
 
+// Only initialize workers if REDIS_URL is set and we're in production
+const shouldStartWorkers = process.env.REDIS_URL && process.env.NODE_ENV === 'production';
+
 const smsService = new SmsService();
 const blnkService = new BlnkService();
 

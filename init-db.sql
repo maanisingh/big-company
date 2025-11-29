@@ -10,10 +10,28 @@ CREATE SCHEMA IF NOT EXISTS blnk;
 -- Schema for custom BigCompany extensions
 CREATE SCHEMA IF NOT EXISTS bigcompany;
 
--- Grant permissions
-GRANT ALL ON SCHEMA n8n TO bigcompany;
-GRANT ALL ON SCHEMA blnk TO bigcompany;
-GRANT ALL ON SCHEMA bigcompany TO bigcompany;
+-- Grant permissions (safe for any setup)
+-- Note: Railway and other cloud DBs may use different user names
+DO $$
+DECLARE
+    role_exists BOOLEAN;
+BEGIN
+    -- Check if bigcompany role exists before trying to grant
+    SELECT EXISTS (
+        SELECT 1 FROM pg_roles WHERE rolname = 'bigcompany'
+    ) INTO role_exists;
+
+    IF role_exists THEN
+        EXECUTE 'GRANT ALL ON SCHEMA n8n TO bigcompany';
+        EXECUTE 'GRANT ALL ON SCHEMA blnk TO bigcompany';
+        EXECUTE 'GRANT ALL ON SCHEMA bigcompany TO bigcompany';
+        RAISE NOTICE 'Granted schema permissions to bigcompany role';
+    ELSE
+        RAISE NOTICE 'Skipping GRANT - bigcompany role does not exist (using cloud database with different user)';
+    END IF;
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'GRANT skipped: %', SQLERRM;
+END $$;
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";

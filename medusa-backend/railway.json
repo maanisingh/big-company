@@ -6,9 +6,9 @@
   "deploy": {
     "startCommand": "npm run start",
     "numReplicas": 1,
-    "healthcheckPath": "/health",
-    "healthcheckTimeout": 30,
+    "healthcheckPath": "/store/products",
+    "healthcheckTimeout": 120,
     "restartPolicyType": "ON_FAILURE",
-    "restartPolicyMaxRetries": 10
+    "restartPolicyMaxRetries": 3
   }
 }
