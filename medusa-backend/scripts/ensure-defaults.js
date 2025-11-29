@@ -91,19 +91,30 @@ async function ensureDefaults() {
       }
 
       // Ensure store_currencies table has the currencies linked
-      await pool.query(`
-        INSERT INTO public.store_currencies (store_id, currency_code)
-        SELECT $1, 'rwf' WHERE NOT EXISTS (
-          SELECT 1 FROM public.store_currencies WHERE store_id = $1 AND currency_code = 'rwf'
-        )
-      `, [store.id]);
+      // First check if entries exist, then insert if not (avoids type inference issues)
+      const rwfExists = await pool.query(
+        `SELECT 1 FROM public.store_currencies WHERE store_id = $1 AND currency_code = $2`,
+        [store.id, 'rwf']
+      );
+      if (rwfExists.rows.length === 0) {
+        console.log('[ensure-defaults] Linking RWF currency to store...');
+        await pool.query(
+          `INSERT INTO public.store_currencies (store_id, currency_code) VALUES ($1, $2)`,
+          [store.id, 'rwf']
+        );
+      }
 
-      await pool.query(`
-        INSERT INTO public.store_currencies (store_id, currency_code)
-        SELECT $1, 'usd' WHERE NOT EXISTS (
-          SELECT 1 FROM public.store_currencies WHERE store_id = $1 AND currency_code = 'usd'
-        )
-      `, [store.id]);
+      const usdExists = await pool.query(
+        `SELECT 1 FROM public.store_currencies WHERE store_id = $1 AND currency_code = $2`,
+        [store.id, 'usd']
+      );
+      if (usdExists.rows.length === 0) {
+        console.log('[ensure-defaults] Linking USD currency to store...');
+        await pool.query(
+          `INSERT INTO public.store_currencies (store_id, currency_code) VALUES ($1, $2)`,
+          [store.id, 'usd']
+        );
+      }
     }
 
     // 4. Check regions
