@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "BigCompany Wallet",
+    "slug": "bigcompany-wallet",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0a1929"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.bigcompany.wallet",
+      "infoPlist": {
+        "NFCReaderUsageDescription": "This app uses NFC to read and manage your payment cards."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0a1929"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.bigcompany.wallet",
+      "permissions": [
+        "android.permission.NFC",
+        "android.permission.INTERNET"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "react-native-nfc-manager",
+        {
+          "nfcPermission": "This app uses NFC to read and manage your payment cards."
+        }
+      ]
+    ],
+    "extra": {
+      "apiUrl": "https://bigcompany-api.alexandratechlab.com"
+    }
+  }
+}

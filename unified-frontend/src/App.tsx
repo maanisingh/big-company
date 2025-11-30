@@ -15,6 +15,7 @@ import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { ShopPage } from './pages/consumer/ShopPage';
 import { OrdersPage as ConsumerOrdersPage } from './pages/consumer/OrdersPage';
+import ConsumerWalletPage from './pages/consumer/WalletPage';
 
 // Retailer Pages
 import { RetailerDashboard } from './pages/retailer/RetailerDashboard';
@@ -22,6 +23,7 @@ import { InventoryPage as RetailerInventoryPage } from './pages/retailer/Invento
 import { OrdersPage as RetailerOrdersPage } from './pages/retailer/OrdersPage';
 import POSPage from './pages/retailer/POSPage';
 import { WalletPage } from './pages/retailer/WalletPage';
+import NFCCardsPage from './pages/retailer/NFCCardsPage';
 
 // Wholesaler Pages
 import { WholesalerDashboard } from './pages/wholesaler/WholesalerDashboard';
@@ -68,6 +70,7 @@ function App() {
               <Route index element={<Navigate to="/consumer/shop" replace />} />
               <Route path="shop" element={<ShopPage />} />
               <Route path="orders" element={<ConsumerOrdersPage />} />
+              <Route path="wallet" element={<ConsumerWalletPage />} />
               <Route path="profile" element={<PlaceholderPage title="Profile" />} />
             </Route>
 
@@ -86,6 +89,7 @@ function App() {
               <Route path="orders" element={<RetailerOrdersPage />} />
               <Route path="pos" element={<POSPage />} />
               <Route path="wallet" element={<WalletPage />} />
+              <Route path="nfc-cards" element={<NFCCardsPage />} />
               <Route path="analytics" element={<PlaceholderPage title="Analytics" />} />
               <Route path="profile" element={<PlaceholderPage title="Profile" />} />
             </Route>

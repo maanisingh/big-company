@@ -13,6 +13,7 @@ import {
   ShopOutlined,
   HomeOutlined,
   ScanOutlined,
+  CreditCardOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { UserRole } from '../types/auth';
@@ -25,6 +26,7 @@ const menuItems: Record<UserRole, { key: string; icon: React.ReactNode; label: s
   consumer: [
     { key: 'shop', icon: <ShoppingCartOutlined />, label: 'Shop', path: '/consumer/shop' },
     { key: 'orders', icon: <InboxOutlined />, label: 'My Orders', path: '/consumer/orders' },
+    { key: 'wallet', icon: <CreditCardOutlined />, label: 'Wallet & Cards', path: '/consumer/wallet' },
     { key: 'profile', icon: <UserOutlined />, label: 'Profile', path: '/consumer/profile' },
   ],
   retailer: [
@@ -33,6 +35,7 @@ const menuItems: Record<UserRole, { key: string; icon: React.ReactNode; label: s
     { key: 'inventory', icon: <InboxOutlined />, label: 'Inventory', path: '/retailer/inventory' },
     { key: 'orders', icon: <ShoppingCartOutlined />, label: 'Orders', path: '/retailer/orders' },
     { key: 'wallet', icon: <DollarOutlined />, label: 'Wallet & Credit', path: '/retailer/wallet' },
+    { key: 'nfc-cards', icon: <CreditCardOutlined />, label: 'NFC Cards', path: '/retailer/nfc-cards' },
     { key: 'analytics', icon: <BarChartOutlined />, label: 'Analytics', path: '/retailer/analytics' },
   ],
   wholesaler: [

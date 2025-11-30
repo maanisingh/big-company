@@ -167,4 +167,61 @@ export const wholesalerApi = {
     api.post(`/wholesaler/credit-requests/${id}/reject`, { reason }),
 };
 
+// NFC Card APIs - for managing customer NFC cards
+export const nfcApi = {
+  // Customer's own cards
+  getMyCards: () => api.get('/nfc/cards'),
+  linkCard: (uid: string, pin: string, nickname?: string) =>
+    api.post('/nfc/cards/link', { uid, pin, nickname }),
+  unlinkCard: (cardId: string) => api.delete(`/nfc/cards/${cardId}`),
+  setCardPin: (cardId: string, oldPin: string, newPin: string) =>
+    api.put(`/nfc/cards/${cardId}/pin`, { old_pin: oldPin, new_pin: newPin }),
+  setPrimaryCard: (cardId: string) => api.put(`/nfc/cards/${cardId}/primary`),
+  updateCardNickname: (cardId: string, nickname: string) =>
+    api.put(`/nfc/cards/${cardId}/nickname`, { nickname }),
+
+  // POS NFC operations (for retailers)
+  processNFCPayment: (cardUid: string, pin: string, amount: number, description?: string) =>
+    api.post('/nfc/pos/payment', { card_uid: cardUid, pin, amount, description }),
+  checkCardBalance: (cardUid: string, pin: string) =>
+    api.post('/nfc/pos/balance', { card_uid: cardUid, pin }),
+  validateCard: (cardUid: string) => api.post('/nfc/pos/validate', { card_uid: cardUid }),
+
+  // Admin NFC operations (for wholesaler admin)
+  getAllCards: (params?: any) => api.get('/nfc/admin/cards', { params }),
+  getCardDetails: (cardId: string) => api.get(`/nfc/admin/cards/${cardId}`),
+  blockCard: (cardId: string, reason: string) =>
+    api.post(`/nfc/admin/cards/${cardId}/block`, { reason }),
+  unblockCard: (cardId: string) => api.post(`/nfc/admin/cards/${cardId}/unblock`),
+  getCardTransactions: (cardId: string, params?: any) =>
+    api.get(`/nfc/admin/cards/${cardId}/transactions`, { params }),
+  issueNewCard: (customerId: string, uid: string, pin: string) =>
+    api.post('/nfc/admin/cards/issue', { customer_id: customerId, uid, pin }),
+  getCardStats: () => api.get('/nfc/admin/stats'),
+};
+
+// Wallet APIs - for managing customer wallets
+export const walletApi = {
+  // Customer wallet
+  getBalance: () => api.get('/wallet/balance'),
+  getTransactions: (params?: any) => api.get('/wallet/transactions', { params }),
+
+  // Top-up
+  topUpMobileMoney: (amount: number, phone: string, provider: 'mtn' | 'airtel') =>
+    api.post('/wallet/topup/mobile-money', { amount, phone, provider }),
+  topUpBankTransfer: (amount: number) => api.post('/wallet/topup/bank', { amount }),
+  checkTopUpStatus: (transactionId: string) =>
+    api.get(`/wallet/topup/status/${transactionId}`),
+
+  // Transfer
+  transfer: (recipientPhone: string, amount: number, pin: string, description?: string) =>
+    api.post('/wallet/transfer', { recipient_phone: recipientPhone, amount, pin, description }),
+
+  // Admin wallet operations
+  getCustomerWallet: (customerId: string) => api.get(`/wallet/admin/customers/${customerId}`),
+  adjustBalance: (customerId: string, amount: number, type: 'credit' | 'debit', reason: string) =>
+    api.post(`/wallet/admin/customers/${customerId}/adjust`, { amount, type, reason }),
+  getWalletStats: () => api.get('/wallet/admin/stats'),
+};
+
 export default api;

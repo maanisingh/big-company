@@ -16,7 +16,23 @@ export const authService = {
 
     const response = await axios.post(endpoint, credentials, {
       headers: { 'Content-Type': 'application/json' },
+      withCredentials: role === 'consumer', // Medusa uses cookies
     });
+
+    // Handle different response formats
+    if (role === 'consumer') {
+      // Medusa returns { customer: { ... } }
+      const customer = response.data.customer;
+      return {
+        access_token: `consumer_session_${customer.id}`, // Fake token for consumer (uses cookies)
+        user: {
+          id: customer.id,
+          email: customer.email,
+          name: `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || customer.email,
+          role: 'consumer' as const,
+        }
+      };
+    }
 
     return response.data;
   },
