@@ -25,6 +25,7 @@ import { InventoryList, InventoryCreate, InventoryEdit } from './pages/inventory
 import { POSPage } from './pages/pos';
 import { CreditOrderList, CreditOrderShow } from './pages/credit';
 import { LoginPage } from './pages/auth/Login';
+import { AuthCallback } from './pages/auth/AuthCallback';
 
 // Components
 import { Authenticated } from './components/Authenticated';
@@ -111,6 +112,9 @@ function App() {
               <Routes>
                 {/* Login Route - Outside of authenticated wrapper */}
                 <Route path="/login" element={<LoginPage />} />
+
+                {/* Auth Callback - Handles token from marketing site */}
+                <Route path="/auth-callback" element={<AuthCallback />} />
 
                 {/* Protected Routes */}
                 <Route

@@ -315,23 +315,69 @@
             });
         }
 
-        // Form submission
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        // Form submission - Authenticate via API and redirect with token
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             const email = document.getElementById('emailInput').value;
             const password = document.getElementById('passwordInput').value;
+            const submitButton = this.querySelector('button[type="submit"]');
 
-            // Redirect to retailer dashboard with credentials
-            const dashboardUrl = 'https://bigcompany-retailer.alexandratechlab.com';
+            // Show loading state
+            const originalButtonText = submitButton.innerHTML;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Signing in...';
+            submitButton.disabled = true;
 
-            // Store credentials for autofill (optional)
-            sessionStorage.setItem('retailer_email', email);
-            sessionStorage.setItem('retailer_password', password);
+            try {
+                // Call the API to authenticate
+                const response = await fetch('https://bigcompany-api.alexandratechlab.com/retailer/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
 
-            // Open dashboard in new tab
-            window.open(dashboardUrl, '_blank');
+                const data = await response.json();
+
+                if (response.ok && data.access_token) {
+                    // Redirect to dashboard with token in URL (dashboard will store it)
+                    const dashboardUrl = `https://bigcompany-retailer.alexandratechlab.com/auth-callback?token=${encodeURIComponent(data.access_token)}`;
+                    window.location.href = dashboardUrl;
+                } else {
+                    // Show error
+                    showToast(data.message || 'Login failed. Please check your credentials.', 'error');
+                    submitButton.innerHTML = originalButtonText;
+                    submitButton.disabled = false;
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showToast('Connection error. Please try again.', 'error');
+                submitButton.innerHTML = originalButtonText;
+                submitButton.disabled = false;
+            }
         });
+
+        // Show toast helper
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = toast.querySelector('i');
+
+            document.getElementById('toastMessage').textContent = message;
+
+            if (type === 'error') {
+                icon.classList.remove('fa-check-circle', 'text-green-400');
+                icon.classList.add('fa-exclamation-circle', 'text-red-400');
+            } else {
+                icon.classList.remove('fa-exclamation-circle', 'text-red-400');
+                icon.classList.add('fa-check-circle', 'text-green-400');
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
     </script>
 </body>
 </html>
