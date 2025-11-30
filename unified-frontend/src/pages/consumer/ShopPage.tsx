@@ -318,8 +318,8 @@ export const ShopPage: React.FC = () => {
   // Filter products by search
   const filteredProducts = products.filter(
     (p) =>
-      p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.description.toLowerCase().includes(searchQuery.toLowerCase())
+      (p.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (p.description || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   if (loading) {
@@ -571,8 +571,8 @@ export const ShopPage: React.FC = () => {
           {filteredProducts.map((product) => {
             const variant = product.variants[0];
             const price =
-              variant?.prices.find((p) => p.currency_code.toLowerCase() === 'rwf')?.amount ||
-              variant?.prices[0]?.amount ||
+              variant?.prices?.find((p) => (p.currency_code || '').toLowerCase() === 'rwf')?.amount ||
+              variant?.prices?.[0]?.amount ||
               0;
             const stock = variant?.inventory_quantity || 0;
             const quantity = getItemQuantity(product.id);

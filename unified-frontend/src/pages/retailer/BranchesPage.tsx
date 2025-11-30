@@ -373,9 +373,9 @@ const BranchesPage: React.FC = () => {
 
   const filteredBranches = branches.filter(
     (branch) =>
-      branch.branch_name.toLowerCase().includes(searchText.toLowerCase()) ||
-      branch.branch_code.toLowerCase().includes(searchText.toLowerCase()) ||
-      branch.city.toLowerCase().includes(searchText.toLowerCase())
+      (branch.branch_name || '').toLowerCase().includes(searchText.toLowerCase()) ||
+      (branch.branch_code || '').toLowerCase().includes(searchText.toLowerCase()) ||
+      (branch.city || '').toLowerCase().includes(searchText.toLowerCase())
   );
 
   const handleAddBranch = () => {
