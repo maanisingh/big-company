@@ -13,14 +13,25 @@ import { AppLayout } from './components/AppLayout';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { ShopPage } from './pages/consumer/ShopPage';
-import { RetailerDashboard } from './pages/retailer/RetailerDashboard';
-import { WholesalerDashboard } from './pages/wholesaler/WholesalerDashboard';
 
-// Placeholder pages (to be implemented)
+// Retailer Pages
+import { RetailerDashboard } from './pages/retailer/RetailerDashboard';
+import { InventoryPage as RetailerInventoryPage } from './pages/retailer/InventoryPage';
+import { OrdersPage as RetailerOrdersPage } from './pages/retailer/OrdersPage';
+import POSPage from './pages/retailer/POSPage';
+import { WalletPage } from './pages/retailer/WalletPage';
+
+// Wholesaler Pages
+import { WholesalerDashboard } from './pages/wholesaler/WholesalerDashboard';
+import { InventoryPage as WholesalerInventoryPage } from './pages/wholesaler/InventoryPage';
+import WholesalerOrdersPage from './pages/wholesaler/OrdersPage';
+import RetailersPage from './pages/wholesaler/RetailersPage';
+
+// Placeholder for pages not yet implemented
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
   <div style={{ textAlign: 'center', padding: 48 }}>
     <h2>{title}</h2>
-    <p>This page is under construction</p>
+    <p>Coming soon</p>
   </div>
 );
 
@@ -67,9 +78,10 @@ function App() {
             >
               <Route index element={<Navigate to="/retailer/dashboard" replace />} />
               <Route path="dashboard" element={<RetailerDashboard />} />
-              <Route path="inventory" element={<PlaceholderPage title="Inventory Management" />} />
-              <Route path="orders" element={<PlaceholderPage title="Orders" />} />
-              <Route path="wallet" element={<PlaceholderPage title="Wallet" />} />
+              <Route path="inventory" element={<RetailerInventoryPage />} />
+              <Route path="orders" element={<RetailerOrdersPage />} />
+              <Route path="pos" element={<POSPage />} />
+              <Route path="wallet" element={<WalletPage />} />
               <Route path="analytics" element={<PlaceholderPage title="Analytics" />} />
               <Route path="profile" element={<PlaceholderPage title="Profile" />} />
             </Route>
@@ -85,9 +97,9 @@ function App() {
             >
               <Route index element={<Navigate to="/wholesaler/dashboard" replace />} />
               <Route path="dashboard" element={<WholesalerDashboard />} />
-              <Route path="inventory" element={<PlaceholderPage title="Inventory Management" />} />
-              <Route path="orders" element={<PlaceholderPage title="Retailer Orders" />} />
-              <Route path="retailers" element={<PlaceholderPage title="My Retailers" />} />
+              <Route path="inventory" element={<WholesalerInventoryPage />} />
+              <Route path="orders" element={<WholesalerOrdersPage />} />
+              <Route path="retailers" element={<RetailersPage />} />
               <Route path="credit" element={<PlaceholderPage title="Credit Approvals" />} />
               <Route path="analytics" element={<PlaceholderPage title="Analytics" />} />
               <Route path="profile" element={<PlaceholderPage title="Profile" />} />

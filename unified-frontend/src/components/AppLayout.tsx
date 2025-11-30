@@ -12,6 +12,7 @@ import {
   LogoutOutlined,
   ShopOutlined,
   HomeOutlined,
+  ScanOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { UserRole } from '../types/auth';
@@ -28,9 +29,10 @@ const menuItems: Record<UserRole, { key: string; icon: React.ReactNode; label: s
   ],
   retailer: [
     { key: 'dashboard', icon: <DashboardOutlined />, label: 'Dashboard', path: '/retailer/dashboard' },
+    { key: 'pos', icon: <ScanOutlined />, label: 'POS', path: '/retailer/pos' },
     { key: 'inventory', icon: <InboxOutlined />, label: 'Inventory', path: '/retailer/inventory' },
     { key: 'orders', icon: <ShoppingCartOutlined />, label: 'Orders', path: '/retailer/orders' },
-    { key: 'wallet', icon: <DollarOutlined />, label: 'Wallet', path: '/retailer/wallet' },
+    { key: 'wallet', icon: <DollarOutlined />, label: 'Wallet & Credit', path: '/retailer/wallet' },
     { key: 'analytics', icon: <BarChartOutlined />, label: 'Analytics', path: '/retailer/analytics' },
   ],
   wholesaler: [
