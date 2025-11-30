@@ -1,6 +1,6 @@
 {
   "name": "bigcompany-medusa-backend",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "BIG Company E-commerce Backend powered by Medusa",
   "main": "index.js",
   "scripts": {
