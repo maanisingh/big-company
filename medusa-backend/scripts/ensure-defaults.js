@@ -262,6 +262,77 @@ async function ensureDefaults() {
       }
     }
 
+    // 8. Check and CREATE shipping options (required for checkout flow)
+    console.log('[ensure-defaults] Checking shipping options...');
+    const shippingOptionCheck = await pool.query(
+      `SELECT id, name FROM public.shipping_option`
+    );
+
+    if (shippingOptionCheck.rows.length === 0 && regionCheck.rows.length > 0) {
+      const regionId = regionCheck.rows[0].id;
+      console.log('[ensure-defaults] No shipping options - creating default shipping option...');
+      try {
+        // First check if shipping profile exists
+        let profileId = null;
+        const profileCheck = await pool.query(
+          `SELECT id FROM public.shipping_profile WHERE type = 'default' LIMIT 1`
+        );
+        if (profileCheck.rows.length === 0) {
+          // Create default shipping profile
+          profileId = 'sp_default_' + Date.now().toString(36);
+          await pool.query(`
+            INSERT INTO public.shipping_profile (id, name, type, created_at, updated_at)
+            VALUES ($1, 'Default Shipping Profile', 'default', NOW(), NOW())
+            ON CONFLICT DO NOTHING
+          `, [profileId]);
+          console.log('[ensure-defaults] Created default shipping profile');
+        } else {
+          profileId = profileCheck.rows[0].id;
+        }
+
+        // Create shipping option
+        const soId = 'so_default_' + Date.now().toString(36);
+        await pool.query(`
+          INSERT INTO public.shipping_option (id, name, region_id, profile_id, provider_id, price_type, amount, is_return, data, created_at, updated_at)
+          VALUES ($1, 'Standard Shipping', $2, $3, 'manual', 'flat_rate', 0, false, '{}', NOW(), NOW())
+          ON CONFLICT DO NOTHING
+        `, [soId, regionId, profileId]);
+        console.log('[ensure-defaults] Created default shipping option');
+      } catch (soErr) {
+        console.error('[ensure-defaults] Failed to create shipping option:', soErr.message);
+      }
+    } else if (shippingOptionCheck.rows.length > 0) {
+      console.log(`[ensure-defaults] Found ${shippingOptionCheck.rows.length} shipping options:`, shippingOptionCheck.rows.map(s => s.name).join(', '));
+    }
+
+    // 9. Check country assignments to region
+    console.log('[ensure-defaults] Checking country assignments...');
+    if (regionCheck.rows.length > 0) {
+      const regionId = regionCheck.rows[0].id;
+      const countryCheck = await pool.query(
+        `SELECT iso_2 FROM public.country WHERE region_id = $1`,
+        [regionId]
+      );
+      if (countryCheck.rows.length === 0) {
+        console.log('[ensure-defaults] No countries assigned to region - adding RW...');
+        try {
+          // Check if RW country exists first
+          const rwCheck = await pool.query(`SELECT iso_2 FROM public.country WHERE iso_2 = 'rw'`);
+          if (rwCheck.rows.length > 0) {
+            await pool.query(
+              `UPDATE public.country SET region_id = $1 WHERE iso_2 = 'rw'`,
+              [regionId]
+            );
+            console.log('[ensure-defaults] Assigned RW to region');
+          }
+        } catch (countryErr) {
+          console.error('[ensure-defaults] Failed to assign country:', countryErr.message);
+        }
+      } else {
+        console.log(`[ensure-defaults] Region has ${countryCheck.rows.length} countries: ${countryCheck.rows.map(c => c.iso_2).join(', ')}`);
+      }
+    }
+
     console.log('[ensure-defaults] Database check complete!');
 
   } catch (error) {
