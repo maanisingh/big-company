@@ -55,5 +55,14 @@ export default (rootDirectory: string): Router | Router[] => {
     });
   });
 
+  // Version check
+  router.get('/version', (req, res) => {
+    res.json({
+      version: '1.1.0',
+      build: '2024-11-30',
+      features: ['retailer-orders', 'credit-requests', 'enhanced-dashboards'],
+    });
+  });
+
   return router;
 };
