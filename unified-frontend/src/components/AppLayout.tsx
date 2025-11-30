@@ -83,20 +83,28 @@ export const AppLayout: React.FC = () => {
       onClick: () => navigate(`/${user.role}/profile`),
     },
     {
+      key: 'divider',
       type: 'divider' as const,
     },
     {
       key: 'logout',
       icon: <LogoutOutlined />,
       label: 'Logout',
+      danger: true,
       onClick: handleLogout,
     },
   ];
 
   // Find active menu key based on current path
-  const activeKey = currentMenuItems.find((item) =>
+  const activeKey = currentMenuItems?.find((item) =>
     location.pathname.startsWith(item.path)
-  )?.key || currentMenuItems[0]?.key;
+  )?.key || currentMenuItems?.[0]?.key || 'dashboard';
+
+  // Ensure menu items exist
+  if (!currentMenuItems || currentMenuItems.length === 0) {
+    console.error('No menu items found for role:', user.role);
+    return null;
+  }
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
