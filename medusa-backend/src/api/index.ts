@@ -58,9 +58,9 @@ export default (rootDirectory: string): Router | Router[] => {
   // Version check
   router.get('/version', (req, res) => {
     res.json({
-      version: '1.2.0',
-      build: '2024-11-30-v2',
-      buildTimestamp: '1732970400000',
+      version: '1.3.0',
+      build: '2024-11-30-v3',
+      buildTimestamp: Date.now().toString(),
       features: ['retailer-orders', 'credit-requests', 'enhanced-dashboards', 'admin-reports', 'branch-management'],
     });
   });

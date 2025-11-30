@@ -1,6 +1,6 @@
 {
   "name": "bigcompany-medusa-backend",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "BIG Company E-commerce Backend powered by Medusa",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,7 @@
     "start": "npm run init:bigcompany && npm run migrations:run && npm run ensure:defaults && medusa start",
     "ensure:defaults": "node scripts/ensure-defaults.js",
     "start:prod": "medusa start",
-    "build": "echo 'No build step needed - admin plugin disabled'",
+    "build": "echo 'Build timestamp: '$(date +%s)",
     "build:admin": "echo 'Admin plugin disabled - skipping admin build'",
     "seed": "medusa seed -f ./data/seed.json",
     "migrations:run": "medusa migrations run",

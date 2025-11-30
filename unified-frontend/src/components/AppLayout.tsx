@@ -190,17 +190,41 @@ export const AppLayout: React.FC = () => {
 
           {/* User dropdown */}
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-            <Space style={{ cursor: 'pointer' }}>
+            <Space style={{ cursor: 'pointer', padding: '8px 0' }}>
               <Avatar
                 style={{ backgroundColor: themeColor }}
                 icon={<UserOutlined />}
+                size="default"
               />
-              <div style={{ maxWidth: 150, overflow: 'hidden' }}>
-                <Text strong style={{ display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                minWidth: 80,
+                maxWidth: 180,
+              }}>
+                <Text
+                  strong
+                  style={{
+                    display: 'block',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    maxWidth: '100%',
+                    lineHeight: 1.3,
+                  }}
+                >
                   {user.name || user.email}
                 </Text>
-                <Text type="secondary" style={{ fontSize: 12 }}>
-                  {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                <Text
+                  type="secondary"
+                  style={{
+                    fontSize: 11,
+                    lineHeight: 1.2,
+                    textTransform: 'capitalize',
+                  }}
+                >
+                  {user.role}
                 </Text>
               </div>
             </Space>
