@@ -54,8 +54,11 @@ export const WholesalerDashboard: React.FC = () => {
     try {
       const response = await wholesalerApi.getDashboardStats();
       setStats(response.data);
-      setPendingOrders(response.data.pendingOrders || []);
-      setCreditRequests(response.data.creditRequests || []);
+      // Ensure pendingOrders is an array (API may return count instead of list)
+      const ordersData = response.data.pendingOrdersList || response.data.pendingOrders;
+      setPendingOrders(Array.isArray(ordersData) ? ordersData : []);
+      const creditData = response.data.creditRequestsList || response.data.creditRequests;
+      setCreditRequests(Array.isArray(creditData) ? creditData : []);
     } catch (error) {
       console.error('Error fetching dashboard:', error);
       // Use mock data for demo
