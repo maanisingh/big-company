@@ -176,17 +176,91 @@ async function ensureDefaults() {
       }
     }
 
-    // 6. Check fulfillment and payment providers
+    // 6. Check and CREATE fulfillment and payment providers
+    // These are REQUIRED for Medusa to start - initializeDefaults() fails without them
     console.log('[ensure-defaults] Checking providers...');
+
+    // Check fulfillment providers
     const fulfillmentCheck = await pool.query(
       `SELECT id, is_installed FROM public.fulfillment_provider`
     );
+
+    if (fulfillmentCheck.rows.length === 0) {
+      console.log('[ensure-defaults] No fulfillment providers - creating manual provider...');
+      try {
+        await pool.query(`
+          INSERT INTO public.fulfillment_provider (id, is_installed)
+          VALUES ('manual', true)
+          ON CONFLICT (id) DO NOTHING
+        `);
+        console.log('[ensure-defaults] Created manual fulfillment provider');
+      } catch (fpErr) {
+        console.error('[ensure-defaults] Failed to create fulfillment provider:', fpErr.message);
+      }
+    } else {
+      console.log(`[ensure-defaults] Fulfillment providers: ${fulfillmentCheck.rows.map(f => f.id).join(', ')}`);
+    }
+
+    // Check payment providers
     const paymentCheck = await pool.query(
       `SELECT id, is_installed FROM public.payment_provider`
     );
 
-    console.log(`[ensure-defaults] Fulfillment providers: ${fulfillmentCheck.rows.map(f => f.id).join(', ') || 'none'}`);
-    console.log(`[ensure-defaults] Payment providers: ${paymentCheck.rows.map(p => p.id).join(', ') || 'none'}`);
+    if (paymentCheck.rows.length === 0) {
+      console.log('[ensure-defaults] No payment providers - creating manual provider...');
+      try {
+        await pool.query(`
+          INSERT INTO public.payment_provider (id, is_installed)
+          VALUES ('manual', true)
+          ON CONFLICT (id) DO NOTHING
+        `);
+        console.log('[ensure-defaults] Created manual payment provider');
+      } catch (ppErr) {
+        console.error('[ensure-defaults] Failed to create payment provider:', ppErr.message);
+      }
+    } else {
+      console.log(`[ensure-defaults] Payment providers: ${paymentCheck.rows.map(p => p.id).join(', ')}`);
+    }
+
+    // 7. Link providers to region if region exists
+    if (regionCheck.rows.length > 0) {
+      const regionId = regionCheck.rows[0].id;
+      console.log(`[ensure-defaults] Checking provider links for region ${regionId}...`);
+
+      // Link fulfillment provider to region
+      const fpLinkCheck = await pool.query(
+        `SELECT 1 FROM public.region_fulfillment_providers WHERE region_id = $1 AND provider_id = 'manual'`,
+        [regionId]
+      );
+      if (fpLinkCheck.rows.length === 0) {
+        console.log('[ensure-defaults] Linking manual fulfillment provider to region...');
+        try {
+          await pool.query(
+            `INSERT INTO public.region_fulfillment_providers (region_id, provider_id) VALUES ($1, 'manual')`,
+            [regionId]
+          );
+        } catch (linkErr) {
+          console.error('[ensure-defaults] Failed to link fulfillment provider:', linkErr.message);
+        }
+      }
+
+      // Link payment provider to region
+      const ppLinkCheck = await pool.query(
+        `SELECT 1 FROM public.region_payment_providers WHERE region_id = $1 AND provider_id = 'manual'`,
+        [regionId]
+      );
+      if (ppLinkCheck.rows.length === 0) {
+        console.log('[ensure-defaults] Linking manual payment provider to region...');
+        try {
+          await pool.query(
+            `INSERT INTO public.region_payment_providers (region_id, provider_id) VALUES ($1, 'manual')`,
+            [regionId]
+          );
+        } catch (linkErr) {
+          console.error('[ensure-defaults] Failed to link payment provider:', linkErr.message);
+        }
+      }
+    }
 
     console.log('[ensure-defaults] Database check complete!');
 
