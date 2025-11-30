@@ -263,7 +263,7 @@ const RetailersPage = () => {
       key: 'total_revenue',
       render: (value: number) => (
         <Text strong style={{ color: '#7c3aed' }}>
-          {value >= 1000000 ? `${(value / 1000000).toFixed(1)}M` : value?.toLocaleString()} RWF
+          {(value ?? 0) >= 1000000 ? `${((value ?? 0) / 1000000).toFixed(1)}M` : (value ?? 0).toLocaleString()} RWF
         </Text>
       ),
     },

@@ -254,7 +254,7 @@ export const CreditApprovalsPage: React.FC = () => {
     }
   };
 
-  const formatCurrency = (amount: number) => `${amount.toLocaleString()} RWF`;
+  const formatCurrency = (amount: number) => `${(amount ?? 0).toLocaleString()} RWF`;
   const formatDate = (date: string) => new Date(date).toLocaleDateString('en-RW', {
     year: 'numeric',
     month: 'short',

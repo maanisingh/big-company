@@ -205,14 +205,15 @@ export const WholesalerDashboard: React.FC = () => {
   };
 
   const formatCurrency = (amount: number) => {
-    if (amount >= 1000000) {
-      return `${(amount / 1000000).toFixed(1)}M RWF`;
+    const safeAmount = amount ?? 0;
+    if (safeAmount >= 1000000) {
+      return `${(safeAmount / 1000000).toFixed(1)}M RWF`;
     }
-    return `${amount.toLocaleString()} RWF`;
+    return `${safeAmount.toLocaleString()} RWF`;
   };
 
   const formatFullCurrency = (amount: number) => {
-    return `${amount.toLocaleString()} RWF`;
+    return `${(amount ?? 0).toLocaleString()} RWF`;
   };
 
   const getActivityIcon = (type: string) => {
