@@ -126,6 +126,38 @@ export const retailerApi = {
   getWholesalers: () => api.get('/retailer/wholesalers'),
   getWholesalerProducts: (wholesalerId: string) =>
     api.get(`/retailer/wholesalers/${wholesalerId}/products`),
+
+  // Branch Management
+  getBranches: () => api.get('/retailer/branches'),
+  getBranchStats: () => api.get('/retailer/branches/stats'),
+  getBranch: (id: string) => api.get(`/retailer/branches/${id}`),
+  createBranch: (data: any) => api.post('/retailer/branches', data),
+  updateBranch: (id: string, data: any) => api.put(`/retailer/branches/${id}`, data),
+  deleteBranch: (id: string) => api.delete(`/retailer/branches/${id}`),
+  getBranchTransactions: (branchId: string, params?: any) =>
+    api.get(`/retailer/branches/${branchId}/transactions`, { params }),
+  getBranchSummary: (branchId: string, period?: string) =>
+    api.get(`/retailer/branches/${branchId}/summary`, { params: { period } }),
+
+  // POS Terminal Management
+  getBranchTerminals: (branchId: string) => api.get(`/retailer/branches/${branchId}/terminals`),
+  createTerminal: (branchId: string, data: any) =>
+    api.post(`/retailer/branches/${branchId}/terminals`, data),
+  updateTerminal: (terminalId: string, data: any) =>
+    api.put(`/retailer/terminals/${terminalId}`, data),
+  deleteTerminal: (terminalId: string) => api.delete(`/retailer/terminals/${terminalId}`),
+
+  // NFC Cards (Retailer)
+  getNFCCards: (params?: any) => api.get('/retailer/nfc-cards', { params }),
+  getNFCCardStats: () => api.get('/retailer/nfc-cards/stats'),
+  issueNFCCard: (data: any) => api.post('/retailer/nfc-cards/issue', data),
+  blockNFCCard: (cardId: string, reason: string) =>
+    api.post(`/retailer/nfc-cards/${cardId}/block`, { reason }),
+  unblockNFCCard: (cardId: string) => api.post(`/retailer/nfc-cards/${cardId}/unblock`),
+  topUpNFCCard: (cardId: string, data: any) =>
+    api.post(`/retailer/nfc-cards/${cardId}/topup`, data),
+  getNFCCardTransactions: (cardId: string, params?: any) =>
+    api.get(`/retailer/nfc-cards/${cardId}/transactions`, { params }),
 };
 
 // Wholesaler APIs
@@ -235,6 +267,56 @@ export const walletApi = {
   adjustBalance: (customerId: string, amount: number, type: 'credit' | 'debit', reason: string) =>
     api.post(`/wallet/admin/customers/${customerId}/adjust`, { amount, type, reason }),
   getWalletStats: () => api.get('/wallet/admin/stats'),
+};
+
+// Admin APIs
+export const adminApi = {
+  // Dashboard
+  getDashboard: () => api.get('/admin/dashboard'),
+
+  // Customers
+  getCustomers: (params?: any) => api.get('/admin/customers', { params }),
+  getCustomer: (id: string) => api.get(`/admin/customers/${id}`),
+  creditCustomer: (id: string, amount: number, reason: string) =>
+    api.post(`/admin/customers/${id}/credit`, { amount, reason }),
+
+  // Retailers
+  getRetailers: (params?: any) => api.get('/admin/retailers', { params }),
+  verifyRetailer: (id: string) => api.post(`/admin/retailers/${id}/verify`),
+  updateRetailerStatus: (id: string, isActive: boolean, reason?: string) =>
+    api.post(`/admin/retailers/${id}/status`, { isActive, reason }),
+  updateRetailerCreditLimit: (id: string, creditLimit: number, reason?: string) =>
+    api.post(`/admin/retailers/${id}/credit-limit`, { creditLimit, reason }),
+
+  // Wholesalers
+  getWholesalers: (params?: any) => api.get('/admin/wholesalers', { params }),
+  updateWholesalerStatus: (id: string, isActive: boolean, reason?: string) =>
+    api.post(`/admin/wholesalers/${id}/status`, { isActive, reason }),
+
+  // Loans
+  getLoans: (params?: any) => api.get('/admin/loans', { params }),
+  approveLoan: (id: string) => api.post(`/admin/loans/${id}/approve`),
+  rejectLoan: (id: string, reason: string) => api.post(`/admin/loans/${id}/reject`, { reason }),
+
+  // NFC Cards
+  getNFCCards: (params?: any) => api.get('/admin/nfc-cards', { params }),
+  registerNFCCard: (cardUid: string, dashboardId?: string) =>
+    api.post('/admin/nfc-cards/register', { cardUid, dashboardId }),
+  blockNFCCard: (uid: string, blocked: boolean, reason?: string) =>
+    api.post(`/admin/nfc-cards/${uid}/block`, { blocked, reason }),
+
+  // Reports
+  getTransactionReport: (params?: { startDate?: string; endDate?: string; type?: string; groupBy?: string }) =>
+    api.get('/admin/reports/transactions', { params }),
+  getRevenueReport: (params?: { startDate?: string; endDate?: string; groupBy?: string }) =>
+    api.get('/admin/reports/revenue', { params }),
+
+  // Audit Logs
+  getAuditLogs: (params?: any) => api.get('/admin/audit-logs', { params }),
+
+  // Settings
+  getSettings: () => api.get('/admin/settings'),
+  updateSettings: (settings: Record<string, any>) => api.post('/admin/settings', { settings }),
 };
 
 export default api;

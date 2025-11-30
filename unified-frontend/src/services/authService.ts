@@ -3,11 +3,12 @@ import { LoginCredentials, AuthResponse, UserRole } from '../types/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://bigcompany-api.alexandratechlab.com';
 
-// Role-specific endpoints
+// Role-specific endpoints (admin uses separate internal authentication)
 const AUTH_ENDPOINTS: Record<UserRole, string> = {
   consumer: `${API_URL}/store/auth/login`,
   retailer: `${API_URL}/retailer/auth/login`,
   wholesaler: `${API_URL}/wholesaler/auth/login`,
+  admin: `${API_URL}/admin/auth/login`, // Admin authentication endpoint
 };
 
 export const authService = {
@@ -81,6 +82,22 @@ export const authService = {
           name: wholesaler.name || wholesaler.company_name,
           role: 'wholesaler' as const,
           company_name: wholesaler.company_name,
+        }
+      };
+    }
+
+    // Handle admin response format
+    if (role === 'admin' && response.data.admin) {
+      const admin = response.data.admin;
+      return {
+        success: true,
+        access_token: response.data.access_token,
+        user: {
+          id: admin.id,
+          email: admin.email,
+          phone: admin.phone,
+          name: admin.name || 'Administrator',
+          role: 'admin' as const,
         }
       };
     }

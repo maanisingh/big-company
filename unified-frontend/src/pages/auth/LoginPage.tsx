@@ -72,7 +72,30 @@ const ArrowLeftIcon = () => (
   </svg>
 );
 
-const roleConfig = {
+// Admin icon for admin login
+const ShieldIcon = () => (
+  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+  </svg>
+);
+
+// Roles available in public login (admin excluded - uses separate internal auth)
+type PublicUserRole = 'consumer' | 'retailer' | 'wholesaler';
+
+const roleConfig: Record<PublicUserRole, {
+  title: string;
+  subtitle: string;
+  icon: React.ReactNode;
+  gradient: string;
+  bgGradient: string;
+  lightBg: string;
+  borderColor: string;
+  textColor: string;
+  buttonColor: string;
+  redirect: string;
+  authType: 'phone' | 'email';
+  credentials: { phone: string; pin: string; email: string; password: string };
+}> = {
   consumer: {
     title: 'Consumer Store',
     subtitle: 'Shop amazing products from local retailers',
@@ -142,9 +165,14 @@ export const LoginPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { login, isLoading } = useAuth();
 
-  // Get role from URL or default to consumer
-  const initialRole = (searchParams.get('role') as UserRole) || 'consumer';
-  const [activeRole, setActiveRole] = useState<UserRole>(initialRole);
+  // Get role from URL or default to consumer (admin uses separate internal auth)
+  const urlRole = searchParams.get('role');
+  // Only allow public roles - admin uses separate internal auth
+  const validPublicRoles: PublicUserRole[] = ['consumer', 'retailer', 'wholesaler'];
+  const initialRole: PublicUserRole = validPublicRoles.includes(urlRole as PublicUserRole)
+    ? (urlRole as PublicUserRole)
+    : 'consumer';
+  const [activeRole, setActiveRole] = useState<PublicUserRole>(initialRole);
   // Phone/PIN for consumers
   const [phone, setPhone] = useState('');
   const [pin, setPin] = useState('');
@@ -228,7 +256,7 @@ export const LoginPage: React.FC = () => {
 
           {/* Role Selection Tabs */}
           <div className="flex border-b border-gray-200">
-            {(['consumer', 'retailer', 'wholesaler'] as UserRole[]).map((role) => (
+            {(['consumer', 'retailer', 'wholesaler'] as PublicUserRole[]).map((role) => (
               <button
                 key={role}
                 onClick={() => setActiveRole(role)}

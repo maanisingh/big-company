@@ -14,6 +14,7 @@ import {
   HomeOutlined,
   ScanOutlined,
   CreditCardOutlined,
+  ApartmentOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { UserRole } from '../types/auth';
@@ -34,6 +35,7 @@ const menuItems: Record<UserRole, { key: string; icon: React.ReactNode; label: s
     { key: 'pos', icon: <ScanOutlined />, label: 'POS', path: '/retailer/pos' },
     { key: 'inventory', icon: <InboxOutlined />, label: 'Inventory', path: '/retailer/inventory' },
     { key: 'orders', icon: <ShoppingCartOutlined />, label: 'Orders', path: '/retailer/orders' },
+    { key: 'branches', icon: <ApartmentOutlined />, label: 'Branches', path: '/retailer/branches' },
     { key: 'wallet', icon: <DollarOutlined />, label: 'Wallet & Credit', path: '/retailer/wallet' },
     { key: 'nfc-cards', icon: <CreditCardOutlined />, label: 'NFC Cards', path: '/retailer/nfc-cards' },
     { key: 'analytics', icon: <BarChartOutlined />, label: 'Analytics', path: '/retailer/analytics' },
@@ -46,6 +48,15 @@ const menuItems: Record<UserRole, { key: string; icon: React.ReactNode; label: s
     { key: 'credit', icon: <DollarOutlined />, label: 'Credit Approvals', path: '/wholesaler/credit' },
     { key: 'analytics', icon: <BarChartOutlined />, label: 'Analytics', path: '/wholesaler/analytics' },
   ],
+  admin: [
+    { key: 'dashboard', icon: <DashboardOutlined />, label: 'Dashboard', path: '/admin/dashboard' },
+    { key: 'customers', icon: <UserOutlined />, label: 'Customers', path: '/admin/customers' },
+    { key: 'retailers', icon: <ShopOutlined />, label: 'Retailers', path: '/admin/retailers' },
+    { key: 'wholesalers', icon: <TeamOutlined />, label: 'Wholesalers', path: '/admin/wholesalers' },
+    { key: 'loans', icon: <DollarOutlined />, label: 'Loans', path: '/admin/loans' },
+    { key: 'nfc-cards', icon: <CreditCardOutlined />, label: 'NFC Cards', path: '/admin/nfc-cards' },
+    { key: 'reports', icon: <BarChartOutlined />, label: 'Reports', path: '/admin/reports' },
+  ],
 };
 
 // Theme colors per role
@@ -53,6 +64,7 @@ const themeColors: Record<UserRole, string> = {
   consumer: '#52c41a',
   retailer: '#1890ff',
   wholesaler: '#722ed1',
+  admin: '#f5222d',
 };
 
 export const AppLayout: React.FC = () => {

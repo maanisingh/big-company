@@ -272,6 +272,254 @@ CREATE TABLE IF NOT EXISTS bigcompany.audit_logs (
 );
 
 -- =====================================================
+-- MULTI-BRANCH SUPPORT
+-- =====================================================
+
+-- Store Branches (Retail Outlets)
+CREATE TABLE IF NOT EXISTS bigcompany.store_branches (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    retailer_id UUID REFERENCES bigcompany.retailer_profiles(id),
+    branch_code VARCHAR(20) NOT NULL UNIQUE,
+    branch_name VARCHAR(255) NOT NULL,
+    address TEXT,
+    city VARCHAR(100),
+    district VARCHAR(100),
+    phone VARCHAR(20),
+    manager_name VARCHAR(255),
+    manager_phone VARCHAR(20),
+    location_lat DECIMAL(10,8),
+    location_lng DECIMAL(11,8),
+    is_active BOOLEAN DEFAULT true,
+    is_main_branch BOOLEAN DEFAULT false,
+    operating_hours JSONB DEFAULT '{"mon":"08:00-20:00","tue":"08:00-20:00","wed":"08:00-20:00","thu":"08:00-20:00","fri":"08:00-20:00","sat":"09:00-18:00","sun":"closed"}',
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- POS Terminals (linked to branches)
+CREATE TABLE IF NOT EXISTS bigcompany.pos_terminals (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    branch_id UUID REFERENCES bigcompany.store_branches(id),
+    terminal_code VARCHAR(20) NOT NULL UNIQUE,
+    terminal_name VARCHAR(100),
+    device_type VARCHAR(50) DEFAULT 'standard', -- standard, mobile, tablet
+    serial_number VARCHAR(100),
+    is_active BOOLEAN DEFAULT true,
+    last_seen_at TIMESTAMP,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- POS Transactions (all card payments linked to branch/terminal)
+CREATE TABLE IF NOT EXISTS bigcompany.pos_transactions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    transaction_ref VARCHAR(50) NOT NULL UNIQUE,
+    branch_id UUID REFERENCES bigcompany.store_branches(id),
+    terminal_id UUID REFERENCES bigcompany.pos_terminals(id),
+    card_uid VARCHAR(100) NOT NULL,
+    customer_id VARCHAR(255),
+    amount DECIMAL(15,2) NOT NULL,
+    currency VARCHAR(3) DEFAULT 'RWF',
+    transaction_type VARCHAR(50) DEFAULT 'payment', -- payment, refund, void
+    payment_method VARCHAR(50) DEFAULT 'nfc_card', -- nfc_card, wallet_qr
+    status VARCHAR(50) DEFAULT 'completed', -- completed, refunded, voided
+    pin_used BOOLEAN DEFAULT false,
+    cashier_id VARCHAR(255),
+    cashier_name VARCHAR(100),
+    receipt_number VARCHAR(50),
+    items JSONB DEFAULT '[]',
+    blnk_transaction_id VARCHAR(255),
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Branch Daily Summary (for reports)
+CREATE TABLE IF NOT EXISTS bigcompany.branch_daily_summary (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    branch_id UUID REFERENCES bigcompany.store_branches(id),
+    summary_date DATE NOT NULL,
+    total_transactions INTEGER DEFAULT 0,
+    total_amount DECIMAL(15,2) DEFAULT 0,
+    total_refunds DECIMAL(15,2) DEFAULT 0,
+    card_payments_count INTEGER DEFAULT 0,
+    card_payments_amount DECIMAL(15,2) DEFAULT 0,
+    wallet_payments_count INTEGER DEFAULT 0,
+    wallet_payments_amount DECIMAL(15,2) DEFAULT 0,
+    average_transaction DECIMAL(15,2) DEFAULT 0,
+    peak_hour INTEGER,
+    unique_customers INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(branch_id, summary_date)
+);
+
+-- Wallet Transactions (enhanced with branch tracking)
+CREATE TABLE IF NOT EXISTS bigcompany.wallet_transactions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id VARCHAR(255) NOT NULL,
+    type VARCHAR(50) NOT NULL, -- wallet_topup, gas_purchase, nfc_payment, loan_disbursement, loan_repayment, refund
+    amount DECIMAL(15,2) NOT NULL,
+    currency VARCHAR(3) DEFAULT 'RWF',
+    direction VARCHAR(10) DEFAULT 'debit', -- debit, credit
+    balance_before DECIMAL(15,2),
+    balance_after DECIMAL(15,2),
+    reference VARCHAR(100) UNIQUE,
+    description TEXT,
+    branch_id UUID REFERENCES bigcompany.store_branches(id),
+    terminal_id UUID REFERENCES bigcompany.pos_terminals(id),
+    payment_method VARCHAR(50), -- mtn_momo, airtel_money, nfc_card, wallet_transfer
+    external_ref VARCHAR(255), -- Mobile money reference, etc.
+    status VARCHAR(50) DEFAULT 'pending', -- pending, completed, failed, reversed
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Rewards Ledger (points system)
+CREATE TABLE IF NOT EXISTS bigcompany.rewards_ledger (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id VARCHAR(255) NOT NULL,
+    type VARCHAR(20) NOT NULL, -- earned, redeemed
+    points INTEGER NOT NULL,
+    source VARCHAR(50), -- purchase, referral, bonus, redemption
+    source_ref VARCHAR(255), -- Order ID, promo code, etc.
+    branch_id UUID REFERENCES bigcompany.store_branches(id),
+    description TEXT,
+    expires_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Retailer Profiles (enhanced for multi-branch)
+CREATE TABLE IF NOT EXISTS bigcompany.retailer_profiles (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id VARCHAR(255) NOT NULL UNIQUE,
+    business_name VARCHAR(255) NOT NULL,
+    business_registration_no VARCHAR(100),
+    tax_id VARCHAR(100),
+    contact_phone VARCHAR(20),
+    contact_email VARCHAR(255),
+    address JSONB DEFAULT '{}',
+    credit_limit DECIMAL(15,2) DEFAULT 0,
+    credit_used DECIMAL(15,2) DEFAULT 0,
+    wholesaler_id UUID REFERENCES bigcompany.wholesaler_profiles(id),
+    is_active BOOLEAN DEFAULT true,
+    is_verified BOOLEAN DEFAULT false,
+    verified_at TIMESTAMP,
+    verified_by VARCHAR(255),
+    blnk_account_id VARCHAR(255),
+    total_branches INTEGER DEFAULT 1,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Wholesaler Profiles
+CREATE TABLE IF NOT EXISTS bigcompany.wholesaler_profiles (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id VARCHAR(255) NOT NULL UNIQUE,
+    business_name VARCHAR(255) NOT NULL,
+    business_registration_no VARCHAR(100),
+    tax_id VARCHAR(100),
+    contact_phone VARCHAR(20),
+    contact_email VARCHAR(255),
+    address JSONB DEFAULT '{}',
+    is_active BOOLEAN DEFAULT true,
+    blnk_account_id VARCHAR(255),
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Customer Loans (enhanced)
+CREATE TABLE IF NOT EXISTS bigcompany.customer_loans (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    loan_number VARCHAR(50) NOT NULL UNIQUE,
+    customer_id VARCHAR(255) NOT NULL,
+    product_id UUID REFERENCES bigcompany.loan_products(id),
+    amount DECIMAL(15,2) NOT NULL,
+    interest_rate DECIMAL(5,4) DEFAULT 0,
+    total_repayment DECIMAL(15,2) NOT NULL,
+    outstanding_balance DECIMAL(15,2),
+    currency VARCHAR(3) DEFAULT 'RWF',
+    loan_type VARCHAR(50) DEFAULT 'food',
+    status VARCHAR(50) DEFAULT 'pending', -- pending, approved, disbursed, paid, defaulted, rejected
+    due_date DATE,
+    approved_by VARCHAR(255),
+    approved_at TIMESTAMP,
+    rejected_by VARCHAR(255),
+    rejected_at TIMESTAMP,
+    rejection_reason TEXT,
+    disbursed_at TIMESTAMP,
+    paid_at TIMESTAMP,
+    blnk_loan_account_id VARCHAR(255),
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Admin Users
+CREATE TABLE IF NOT EXISTS bigcompany.admin_users (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id VARCHAR(255) NOT NULL UNIQUE,
+    role VARCHAR(50) DEFAULT 'admin', -- super_admin, admin, support
+    permissions JSONB DEFAULT '[]',
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Platform Settings
+CREATE TABLE IF NOT EXISTS bigcompany.platform_settings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    key VARCHAR(100) NOT NULL UNIQUE,
+    value JSONB NOT NULL,
+    updated_by VARCHAR(255),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Retailer Orders (B2B orders from retailers to wholesalers)
+CREATE TABLE IF NOT EXISTS bigcompany.retailer_orders (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    order_number VARCHAR(50) NOT NULL UNIQUE,
+    retailer_id UUID REFERENCES bigcompany.retailer_profiles(id),
+    wholesaler_id UUID REFERENCES bigcompany.wholesaler_profiles(id),
+    branch_id UUID REFERENCES bigcompany.store_branches(id),
+    items JSONB NOT NULL DEFAULT '[]',
+    subtotal DECIMAL(15,2) NOT NULL,
+    tax_amount DECIMAL(15,2) DEFAULT 0,
+    discount_amount DECIMAL(15,2) DEFAULT 0,
+    total_amount DECIMAL(15,2) NOT NULL,
+    currency VARCHAR(3) DEFAULT 'RWF',
+    payment_method VARCHAR(50), -- cash, credit, wallet
+    payment_status VARCHAR(50) DEFAULT 'pending', -- pending, partial, paid
+    order_status VARCHAR(50) DEFAULT 'pending', -- pending, confirmed, processing, shipped, delivered, cancelled
+    delivery_address JSONB DEFAULT '{}',
+    delivery_date DATE,
+    notes TEXT,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Credit Requests (retailers requesting credit from wholesalers)
+CREATE TABLE IF NOT EXISTS bigcompany.credit_requests (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    request_number VARCHAR(50) NOT NULL UNIQUE,
+    retailer_id UUID REFERENCES bigcompany.retailer_profiles(id),
+    wholesaler_id UUID REFERENCES bigcompany.wholesaler_profiles(id),
+    amount DECIMAL(15,2) NOT NULL,
+    currency VARCHAR(3) DEFAULT 'RWF',
+    purpose TEXT,
+    status VARCHAR(50) DEFAULT 'pending', -- pending, approved, rejected
+    approved_amount DECIMAL(15,2),
+    rejection_reason TEXT,
+    approved_by VARCHAR(255),
+    approved_at TIMESTAMP,
+    expires_at TIMESTAMP,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =====================================================
 -- INDEXES
 -- =====================================================
 
@@ -290,6 +538,26 @@ CREATE INDEX IF NOT EXISTS idx_ussd_sessions_phone ON bigcompany.ussd_sessions(p
 CREATE INDEX IF NOT EXISTS idx_sms_messages_phone ON bigcompany.sms_messages(phone_number);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_user ON bigcompany.audit_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_entity ON bigcompany.audit_logs(entity_type, entity_id);
+
+-- Multi-branch indexes
+CREATE INDEX IF NOT EXISTS idx_store_branches_retailer ON bigcompany.store_branches(retailer_id);
+CREATE INDEX IF NOT EXISTS idx_pos_terminals_branch ON bigcompany.pos_terminals(branch_id);
+CREATE INDEX IF NOT EXISTS idx_pos_transactions_branch ON bigcompany.pos_transactions(branch_id);
+CREATE INDEX IF NOT EXISTS idx_pos_transactions_customer ON bigcompany.pos_transactions(customer_id);
+CREATE INDEX IF NOT EXISTS idx_pos_transactions_date ON bigcompany.pos_transactions(created_at);
+CREATE INDEX IF NOT EXISTS idx_branch_summary_date ON bigcompany.branch_daily_summary(summary_date);
+CREATE INDEX IF NOT EXISTS idx_wallet_transactions_user ON bigcompany.wallet_transactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_wallet_transactions_branch ON bigcompany.wallet_transactions(branch_id);
+CREATE INDEX IF NOT EXISTS idx_rewards_ledger_user ON bigcompany.rewards_ledger(user_id);
+CREATE INDEX IF NOT EXISTS idx_retailer_profiles_user ON bigcompany.retailer_profiles(user_id);
+CREATE INDEX IF NOT EXISTS idx_wholesaler_profiles_user ON bigcompany.wholesaler_profiles(user_id);
+CREATE INDEX IF NOT EXISTS idx_customer_loans_customer ON bigcompany.customer_loans(customer_id);
+CREATE INDEX IF NOT EXISTS idx_customer_loans_status ON bigcompany.customer_loans(status);
+CREATE INDEX IF NOT EXISTS idx_retailer_orders_retailer ON bigcompany.retailer_orders(retailer_id);
+CREATE INDEX IF NOT EXISTS idx_retailer_orders_wholesaler ON bigcompany.retailer_orders(wholesaler_id);
+CREATE INDEX IF NOT EXISTS idx_retailer_orders_status ON bigcompany.retailer_orders(order_status);
+CREATE INDEX IF NOT EXISTS idx_credit_requests_retailer ON bigcompany.credit_requests(retailer_id);
+CREATE INDEX IF NOT EXISTS idx_credit_requests_status ON bigcompany.credit_requests(status);
 
 -- =====================================================
 -- SEED DATA

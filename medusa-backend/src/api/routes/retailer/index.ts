@@ -746,4 +746,621 @@ router.use(corsMiddleware);
     }
   });
 
+  // ==================== BRANCH MANAGEMENT ROUTES ====================
+
+  // Mock branch data (in production, use database)
+  const branches: Map<string, any> = new Map([
+    ['br_001', {
+      id: 'br_001',
+      retailer_id: 'ret_001',
+      branch_code: 'KGL-MAIN',
+      branch_name: 'Kigali Main Branch',
+      address: 'KN 4 Ave, Kigali',
+      city: 'Kigali',
+      district: 'Nyarugenge',
+      phone: '+250788123456',
+      manager_name: 'Jean Baptiste',
+      manager_phone: '+250788111222',
+      location_lat: -1.9403,
+      location_lng: 29.8739,
+      is_active: true,
+      is_main_branch: true,
+      operating_hours: { mon: '08:00-20:00', tue: '08:00-20:00', wed: '08:00-20:00', thu: '08:00-20:00', fri: '08:00-20:00', sat: '09:00-18:00', sun: '10:00-16:00' },
+      created_at: '2024-01-15T08:00:00Z',
+      updated_at: '2024-11-28T10:00:00Z',
+    }],
+    ['br_002', {
+      id: 'br_002',
+      retailer_id: 'ret_001',
+      branch_code: 'KGL-KIMH',
+      branch_name: 'Kimihurura Branch',
+      address: 'KG 9 Ave, Kimihurura',
+      city: 'Kigali',
+      district: 'Gasabo',
+      phone: '+250788234567',
+      manager_name: 'Marie Claire',
+      manager_phone: '+250788222333',
+      location_lat: -1.9537,
+      location_lng: 30.0912,
+      is_active: true,
+      is_main_branch: false,
+      operating_hours: { mon: '08:00-20:00', tue: '08:00-20:00', wed: '08:00-20:00', thu: '08:00-20:00', fri: '08:00-20:00', sat: '09:00-18:00', sun: 'closed' },
+      created_at: '2024-03-10T08:00:00Z',
+      updated_at: '2024-11-25T14:00:00Z',
+    }],
+    ['br_003', {
+      id: 'br_003',
+      retailer_id: 'ret_001',
+      branch_code: 'HYE-001',
+      branch_name: 'Huye Branch',
+      address: 'NR 2, Huye Town',
+      city: 'Huye',
+      district: 'Huye',
+      phone: '+250788345678',
+      manager_name: 'Emmanuel Nkurunziza',
+      manager_phone: '+250788333444',
+      location_lat: -2.5912,
+      location_lng: 29.7425,
+      is_active: true,
+      is_main_branch: false,
+      operating_hours: { mon: '07:30-19:00', tue: '07:30-19:00', wed: '07:30-19:00', thu: '07:30-19:00', fri: '07:30-19:00', sat: '08:00-17:00', sun: 'closed' },
+      created_at: '2024-06-15T08:00:00Z',
+      updated_at: '2024-11-20T10:00:00Z',
+    }],
+  ]);
+
+  // Mock POS terminals data
+  const posTerminals: Map<string, any> = new Map([
+    ['term_001', { id: 'term_001', branch_id: 'br_001', terminal_code: 'POS-KGL-001', terminal_name: 'Main Counter 1', device_type: 'standard', serial_number: 'SN-2024-001', is_active: true, last_seen_at: new Date().toISOString() }],
+    ['term_002', { id: 'term_002', branch_id: 'br_001', terminal_code: 'POS-KGL-002', terminal_name: 'Main Counter 2', device_type: 'standard', serial_number: 'SN-2024-002', is_active: true, last_seen_at: new Date().toISOString() }],
+    ['term_003', { id: 'term_003', branch_id: 'br_002', terminal_code: 'POS-KIM-001', terminal_name: 'Checkout 1', device_type: 'mobile', serial_number: 'SN-2024-003', is_active: true, last_seen_at: new Date().toISOString() }],
+    ['term_004', { id: 'term_004', branch_id: 'br_003', terminal_code: 'POS-HYE-001', terminal_name: 'Counter 1', device_type: 'standard', serial_number: 'SN-2024-004', is_active: true, last_seen_at: new Date().toISOString() }],
+  ]);
+
+  // GET /retailer/branches - list all branches for the retailer
+  router.get('/branches', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      const { is_active, limit = 20, offset = 0 } = req.query;
+
+      let branchList = Array.from(branches.values()).filter(b => b.retailer_id === user.id || user.id === 'ret_001');
+
+      if (is_active !== undefined) {
+        branchList = branchList.filter(b => b.is_active === (is_active === 'true'));
+      }
+
+      // Add stats for each branch
+      const branchesWithStats = branchList.map(branch => ({
+        ...branch,
+        terminals_count: Array.from(posTerminals.values()).filter(t => t.branch_id === branch.id).length,
+        today_sales: Math.floor(Math.random() * 200000) + 50000,
+        today_transactions: Math.floor(Math.random() * 30) + 5,
+      }));
+
+      res.json({
+        branches: branchesWithStats.slice(Number(offset), Number(offset) + Number(limit)),
+        count: branchesWithStats.length,
+        limit: Number(limit),
+        offset: Number(offset),
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // GET /retailer/branches/stats - aggregate branch statistics
+  router.get('/branches/stats', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      const branchList = Array.from(branches.values()).filter(b => b.retailer_id === user.id || user.id === 'ret_001');
+
+      res.json({
+        total_branches: branchList.length,
+        active_branches: branchList.filter(b => b.is_active).length,
+        inactive_branches: branchList.filter(b => !b.is_active).length,
+        total_terminals: Array.from(posTerminals.values()).filter(t => branchList.some(b => b.id === t.branch_id)).length,
+        cities_covered: [...new Set(branchList.map(b => b.city))].length,
+        today_total_sales: 485000,
+        today_total_transactions: 67,
+        best_performing_branch: 'Kigali Main Branch',
+        currency: 'RWF',
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // POST /retailer/branches - create new branch
+  router.post('/branches', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      const { branch_name, branch_code, address, city, district, phone, manager_name, manager_phone, location_lat, location_lng, operating_hours } = req.body;
+
+      if (!branch_name || !branch_code) {
+        return res.status(400).json({ error: 'branch_name and branch_code are required' });
+      }
+
+      const newBranch = {
+        id: `br_${Date.now()}`,
+        retailer_id: user.id,
+        branch_code,
+        branch_name,
+        address: address || '',
+        city: city || '',
+        district: district || '',
+        phone: phone || '',
+        manager_name: manager_name || '',
+        manager_phone: manager_phone || '',
+        location_lat: location_lat || null,
+        location_lng: location_lng || null,
+        is_active: true,
+        is_main_branch: false,
+        operating_hours: operating_hours || { mon: '08:00-20:00', tue: '08:00-20:00', wed: '08:00-20:00', thu: '08:00-20:00', fri: '08:00-20:00', sat: '09:00-18:00', sun: 'closed' },
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      branches.set(newBranch.id, newBranch);
+      res.status(201).json(newBranch);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // GET /retailer/branches/:id - get branch details
+  router.get('/branches/:id', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const branch = branches.get(id);
+
+      if (!branch) {
+        return res.status(404).json({ error: 'Branch not found' });
+      }
+
+      // Get terminals for this branch
+      const branchTerminals = Array.from(posTerminals.values()).filter(t => t.branch_id === id);
+
+      res.json({
+        ...branch,
+        terminals: branchTerminals,
+        terminals_count: branchTerminals.length,
+        active_terminals: branchTerminals.filter(t => t.is_active).length,
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // PUT /retailer/branches/:id - update branch
+  router.put('/branches/:id', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const branch = branches.get(id);
+
+      if (!branch) {
+        return res.status(404).json({ error: 'Branch not found' });
+      }
+
+      const updateData = req.body;
+      const updatedBranch = {
+        ...branch,
+        ...updateData,
+        id: branch.id, // Prevent ID override
+        retailer_id: branch.retailer_id, // Prevent retailer_id override
+        updated_at: new Date().toISOString(),
+      };
+
+      branches.set(id, updatedBranch);
+      res.json(updatedBranch);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // DELETE /retailer/branches/:id - deactivate branch (soft delete)
+  router.delete('/branches/:id', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const branch = branches.get(id);
+
+      if (!branch) {
+        return res.status(404).json({ error: 'Branch not found' });
+      }
+
+      if (branch.is_main_branch) {
+        return res.status(400).json({ error: 'Cannot deactivate the main branch' });
+      }
+
+      branch.is_active = false;
+      branch.updated_at = new Date().toISOString();
+      branches.set(id, branch);
+
+      res.json({ message: 'Branch deactivated successfully', branch });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ==================== POS TERMINAL MANAGEMENT ROUTES ====================
+
+  // GET /retailer/branches/:id/terminals - list POS terminals for a branch
+  router.get('/branches/:id/terminals', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { is_active } = req.query;
+
+      const branch = branches.get(id);
+      if (!branch) {
+        return res.status(404).json({ error: 'Branch not found' });
+      }
+
+      let terminals = Array.from(posTerminals.values()).filter(t => t.branch_id === id);
+
+      if (is_active !== undefined) {
+        terminals = terminals.filter(t => t.is_active === (is_active === 'true'));
+      }
+
+      res.json({
+        branch_id: id,
+        branch_name: branch.branch_name,
+        terminals,
+        count: terminals.length,
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // POST /retailer/branches/:id/terminals - register new POS terminal
+  router.post('/branches/:id/terminals', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { terminal_code, terminal_name, device_type, serial_number } = req.body;
+
+      const branch = branches.get(id);
+      if (!branch) {
+        return res.status(404).json({ error: 'Branch not found' });
+      }
+
+      if (!terminal_code) {
+        return res.status(400).json({ error: 'terminal_code is required' });
+      }
+
+      const newTerminal = {
+        id: `term_${Date.now()}`,
+        branch_id: id,
+        terminal_code,
+        terminal_name: terminal_name || `Terminal ${terminal_code}`,
+        device_type: device_type || 'standard',
+        serial_number: serial_number || '',
+        is_active: true,
+        last_seen_at: null,
+        created_at: new Date().toISOString(),
+      };
+
+      posTerminals.set(newTerminal.id, newTerminal);
+      res.status(201).json(newTerminal);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // PUT /retailer/terminals/:id - update POS terminal
+  router.put('/terminals/:id', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const terminal = posTerminals.get(id);
+
+      if (!terminal) {
+        return res.status(404).json({ error: 'Terminal not found' });
+      }
+
+      const updateData = req.body;
+      const updatedTerminal = {
+        ...terminal,
+        ...updateData,
+        id: terminal.id, // Prevent ID override
+        branch_id: terminal.branch_id, // Prevent branch_id override
+      };
+
+      posTerminals.set(id, updatedTerminal);
+      res.json(updatedTerminal);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // DELETE /retailer/terminals/:id - deactivate POS terminal
+  router.delete('/terminals/:id', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const terminal = posTerminals.get(id);
+
+      if (!terminal) {
+        return res.status(404).json({ error: 'Terminal not found' });
+      }
+
+      terminal.is_active = false;
+      posTerminals.set(id, terminal);
+
+      res.json({ message: 'Terminal deactivated successfully', terminal });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ==================== BRANCH TRANSACTION & SUMMARY ROUTES ====================
+
+  // GET /retailer/branches/:id/transactions - branch transaction history
+  router.get('/branches/:id/transactions', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { limit = 20, offset = 0, start_date, end_date, payment_method } = req.query;
+
+      const branch = branches.get(id);
+      if (!branch) {
+        return res.status(404).json({ error: 'Branch not found' });
+      }
+
+      // Mock transaction data for the branch
+      const transactions = [
+        { id: 'txn_001', transaction_ref: 'TXN-2024-001', terminal_id: 'term_001', card_uid: 'NFC-001', customer_name: 'Jean Uwimana', amount: 15000, payment_method: 'nfc_card', pin_used: false, status: 'completed', cashier_name: 'Alice', receipt_number: 'RCP-001', created_at: '2024-11-28T10:30:00Z' },
+        { id: 'txn_002', transaction_ref: 'TXN-2024-002', terminal_id: 'term_001', card_uid: 'NFC-002', customer_name: 'Marie Claire', amount: 28500, payment_method: 'nfc_card', pin_used: true, status: 'completed', cashier_name: 'Bob', receipt_number: 'RCP-002', created_at: '2024-11-28T09:45:00Z' },
+        { id: 'txn_003', transaction_ref: 'TXN-2024-003', terminal_id: 'term_002', card_uid: null, customer_name: 'Emmanuel H.', amount: 8500, payment_method: 'mtn_momo', pin_used: false, status: 'completed', cashier_name: 'Alice', receipt_number: 'RCP-003', created_at: '2024-11-28T09:15:00Z' },
+        { id: 'txn_004', transaction_ref: 'TXN-2024-004', terminal_id: 'term_001', card_uid: 'NFC-003', customer_name: 'Patrick N.', amount: 42000, payment_method: 'nfc_card', pin_used: true, status: 'completed', cashier_name: 'Charlie', receipt_number: 'RCP-004', created_at: '2024-11-28T08:30:00Z' },
+        { id: 'txn_005', transaction_ref: 'TXN-2024-005', terminal_id: 'term_001', card_uid: null, customer_name: 'Alice U.', amount: 6200, payment_method: 'cash', pin_used: false, status: 'completed', cashier_name: 'Alice', receipt_number: 'RCP-005', created_at: '2024-11-27T17:45:00Z' },
+      ];
+
+      res.json({
+        branch_id: id,
+        branch_name: branch.branch_name,
+        transactions: transactions.slice(Number(offset), Number(offset) + Number(limit)),
+        count: transactions.length,
+        limit: Number(limit),
+        offset: Number(offset),
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // GET /retailer/branches/:id/summary - branch daily/weekly/monthly summary
+  router.get('/branches/:id/summary', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { period = 'daily' } = req.query;
+
+      const branch = branches.get(id);
+      if (!branch) {
+        return res.status(404).json({ error: 'Branch not found' });
+      }
+
+      const summaryData = {
+        daily: {
+          period: 'daily',
+          date: new Date().toISOString().split('T')[0],
+          total_transactions: 45,
+          total_amount: 485000,
+          total_refunds: 12000,
+          card_payments: { count: 32, amount: 380000 },
+          wallet_payments: { count: 8, amount: 75000 },
+          cash_payments: { count: 5, amount: 30000 },
+          average_transaction: 10778,
+          peak_hour: 14,
+          unique_customers: 38,
+          currency: 'RWF',
+        },
+        weekly: {
+          period: 'weekly',
+          start_date: '2024-11-22',
+          end_date: '2024-11-28',
+          total_transactions: 287,
+          total_amount: 3250000,
+          total_refunds: 45000,
+          card_payments: { count: 198, amount: 2450000 },
+          wallet_payments: { count: 62, amount: 580000 },
+          cash_payments: { count: 27, amount: 220000 },
+          average_transaction: 11324,
+          busiest_day: 'Saturday',
+          unique_customers: 215,
+          currency: 'RWF',
+        },
+        monthly: {
+          period: 'monthly',
+          month: 'November 2024',
+          total_transactions: 1156,
+          total_amount: 12450000,
+          total_refunds: 185000,
+          card_payments: { count: 812, amount: 9800000 },
+          wallet_payments: { count: 245, amount: 1950000 },
+          cash_payments: { count: 99, amount: 700000 },
+          average_transaction: 10769,
+          growth_vs_last_month: 12.5,
+          unique_customers: 645,
+          currency: 'RWF',
+        },
+      };
+
+      res.json({
+        branch_id: id,
+        branch_name: branch.branch_name,
+        summary: summaryData[period as keyof typeof summaryData] || summaryData.daily,
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ==================== NFC CARD MANAGEMENT ROUTES ====================
+
+  // GET /retailer/nfc-cards - list NFC cards issued by this retailer
+  router.get('/nfc-cards', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { limit = 20, offset = 0, status, search } = req.query;
+
+      // Mock NFC cards data
+      let cards = [
+        { id: 'card_001', card_uid: 'NFC-A1B2C3D4', customer_name: 'Jean Uwimana', customer_phone: '+250788111222', balance: 15000, status: 'active', is_registered: true, pin_set: true, branch_issued: 'Kigali Main Branch', issued_at: '2024-10-15T10:00:00Z', last_used: '2024-11-28T10:30:00Z' },
+        { id: 'card_002', card_uid: 'NFC-E5F6G7H8', customer_name: 'Marie Claire', customer_phone: '+250788222333', balance: 28500, status: 'active', is_registered: true, pin_set: true, branch_issued: 'Kimihurura Branch', issued_at: '2024-10-20T14:00:00Z', last_used: '2024-11-28T09:45:00Z' },
+        { id: 'card_003', card_uid: 'NFC-I9J0K1L2', customer_name: 'Emmanuel Habimana', customer_phone: '+250788333444', balance: 5200, status: 'active', is_registered: true, pin_set: false, branch_issued: 'Kigali Main Branch', issued_at: '2024-11-01T09:00:00Z', last_used: '2024-11-27T16:20:00Z' },
+        { id: 'card_004', card_uid: 'NFC-M3N4O5P6', customer_name: null, customer_phone: null, balance: 0, status: 'inactive', is_registered: false, pin_set: false, branch_issued: 'Huye Branch', issued_at: '2024-11-10T11:00:00Z', last_used: null },
+        { id: 'card_005', card_uid: 'NFC-Q7R8S9T0', customer_name: 'Alice Uwase', customer_phone: '+250788444555', balance: 0, status: 'blocked', is_registered: true, pin_set: true, branch_issued: 'Kigali Main Branch', issued_at: '2024-09-05T08:00:00Z', last_used: '2024-11-15T14:00:00Z', blocked_reason: 'Lost card reported' },
+      ];
+
+      if (status) {
+        cards = cards.filter(c => c.status === status);
+      }
+
+      if (search) {
+        const searchLower = (search as string).toLowerCase();
+        cards = cards.filter(c =>
+          c.card_uid.toLowerCase().includes(searchLower) ||
+          (c.customer_name && c.customer_name.toLowerCase().includes(searchLower)) ||
+          (c.customer_phone && c.customer_phone.includes(searchLower))
+        );
+      }
+
+      res.json({
+        cards: cards.slice(Number(offset), Number(offset) + Number(limit)),
+        count: cards.length,
+        limit: Number(limit),
+        offset: Number(offset),
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // GET /retailer/nfc-cards/stats - NFC card statistics
+  router.get('/nfc-cards/stats', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      res.json({
+        total_cards_issued: 156,
+        active_cards: 142,
+        inactive_cards: 8,
+        blocked_cards: 6,
+        registered_cards: 148,
+        cards_with_pin: 135,
+        total_card_balance: 2850000,
+        cards_used_today: 45,
+        cards_used_this_week: 128,
+        currency: 'RWF',
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // POST /retailer/nfc-cards/issue - issue new NFC card
+  router.post('/nfc-cards/issue', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      const { card_uid, customer_name, customer_phone, initial_balance, branch_id } = req.body;
+
+      if (!card_uid) {
+        return res.status(400).json({ error: 'card_uid is required' });
+      }
+
+      const branch = branch_id ? branches.get(branch_id) : null;
+
+      const newCard = {
+        id: `card_${Date.now()}`,
+        card_uid,
+        customer_name: customer_name || null,
+        customer_phone: customer_phone || null,
+        balance: initial_balance || 0,
+        status: 'active',
+        is_registered: !!customer_phone,
+        pin_set: false,
+        branch_issued: branch?.branch_name || user.shop_name || 'Main Branch',
+        issued_by: user.id,
+        issued_at: new Date().toISOString(),
+        last_used: null,
+      };
+
+      res.status(201).json(newCard);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // POST /retailer/nfc-cards/:id/block - block NFC card
+  router.post('/nfc-cards/:id/block', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { reason } = req.body;
+
+      res.json({
+        id,
+        status: 'blocked',
+        blocked_reason: reason || 'Blocked by retailer',
+        blocked_at: new Date().toISOString(),
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // POST /retailer/nfc-cards/:id/unblock - unblock NFC card
+  router.post('/nfc-cards/:id/unblock', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+
+      res.json({
+        id,
+        status: 'active',
+        unblocked_at: new Date().toISOString(),
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // POST /retailer/nfc-cards/:id/topup - top up NFC card balance
+  router.post('/nfc-cards/:id/topup', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { amount, payment_method, reference } = req.body;
+
+      if (!amount || amount <= 0) {
+        return res.status(400).json({ error: 'Valid amount is required' });
+      }
+
+      res.json({
+        id,
+        topup_amount: amount,
+        new_balance: 15000 + amount, // Mock: previous balance + topup
+        payment_method: payment_method || 'cash',
+        reference: reference || `TOPUP-${Date.now()}`,
+        transaction_id: `txn_${Date.now()}`,
+        topped_up_at: new Date().toISOString(),
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // GET /retailer/nfc-cards/:id/transactions - NFC card transaction history
+  router.get('/nfc-cards/:id/transactions', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { limit = 20, offset = 0 } = req.query;
+
+      const transactions = [
+        { id: 'txn_001', type: 'payment', amount: -2500, balance_after: 15000, merchant: 'Kigali Main Branch', description: 'POS Payment', created_at: '2024-11-28T10:30:00Z' },
+        { id: 'txn_002', type: 'topup', amount: 10000, balance_after: 17500, method: 'MTN MoMo', description: 'Wallet Top-up', created_at: '2024-11-27T14:00:00Z' },
+        { id: 'txn_003', type: 'payment', amount: -7500, balance_after: 7500, merchant: 'Kimihurura Branch', description: 'POS Payment (PIN verified)', created_at: '2024-11-26T11:45:00Z' },
+        { id: 'txn_004', type: 'topup', amount: 5000, balance_after: 15000, method: 'USSD *939#', description: 'USSD Top-up', created_at: '2024-11-25T09:30:00Z' },
+      ];
+
+      res.json({
+        card_id: id,
+        transactions: transactions.slice(Number(offset), Number(offset) + Number(limit)),
+        count: transactions.length,
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
 export default router;

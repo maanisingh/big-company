@@ -25,6 +25,7 @@ import { OrdersPage as RetailerOrdersPage } from './pages/retailer/OrdersPage';
 import POSPage from './pages/retailer/POSPage';
 import { WalletPage } from './pages/retailer/WalletPage';
 import NFCCardsPage from './pages/retailer/NFCCardsPage';
+import BranchesPage from './pages/retailer/BranchesPage';
 import RetailerAnalyticsPage from './pages/retailer/AnalyticsPage';
 
 // Wholesaler Pages
@@ -35,6 +36,10 @@ import RetailersPage from './pages/wholesaler/RetailersPage';
 import WholesalerAnalyticsPage from './pages/wholesaler/AnalyticsPage';
 import CreditApprovalsPage from './pages/wholesaler/CreditApprovalsPage';
 import ProfileSettingsPage from './pages/shared/ProfileSettingsPage';
+
+// Admin Pages
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminLoginPage from './pages/admin/AdminLoginPage';
 
 // Placeholder for pages not yet implemented
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
@@ -60,6 +65,7 @@ function App() {
             {/* Public Routes */}
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/admin/login" element={<AdminLoginPage />} />
 
             {/* Consumer Routes - wrapped with CartProvider */}
             <Route
@@ -95,6 +101,7 @@ function App() {
               <Route path="pos" element={<POSPage />} />
               <Route path="wallet" element={<WalletPage />} />
               <Route path="nfc-cards" element={<NFCCardsPage />} />
+              <Route path="branches" element={<BranchesPage />} />
               <Route path="analytics" element={<RetailerAnalyticsPage />} />
               <Route path="profile" element={<ProfileSettingsPage />} />
             </Route>
@@ -115,6 +122,26 @@ function App() {
               <Route path="retailers" element={<RetailersPage />} />
               <Route path="credit" element={<CreditApprovalsPage />} />
               <Route path="analytics" element={<WholesalerAnalyticsPage />} />
+              <Route path="profile" element={<ProfileSettingsPage />} />
+            </Route>
+
+            {/* Admin Routes */}
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AppLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Navigate to="/admin/dashboard" replace />} />
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="customers" element={<PlaceholderPage title="Customer Management" />} />
+              <Route path="retailers" element={<PlaceholderPage title="Retailer Management" />} />
+              <Route path="wholesalers" element={<PlaceholderPage title="Wholesaler Management" />} />
+              <Route path="loans" element={<PlaceholderPage title="Loan Management" />} />
+              <Route path="nfc-cards" element={<PlaceholderPage title="NFC Card Management" />} />
+              <Route path="reports" element={<PlaceholderPage title="Reports" />} />
               <Route path="profile" element={<ProfileSettingsPage />} />
             </Route>
 

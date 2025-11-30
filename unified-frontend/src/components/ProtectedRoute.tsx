@@ -43,6 +43,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       consumer: '/consumer/shop',
       retailer: '/retailer/dashboard',
       wholesaler: '/wholesaler/dashboard',
+      admin: '/admin/dashboard',
     };
     return <Navigate to={roleRedirects[user.role]} replace />;
   }

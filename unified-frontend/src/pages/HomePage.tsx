@@ -261,6 +261,21 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* Admin Portal Link */}
+      <section className="py-8 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <button
+            onClick={() => navigate('/admin/login')}
+            className="bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white px-6 py-3 rounded-lg transition-all border border-white/10 hover:border-white/20 flex items-center gap-2 mx-auto"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            Admin Portal
+          </button>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="py-8 px-4 border-t border-white/10">
         <div className="max-w-7xl mx-auto text-center text-gray-400">
