@@ -580,7 +580,7 @@ const BranchesPage: React.FC = () => {
       key: 'status',
       render: (status: string) => (
         <Tag
-          color={getStatusColor(status)}
+          color={getStatusColor(status || '')}
           icon={
             status === 'active' ? (
               <CheckCircleOutlined />
@@ -589,7 +589,7 @@ const BranchesPage: React.FC = () => {
             )
           }
         >
-          {status.toUpperCase()}
+          {(status || '').toUpperCase()}
         </Tag>
       ),
       filters: [
@@ -683,12 +683,12 @@ const BranchesPage: React.FC = () => {
       key: 'status',
       render: (status: string) => (
         <Tag
-          color={getStatusColor(status)}
+          color={getStatusColor(status || '')}
           icon={
             status === 'online' ? <WifiOutlined /> : <CloseCircleOutlined />
           }
         >
-          {status.toUpperCase()}
+          {(status || '').toUpperCase()}
         </Tag>
       ),
     },
@@ -1288,8 +1288,8 @@ const BranchesPage: React.FC = () => {
                 </Space>
                 <Space>
                   <Text strong>Status:</Text>
-                  <Tag color={getStatusColor(selectedBranch.status)}>
-                    {selectedBranch.status.toUpperCase()}
+                  <Tag color={getStatusColor(selectedBranch.status || '')}>
+                    {(selectedBranch.status || '').toUpperCase()}
                   </Tag>
                 </Space>
               </Space>
@@ -1310,7 +1310,7 @@ const BranchesPage: React.FC = () => {
                   dataIndex: 'status',
                   key: 'status',
                   render: (status: string) => (
-                    <Tag color={getStatusColor(status)}>{status.toUpperCase()}</Tag>
+                    <Tag color={getStatusColor(status || '')}>{(status || '').toUpperCase()}</Tag>
                   ),
                 },
                 {
