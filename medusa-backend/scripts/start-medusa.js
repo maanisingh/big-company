@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
  * Start Medusa with comprehensive error capturing
+ * NOTE: This script is no longer used in production - using 'medusa start' directly
  */
 
 const { spawn } = require('child_process');
