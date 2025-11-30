@@ -203,7 +203,8 @@ export const HomePage: React.FC = () => {
       icon: <ShoppingCartIcon />,
       gradient: 'from-emerald-500 to-green-600',
       features: ['Browse thousands of products', 'Easy mobile ordering', 'Track your deliveries', 'Secure payments'],
-      credentials: { email: 'customer@test.com', password: 'customer123' },
+      authType: 'phone' as const,
+      credentials: { phone: '250788100001', pin: '1234' },
     },
     {
       key: 'retailer',
@@ -213,6 +214,7 @@ export const HomePage: React.FC = () => {
       icon: <ShopIcon />,
       gradient: 'from-blue-500 to-indigo-600',
       features: ['Real-time inventory', 'Wholesale ordering', 'Credit facilities', 'Sales analytics'],
+      authType: 'email' as const,
       credentials: { email: 'retailer@bigcompany.rw', password: 'retailer123' },
     },
     {
@@ -223,6 +225,7 @@ export const HomePage: React.FC = () => {
       icon: <TeamIcon />,
       gradient: 'from-purple-500 to-violet-600',
       features: ['Retailer management', 'Bulk order processing', 'Credit approvals', 'Distribution analytics'],
+      authType: 'email' as const,
       credentials: { email: 'wholesaler@bigcompany.rw', password: 'wholesaler123' },
     },
   ];
@@ -477,40 +480,81 @@ export const HomePage: React.FC = () => {
                     <span>Demo Credentials</span>
                   </div>
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between bg-white/10 rounded-lg px-3 py-2">
-                      <span className="text-sm text-white/80">Email:</span>
-                      <div className="flex items-center gap-2">
-                        <code className="text-sm">{portal.credentials.email}</code>
-                        <button
-                          onClick={() => copyToClipboard(portal.credentials.email, `${portal.key}-email`)}
-                          className="hover:bg-white/20 p-1 rounded transition-colors"
-                          title="Copy email"
-                        >
-                          {copiedCredential === `${portal.key}-email` ? (
-                            <CheckIcon />
-                          ) : (
-                            <CopyIcon />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between bg-white/10 rounded-lg px-3 py-2">
-                      <span className="text-sm text-white/80">Password:</span>
-                      <div className="flex items-center gap-2">
-                        <code className="text-sm">{portal.credentials.password}</code>
-                        <button
-                          onClick={() => copyToClipboard(portal.credentials.password, `${portal.key}-pass`)}
-                          className="hover:bg-white/20 p-1 rounded transition-colors"
-                          title="Copy password"
-                        >
-                          {copiedCredential === `${portal.key}-pass` ? (
-                            <CheckIcon />
-                          ) : (
-                            <CopyIcon />
-                          )}
-                        </button>
-                      </div>
-                    </div>
+                    {portal.authType === 'phone' ? (
+                      <>
+                        <div className="flex items-center justify-between bg-white/10 rounded-lg px-3 py-2">
+                          <span className="text-sm text-white/80">Phone:</span>
+                          <div className="flex items-center gap-2">
+                            <code className="text-sm">{portal.credentials.phone}</code>
+                            <button
+                              onClick={() => copyToClipboard(portal.credentials.phone || '', `${portal.key}-phone`)}
+                              className="hover:bg-white/20 p-1 rounded transition-colors"
+                              title="Copy phone"
+                            >
+                              {copiedCredential === `${portal.key}-phone` ? (
+                                <CheckIcon />
+                              ) : (
+                                <CopyIcon />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between bg-white/10 rounded-lg px-3 py-2">
+                          <span className="text-sm text-white/80">PIN:</span>
+                          <div className="flex items-center gap-2">
+                            <code className="text-sm">{portal.credentials.pin}</code>
+                            <button
+                              onClick={() => copyToClipboard(portal.credentials.pin || '', `${portal.key}-pin`)}
+                              className="hover:bg-white/20 p-1 rounded transition-colors"
+                              title="Copy PIN"
+                            >
+                              {copiedCredential === `${portal.key}-pin` ? (
+                                <CheckIcon />
+                              ) : (
+                                <CopyIcon />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex items-center justify-between bg-white/10 rounded-lg px-3 py-2">
+                          <span className="text-sm text-white/80">Email:</span>
+                          <div className="flex items-center gap-2">
+                            <code className="text-sm">{portal.credentials.email}</code>
+                            <button
+                              onClick={() => copyToClipboard(portal.credentials.email || '', `${portal.key}-email`)}
+                              className="hover:bg-white/20 p-1 rounded transition-colors"
+                              title="Copy email"
+                            >
+                              {copiedCredential === `${portal.key}-email` ? (
+                                <CheckIcon />
+                              ) : (
+                                <CopyIcon />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between bg-white/10 rounded-lg px-3 py-2">
+                          <span className="text-sm text-white/80">Password:</span>
+                          <div className="flex items-center gap-2">
+                            <code className="text-sm">{portal.credentials.password}</code>
+                            <button
+                              onClick={() => copyToClipboard(portal.credentials.password || '', `${portal.key}-pass`)}
+                              className="hover:bg-white/20 p-1 rounded transition-colors"
+                              title="Copy password"
+                            >
+                              {copiedCredential === `${portal.key}-pass` ? (
+                                <CheckIcon />
+                              ) : (
+                                <CopyIcon />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
 
