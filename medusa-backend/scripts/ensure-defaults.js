@@ -129,16 +129,51 @@ async function ensureDefaults() {
       console.log(`[ensure-defaults] Found ${regionCheck.rows.length} regions:`, regionCheck.rows.map(r => `${r.name}(${r.currency_code})`).join(', '));
     }
 
-    // 5. Check sales channels (Medusa 1.20+ requires this)
+    // 5. Check and CREATE sales channels if missing (Medusa 1.20+ requires this)
+    // This is CRITICAL - Medusa's initializeDefaults() can fail silently if it can't create the channel
     console.log('[ensure-defaults] Checking sales channels...');
     const channelCheck = await pool.query(
       `SELECT id, name, is_disabled FROM public.sales_channel LIMIT 5`
     );
 
+    let defaultChannelId = null;
     if (channelCheck.rows.length === 0) {
-      console.log('[ensure-defaults] No sales channels found - Medusa will create default');
+      console.log('[ensure-defaults] No sales channels found - creating default channel...');
+      try {
+        // Generate a unique ID for the sales channel
+        const channelId = 'sc_bigcompany_' + Date.now().toString(36);
+        await pool.query(`
+          INSERT INTO public.sales_channel (id, name, description, is_disabled, created_at, updated_at)
+          VALUES ($1, 'BigCompany Store', 'Default sales channel for BigCompany', false, NOW(), NOW())
+          ON CONFLICT (id) DO NOTHING
+        `, [channelId]);
+        defaultChannelId = channelId;
+        console.log('[ensure-defaults] Created default sales channel:', channelId);
+      } catch (scError) {
+        console.error('[ensure-defaults] Failed to create sales channel:', scError.message);
+        // Continue anyway - Medusa might be able to create it
+      }
     } else {
+      defaultChannelId = channelCheck.rows[0].id;
       console.log(`[ensure-defaults] Found ${channelCheck.rows.length} sales channels:`, channelCheck.rows.map(c => c.name).join(', '));
+    }
+
+    // 5b. Link store to sales channel if not already linked
+    if (storeCheck.rows.length > 0 && defaultChannelId) {
+      const store = storeCheck.rows[0];
+      if (!store.default_sales_channel_id) {
+        console.log('[ensure-defaults] Linking store to default sales channel...');
+        try {
+          await pool.query(`
+            UPDATE public.store
+            SET default_sales_channel_id = $1, updated_at = NOW()
+            WHERE id = $2
+          `, [defaultChannelId, store.id]);
+          console.log('[ensure-defaults] Store linked to sales channel');
+        } catch (linkError) {
+          console.error('[ensure-defaults] Failed to link store to channel:', linkError.message);
+        }
+      }
     }
 
     // 6. Check fulfillment and payment providers
