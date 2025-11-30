@@ -30,6 +30,7 @@ import { WholesalerDashboard } from './pages/wholesaler/WholesalerDashboard';
 import { InventoryPage as WholesalerInventoryPage } from './pages/wholesaler/InventoryPage';
 import WholesalerOrdersPage from './pages/wholesaler/OrdersPage';
 import RetailersPage from './pages/wholesaler/RetailersPage';
+import WholesalerAnalyticsPage from './pages/wholesaler/AnalyticsPage';
 
 // Placeholder for pages not yet implemented
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
@@ -109,7 +110,7 @@ function App() {
               <Route path="orders" element={<WholesalerOrdersPage />} />
               <Route path="retailers" element={<RetailersPage />} />
               <Route path="credit" element={<PlaceholderPage title="Credit Approvals" />} />
-              <Route path="analytics" element={<PlaceholderPage title="Analytics" />} />
+              <Route path="analytics" element={<WholesalerAnalyticsPage />} />
               <Route path="profile" element={<PlaceholderPage title="Profile" />} />
             </Route>
 

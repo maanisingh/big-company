@@ -51,7 +51,41 @@ export const authService = {
       };
     }
 
-    // Handle retailer/wholesaler response
+    // Handle retailer response format (returns { access_token, retailer: {...} })
+    if (role === 'retailer' && response.data.retailer) {
+      const retailer = response.data.retailer;
+      return {
+        success: true,
+        access_token: response.data.access_token,
+        user: {
+          id: retailer.id,
+          email: retailer.email,
+          phone: retailer.phone,
+          name: retailer.name || retailer.shop_name,
+          role: 'retailer' as const,
+          shop_name: retailer.shop_name,
+        }
+      };
+    }
+
+    // Handle wholesaler response format (returns { access_token, wholesaler: {...} })
+    if (role === 'wholesaler' && response.data.wholesaler) {
+      const wholesaler = response.data.wholesaler;
+      return {
+        success: true,
+        access_token: response.data.access_token,
+        user: {
+          id: wholesaler.id,
+          email: wholesaler.email,
+          phone: wholesaler.phone,
+          name: wholesaler.name || wholesaler.company_name,
+          role: 'wholesaler' as const,
+          company_name: wholesaler.company_name,
+        }
+      };
+    }
+
+    // Handle generic user response
     if (response.data.user) {
       return {
         success: true,
