@@ -183,9 +183,10 @@ export const AppLayout: React.FC = () => {
                 style={{ backgroundColor: themeColor }}
                 icon={<UserOutlined />}
               />
-              <div>
-                <Text strong>{user.name || user.email}</Text>
-                <br />
+              <div style={{ maxWidth: 150, overflow: 'hidden' }}>
+                <Text strong style={{ display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {user.name || user.email}
+                </Text>
                 <Text type="secondary" style={{ fontSize: 12 }}>
                   {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                 </Text>
