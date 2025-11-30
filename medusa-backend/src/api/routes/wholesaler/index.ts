@@ -2,6 +2,9 @@ import { Router, Request, Response, NextFunction, json } from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 
+// Version: 2024-11-30 - Full endpoints with retailer-orders and credit-requests
+console.log('[Wholesaler Routes] Loading v2.0 with retailer-orders and credit-requests endpoints');
+
 // CORS Middleware for wholesaler routes
 const corsMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const allowedOrigins = [
