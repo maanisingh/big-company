@@ -43,8 +43,11 @@ interface Product {
   category: string;
   stock: number;
   low_stock_threshold: number;
+  threshold?: number;  // API might return 'threshold' instead
   cost_price: number;
+  cost?: number;  // API might return 'cost' instead
   selling_price: number;
+  price?: number;  // API might return 'price' instead
   barcode?: string;
   image?: string;
   status: 'active' | 'inactive';
@@ -128,22 +131,29 @@ export const InventoryPage = () => {
       });
 
       const data = response.data;
-      setProducts(data.products || []);
-      setPagination((prev) => ({ ...prev, total: data.total || 0 }));
+      // Normalize API response fields (API returns 'price', 'cost', 'threshold' but we use longer names)
+      const normalizedProducts = (data.products || []).map((p: any) => ({
+        ...p,
+        selling_price: p.selling_price || p.price || 0,
+        cost_price: p.cost_price || p.cost || 0,
+        low_stock_threshold: p.low_stock_threshold || p.threshold || 10,
+      }));
+      setProducts(normalizedProducts);
+      setPagination((prev) => ({ ...prev, total: data.total || data.count || 0 }));
 
-      // Calculate stats
-      const allProducts = data.products || [];
+      // Calculate stats using normalized products
+      const allProducts = normalizedProducts;
       const totalValue = allProducts.reduce(
-        (sum: number, p: Product) => sum + p.stock * p.cost_price,
+        (sum: number, p: Product) => sum + p.stock * (p.cost_price || 0),
         0
       );
       const uniqueCategories = new Set(allProducts.map((p: Product) => p.category));
 
       setStats({
-        total_products: data.total || allProducts.length,
+        total_products: data.total || data.count || allProducts.length,
         total_value: totalValue,
         low_stock_count: allProducts.filter(
-          (p: Product) => p.stock > 0 && p.stock <= p.low_stock_threshold
+          (p: Product) => p.stock > 0 && p.stock <= (p.low_stock_threshold || 10)
         ).length,
         out_of_stock_count: allProducts.filter((p: Product) => p.stock === 0).length,
         categories: uniqueCategories.size,
