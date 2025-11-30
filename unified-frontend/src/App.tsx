@@ -16,6 +16,7 @@ import { LoginPage } from './pages/auth/LoginPage';
 import { ShopPage } from './pages/consumer/ShopPage';
 import { OrdersPage as ConsumerOrdersPage } from './pages/consumer/OrdersPage';
 import ConsumerWalletPage from './pages/consumer/WalletPage';
+import ConsumerProfilePage from './pages/consumer/ProfilePage';
 
 // Retailer Pages
 import { RetailerDashboard } from './pages/retailer/RetailerDashboard';
@@ -73,7 +74,7 @@ function App() {
               <Route path="shop" element={<ShopPage />} />
               <Route path="orders" element={<ConsumerOrdersPage />} />
               <Route path="wallet" element={<ConsumerWalletPage />} />
-              <Route path="profile" element={<PlaceholderPage title="Profile" />} />
+              <Route path="profile" element={<ConsumerProfilePage />} />
             </Route>
 
             {/* Retailer Routes */}
