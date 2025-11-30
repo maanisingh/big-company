@@ -417,6 +417,23 @@ router.use(corsMiddleware);
 
   // ==================== WALLET ROUTES ====================
 
+  // GET /retailer/wallet - returns full wallet info (alias for dashboard compatibility)
+  router.get('/wallet', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      res.json({
+        balance: 245000,
+        pending: 15000,
+        available: 230000,
+        currency: 'RWF',
+        credit_limit: 500000,
+        credit_used: 125000,
+        last_updated: new Date().toISOString(),
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   router.get('/wallet/balance', authMiddleware, async (req: Request, res: Response) => {
     try {
       res.json({
@@ -502,6 +519,60 @@ router.use(corsMiddleware);
   });
 
   // ==================== POS ROUTES ====================
+
+  // GET /retailer/pos/products - products available for POS sale
+  router.get('/pos/products', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { category, search, limit = 50, offset = 0 } = req.query;
+
+      let products = [
+        { id: 'prod_001', name: 'Inyange Milk 1L', barcode: '6000000000001', category: 'beverages', price: 900, stock: 50, unit: 'Liter' },
+        { id: 'prod_002', name: 'Bralirwa Beer 500ml', barcode: '6000000000002', category: 'beverages', price: 900, stock: 100, unit: 'Bottle' },
+        { id: 'prod_003', name: 'Bread (Large)', barcode: '6000000000003', category: 'food', price: 500, stock: 30, unit: 'Loaf' },
+        { id: 'prod_004', name: 'Sugar 1kg', barcode: '6000000000004', category: 'food', price: 1000, stock: 45, unit: 'Kg' },
+        { id: 'prod_005', name: 'Cooking Oil 1L', barcode: '6000000000005', category: 'food', price: 2000, stock: 25, unit: 'Liter' },
+        { id: 'prod_006', name: 'Rice 5kg', barcode: '6000000000006', category: 'food', price: 5500, stock: 40, unit: 'Kg' },
+        { id: 'prod_007', name: 'Soap Bar', barcode: '6000000000007', category: 'personal_care', price: 300, stock: 80, unit: 'Piece' },
+        { id: 'prod_008', name: 'Toothpaste', barcode: '6000000000008', category: 'personal_care', price: 1200, stock: 35, unit: 'Tube' },
+        { id: 'prod_009', name: 'Detergent 1kg', barcode: '6000000000009', category: 'cleaning', price: 1500, stock: 60, unit: 'Kg' },
+        { id: 'prod_010', name: 'Bottled Water 500ml', barcode: '6000000000010', category: 'beverages', price: 300, stock: 200, unit: 'Bottle' },
+        { id: 'prod_011', name: 'Eggs (Tray of 30)', barcode: '6000000000011', category: 'food', price: 4500, stock: 20, unit: 'Tray' },
+        { id: 'prod_012', name: 'Tomatoes 1kg', barcode: '6000000000012', category: 'food', price: 800, stock: 50, unit: 'Kg' },
+        { id: 'prod_013', name: 'Onions 1kg', barcode: '6000000000013', category: 'food', price: 600, stock: 55, unit: 'Kg' },
+        { id: 'prod_014', name: 'Soda (Fanta 500ml)', barcode: '6000000000014', category: 'beverages', price: 500, stock: 120, unit: 'Bottle' },
+        { id: 'prod_015', name: 'Tissue Paper (Pack)', barcode: '6000000000015', category: 'household', price: 800, stock: 40, unit: 'Pack' },
+      ];
+
+      // Filter by category
+      if (category) {
+        products = products.filter(p => p.category === String(category).toLowerCase());
+      }
+
+      // Filter by search term
+      if (search) {
+        const searchTerm = String(search).toLowerCase();
+        products = products.filter(p =>
+          p.name.toLowerCase().includes(searchTerm) ||
+          p.barcode.includes(searchTerm)
+        );
+      }
+
+      const total = products.length;
+
+      // Apply pagination
+      const start = Number(offset);
+      const end = start + Number(limit);
+      products = products.slice(start, end);
+
+      res.json({
+        products,
+        count: products.length,
+        total,
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
 
   router.get('/pos/daily-sales', authMiddleware, async (req: Request, res: Response) => {
     try {

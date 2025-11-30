@@ -9,6 +9,7 @@ import retailerRoutes from './routes/retailer';
 import wholesalerRoutes from './routes/wholesaler';
 import authRoutes from './routes/auth';
 import adminRoutes from './routes/admin';
+import storeRoutes from './routes/store';
 
 export default (rootDirectory: string): Router | Router[] => {
   const router = Router();
@@ -26,6 +27,7 @@ export default (rootDirectory: string): Router | Router[] => {
   router.use('/admin', adminRoutes);
 
   // Store routes (customer-facing)
+  router.use('/store', storeRoutes);  // retailers, categories, products
   router.use('/store/wallet', walletRoutes);
   router.use('/store/gas', gasRoutes);
   router.use('/store/loans', loansRoutes);

@@ -126,10 +126,10 @@ export const RetailerDashboard: React.FC = () => {
           </Col>
           <Col>
             <Space>
-              <Button icon={<ReloadOutlined />} onClick={fetchDashboardData}>
+              <Button icon={<ReloadOutlined />} onClick={fetchDashboardData} style={{ borderColor: 'white', color: 'white', background: 'rgba(255,255,255,0.1)' }}>
                 Refresh
               </Button>
-              <Button type="primary" icon={<PlusOutlined />} ghost>
+              <Button type="primary" icon={<PlusOutlined />} style={{ borderColor: 'white', color: 'white', background: 'rgba(255,255,255,0.2)' }}>
                 New Order
               </Button>
             </Space>
