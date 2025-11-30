@@ -170,12 +170,12 @@ export const ShopPage: React.FC = () => {
 
   // Handle add to cart
   const handleAddToCart = (product: Product) => {
-    const variant = product.variants[0];
+    const variant = product.variants?.[0];
     if (!variant) return;
 
     const price =
-      variant.prices.find((p) => p.currency_code === 'rwf' || p.currency_code === 'RWF')?.amount ||
-      variant.prices[0]?.amount ||
+      variant.prices?.find((p) => p.currency_code === 'rwf' || p.currency_code === 'RWF')?.amount ||
+      variant.prices?.[0]?.amount ||
       0;
 
     addItem({
@@ -569,7 +569,7 @@ export const ShopPage: React.FC = () => {
       ) : (
         <Row gutter={[16, 16]}>
           {filteredProducts.map((product) => {
-            const variant = product.variants[0];
+            const variant = product.variants?.[0];
             const price =
               variant?.prices?.find((p) => (p.currency_code || '').toLowerCase() === 'rwf')?.amount ||
               variant?.prices?.[0]?.amount ||
