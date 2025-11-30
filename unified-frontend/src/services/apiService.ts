@@ -17,14 +17,27 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle 401 responses
+// Handle 401 responses - only logout for actual auth failures, not API errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Only force logout if:
+    // 1. It's a 401 AND
+    // 2. The error message indicates invalid/expired token (not just missing endpoint auth)
     if (error.response?.status === 401) {
-      localStorage.removeItem('bigcompany_token');
-      localStorage.removeItem('bigcompany_user');
-      window.location.href = '/login';
+      const errorMsg = error.response?.data?.message || error.response?.data?.error || '';
+      const isAuthFailure =
+        errorMsg.toLowerCase().includes('invalid token') ||
+        errorMsg.toLowerCase().includes('token expired') ||
+        errorMsg.toLowerCase().includes('jwt') ||
+        error.config?.url?.includes('/auth/');
+
+      // Don't auto-logout for general 401s on data endpoints - let the component handle it
+      if (isAuthFailure) {
+        localStorage.removeItem('bigcompany_token');
+        localStorage.removeItem('bigcompany_user');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

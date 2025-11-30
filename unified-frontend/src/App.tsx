@@ -24,6 +24,7 @@ import { OrdersPage as RetailerOrdersPage } from './pages/retailer/OrdersPage';
 import POSPage from './pages/retailer/POSPage';
 import { WalletPage } from './pages/retailer/WalletPage';
 import NFCCardsPage from './pages/retailer/NFCCardsPage';
+import RetailerAnalyticsPage from './pages/retailer/AnalyticsPage';
 
 // Wholesaler Pages
 import { WholesalerDashboard } from './pages/wholesaler/WholesalerDashboard';
@@ -91,7 +92,7 @@ function App() {
               <Route path="pos" element={<POSPage />} />
               <Route path="wallet" element={<WalletPage />} />
               <Route path="nfc-cards" element={<NFCCardsPage />} />
-              <Route path="analytics" element={<PlaceholderPage title="Analytics" />} />
+              <Route path="analytics" element={<RetailerAnalyticsPage />} />
               <Route path="profile" element={<PlaceholderPage title="Profile" />} />
             </Route>
 
