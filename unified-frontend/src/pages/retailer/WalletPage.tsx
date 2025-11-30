@@ -256,7 +256,7 @@ export const WalletPage = () => {
 
     try {
       await retailerApi.makeRepayment(repaymentModal.order.id, repaymentAmount);
-      message.success(`Payment of ${repaymentAmount.toLocaleString()} RWF recorded successfully`);
+      message.success(`Payment of ${(repaymentAmount ?? 0).toLocaleString()} RWF recorded successfully`);
       setRepaymentModal({ visible: false, order: null });
       setRepaymentAmount(0);
       setRepaymentMethod('wallet');

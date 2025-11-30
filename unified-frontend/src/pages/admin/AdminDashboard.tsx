@@ -592,7 +592,7 @@ const AdminDashboard: React.FC = () => {
                 <XAxis dataKey="date" />
                 <YAxis tickFormatter={(v) => `${(v / 1000000).toFixed(1)}M`} />
                 <Tooltip
-                  formatter={(value: number) => `${value.toLocaleString()} RWF`}
+                  formatter={(value: number) => `${(value ?? 0).toLocaleString()} RWF`}
                 />
                 <Legend />
                 <Area
@@ -652,7 +652,7 @@ const AdminDashboard: React.FC = () => {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value: number) => value.toLocaleString()} />
+                <Tooltip formatter={(value: number) => (value ?? 0).toLocaleString()} />
               </PieChart>
             </ResponsiveContainer>
           </Card>
@@ -669,7 +669,7 @@ const AdminDashboard: React.FC = () => {
                 <XAxis dataKey="period" tickFormatter={(v) => dayjs(v).format('MMM D')} />
                 <YAxis tickFormatter={(v) => `${(v / 1000000).toFixed(1)}M`} />
                 <Tooltip
-                  formatter={(value: number) => `${value.toLocaleString()} RWF`}
+                  formatter={(value: number) => `${(value ?? 0).toLocaleString()} RWF`}
                   labelFormatter={(label) => dayjs(label).format('MMMM D, YYYY')}
                 />
                 <Legend />

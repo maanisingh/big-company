@@ -336,9 +336,9 @@ const POSPage = () => {
           message.error('Please validate customer first');
           return;
         }
-        const availableCredit = customer.credit_limit - customer.credit_used;
+        const availableCredit = (customer.credit_limit ?? 0) - (customer.credit_used ?? 0);
         if (availableCredit < total) {
-          message.error(`Insufficient credit. Available: ${availableCredit.toLocaleString()} RWF`);
+          message.error(`Insufficient credit. Available: ${(availableCredit ?? 0).toLocaleString()} RWF`);
           return;
         }
         await completeSale('credit');

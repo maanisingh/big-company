@@ -213,15 +213,16 @@ export const RetailerDashboard: React.FC = () => {
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    if (amount >= 1000000) {
-      return `${(amount / 1000000).toFixed(1)}M RWF`;
+  const formatCurrency = (amount: number | undefined | null) => {
+    const safeAmount = amount ?? 0;
+    if (safeAmount >= 1000000) {
+      return `${(safeAmount / 1000000).toFixed(1)}M RWF`;
     }
-    return `${amount.toLocaleString()} RWF`;
+    return `${safeAmount.toLocaleString()} RWF`;
   };
 
-  const formatFullCurrency = (amount: number) => {
-    return `${amount.toLocaleString()} RWF`;
+  const formatFullCurrency = (amount: number | undefined | null) => {
+    return `${(amount ?? 0).toLocaleString()} RWF`;
   };
 
   const getPaymentIcon = (payment: string) => {
