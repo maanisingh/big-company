@@ -4,6 +4,7 @@ import { ConfigProvider } from 'antd';
 
 // Context
 import { AuthProvider } from './contexts/AuthContext';
+import { CartProvider } from './contexts/CartContext';
 
 // Components
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -13,6 +14,7 @@ import { AppLayout } from './components/AppLayout';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { ShopPage } from './pages/consumer/ShopPage';
+import { OrdersPage as ConsumerOrdersPage } from './pages/consumer/OrdersPage';
 
 // Retailer Pages
 import { RetailerDashboard } from './pages/retailer/RetailerDashboard';
@@ -52,18 +54,20 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
 
-            {/* Consumer Routes */}
+            {/* Consumer Routes - wrapped with CartProvider */}
             <Route
               path="/consumer"
               element={
                 <ProtectedRoute allowedRoles={['consumer']}>
-                  <AppLayout />
+                  <CartProvider>
+                    <AppLayout />
+                  </CartProvider>
                 </ProtectedRoute>
               }
             >
               <Route index element={<Navigate to="/consumer/shop" replace />} />
               <Route path="shop" element={<ShopPage />} />
-              <Route path="orders" element={<PlaceholderPage title="My Orders" />} />
+              <Route path="orders" element={<ConsumerOrdersPage />} />
               <Route path="profile" element={<PlaceholderPage title="Profile" />} />
             </Route>
 

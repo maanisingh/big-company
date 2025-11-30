@@ -30,15 +30,39 @@ api.interceptors.response.use(
   }
 );
 
-// Consumer APIs
+// Consumer/Shop APIs
 export const consumerApi = {
-  getProducts: () => api.get('/store/products'),
+  // Retailers
+  getRetailers: (params?: { lat?: number; lng?: number }) =>
+    api.get('/store/retailers', { params }),
+
+  // Categories
+  getCategories: () => api.get('/store/categories'),
+
+  // Products
+  getProducts: (params?: { retailerId?: string; category?: string; search?: string; limit?: number }) =>
+    api.get('/store/products', { params }),
   getProduct: (id: string) => api.get(`/store/products/${id}`),
+
+  // Cart
   getCart: () => api.get('/store/carts'),
-  addToCart: (productId: string, quantity: number) =>
-    api.post('/store/carts/line-items', { product_id: productId, quantity }),
-  checkout: (cartId: string) => api.post(`/store/carts/${cartId}/complete`),
-  getOrders: () => api.get('/store/customers/me/orders'),
+  createCart: (retailerId: string) => api.post('/store/carts', { retailer_id: retailerId }),
+  addToCart: (cartId: string, productId: string, quantity: number) =>
+    api.post(`/store/carts/${cartId}/line-items`, { product_id: productId, quantity }),
+  updateCartItem: (cartId: string, itemId: string, quantity: number) =>
+    api.put(`/store/carts/${cartId}/line-items/${itemId}`, { quantity }),
+  removeCartItem: (cartId: string, itemId: string) =>
+    api.delete(`/store/carts/${cartId}/line-items/${itemId}`),
+  clearCart: (cartId: string) => api.delete(`/store/carts/${cartId}`),
+
+  // Checkout
+  checkout: (cartId: string, data?: { delivery_address?: string; notes?: string }) =>
+    api.post(`/store/carts/${cartId}/complete`, data),
+
+  // Orders
+  getOrders: (params?: any) => api.get('/store/customers/me/orders', { params }),
+  getOrder: (id: string) => api.get(`/store/customers/me/orders/${id}`),
+  trackOrder: (id: string) => api.get(`/store/customers/me/orders/${id}/track`),
 };
 
 // Retailer APIs
