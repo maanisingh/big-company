@@ -647,6 +647,219 @@ router.use(corsMiddleware);
     }
   });
 
+  // ==================== RETAILER ORDERS ROUTES (for Wholesaler Dashboard) ====================
+
+  // Retailer orders stats
+  router.get('/retailer-orders/stats', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      res.json({
+        total: 892,
+        pending: 45,
+        processing: 38,
+        shipped: 52,
+        delivered: 745,
+        cancelled: 12,
+        total_revenue: 156000000,
+        today_orders: 34,
+        today_revenue: 8500000,
+        currency: 'RWF',
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Retailer orders list
+  router.get('/retailer-orders', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { limit = 20, offset = 0, status } = req.query;
+
+      let orders = [
+        { id: 'ord_001', order_number: 'WHL-2024-001', retailer: { id: 'ret_001', name: 'Kigali Shop', location: 'Kigali' }, total: 1500000, items_count: 45, status: 'pending', payment_status: 'paid', created_at: '2024-11-28T10:30:00Z' },
+        { id: 'ord_002', order_number: 'WHL-2024-002', retailer: { id: 'ret_002', name: 'Musanze Mart', location: 'Musanze' }, total: 2850000, items_count: 82, status: 'processing', payment_status: 'partial', created_at: '2024-11-28T09:15:00Z' },
+        { id: 'ord_003', order_number: 'WHL-2024-003', retailer: { id: 'ret_003', name: 'Rubavu Store', location: 'Rubavu' }, total: 820000, items_count: 28, status: 'shipped', payment_status: 'paid', created_at: '2024-11-28T08:45:00Z' },
+        { id: 'ord_004', order_number: 'WHL-2024-004', retailer: { id: 'ret_004', name: 'Huye Traders', location: 'Huye' }, total: 4200000, items_count: 120, status: 'delivered', payment_status: 'paid', created_at: '2024-11-27T16:20:00Z' },
+        { id: 'ord_005', order_number: 'WHL-2024-005', retailer: { id: 'ret_005', name: 'Nyagatare Supplies', location: 'Nyagatare' }, total: 1980000, items_count: 56, status: 'pending', payment_status: 'credit', created_at: '2024-11-27T14:50:00Z' },
+        { id: 'ord_006', order_number: 'WHL-2024-006', retailer: { id: 'ret_006', name: 'Muhanga Store', location: 'Muhanga' }, total: 2350000, items_count: 68, status: 'processing', payment_status: 'paid', created_at: '2024-11-27T11:20:00Z' },
+        { id: 'ord_007', order_number: 'WHL-2024-007', retailer: { id: 'ret_007', name: 'Rwamagana Market', location: 'Rwamagana' }, total: 890000, items_count: 24, status: 'shipped', payment_status: 'paid', created_at: '2024-11-27T09:45:00Z' },
+        { id: 'ord_008', order_number: 'WHL-2024-008', retailer: { id: 'ret_008', name: 'Karongi Traders', location: 'Karongi' }, total: 3200000, items_count: 92, status: 'pending', payment_status: 'credit', created_at: '2024-11-26T16:30:00Z' },
+      ];
+
+      if (status) {
+        orders = orders.filter(o => o.status === status);
+      }
+
+      const total = orders.length;
+      const paginatedOrders = orders.slice(Number(offset), Number(offset) + Number(limit));
+
+      res.json({
+        orders: paginatedOrders,
+        count: paginatedOrders.length,
+        total,
+        offset: Number(offset),
+        limit: Number(limit),
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Single retailer order
+  router.get('/retailer-orders/:id', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+
+      const order = {
+        id,
+        order_number: 'WHL-2024-001',
+        retailer: {
+          id: 'ret_001',
+          name: 'Kigali Shop',
+          email: 'kigali@shop.rw',
+          phone: '+250788123456',
+          location: 'Kigali',
+        },
+        items: [
+          { id: 'item_1', product_id: 'prod_w1', name: 'Inyange Milk 500ml (Case/24)', quantity: 20, unit_price: 18000, total: 360000 },
+          { id: 'item_2', product_id: 'prod_w2', name: 'Bralirwa Primus 500ml (Crate/24)', quantity: 30, unit_price: 28000, total: 840000 },
+          { id: 'item_3', product_id: 'prod_w4', name: 'Isombe Mix 1kg (Bag/25)', quantity: 10, unit_price: 85000, total: 850000 },
+        ],
+        subtotal: 2050000,
+        discount: 50000,
+        tax: 0,
+        total: 2000000,
+        status: 'processing',
+        payment_status: 'partial',
+        payment_method: 'credit',
+        amount_paid: 1000000,
+        amount_due: 1000000,
+        shipping_address: { line1: 'KG 123 St', city: 'Kigali', district: 'Gasabo', country: 'Rwanda' },
+        notes: 'Urgent delivery requested',
+        created_at: '2024-11-28T09:15:00Z',
+        updated_at: '2024-11-28T10:00:00Z',
+      };
+
+      res.json(order);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Update retailer order status
+  router.patch('/retailer-orders/:id/status', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { status, notes } = req.body;
+      res.json({ id, status, notes, updated_at: new Date().toISOString() });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ==================== CREDIT REQUESTS ROUTES ====================
+
+  // Get credit requests
+  router.get('/credit-requests', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { limit = 20, offset = 0, status } = req.query;
+
+      let requests = [
+        { id: 'cr_001', retailer: { id: 'ret_009', name: 'New Shop Kigali', location: 'Kigali' }, requested_amount: 100000, approved_amount: null, status: 'pending', reason: 'Expanding inventory for holiday season', created_at: '2024-11-28T10:00:00Z' },
+        { id: 'cr_002', retailer: { id: 'ret_010', name: 'Corner Store Remera', location: 'Remera' }, requested_amount: 50000, approved_amount: null, status: 'pending', reason: 'Need credit for bulk purchase', created_at: '2024-11-28T08:30:00Z' },
+        { id: 'cr_003', retailer: { id: 'ret_011', name: 'Gasabo Mini-mart', location: 'Gasabo' }, requested_amount: 200000, approved_amount: 150000, status: 'approved', reason: 'New store setup', created_at: '2024-11-27T14:00:00Z' },
+        { id: 'cr_004', retailer: { id: 'ret_012', name: 'Nyamirambo Shop', location: 'Nyamirambo' }, requested_amount: 75000, approved_amount: null, status: 'rejected', reason: 'Expansion', rejection_reason: 'Insufficient payment history', created_at: '2024-11-26T11:00:00Z' },
+        { id: 'cr_005', retailer: { id: 'ret_013', name: 'Kimihurura Market', location: 'Kimihurura' }, requested_amount: 300000, approved_amount: null, status: 'pending', reason: 'Seasonal stock increase', created_at: '2024-11-25T16:30:00Z' },
+      ];
+
+      if (status) {
+        requests = requests.filter(r => r.status === status);
+      }
+
+      const total = requests.length;
+      const paginatedRequests = requests.slice(Number(offset), Number(offset) + Number(limit));
+
+      res.json({
+        requests: paginatedRequests,
+        count: paginatedRequests.length,
+        total,
+        pending_count: requests.filter(r => r.status === 'pending').length,
+        offset: Number(offset),
+        limit: Number(limit),
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get single credit request
+  router.get('/credit-requests/:id', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+
+      const request = {
+        id,
+        retailer: {
+          id: 'ret_009',
+          name: 'New Shop Kigali',
+          email: 'newshop@email.rw',
+          phone: '+250788111222',
+          location: 'Kigali',
+          current_credit_limit: 0,
+          total_purchases: 2500000,
+          payment_history: 'good',
+        },
+        requested_amount: 100000,
+        approved_amount: null,
+        status: 'pending',
+        reason: 'Expanding inventory for holiday season',
+        documents: [],
+        created_at: '2024-11-28T10:00:00Z',
+        updated_at: '2024-11-28T10:00:00Z',
+      };
+
+      res.json(request);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Approve credit request
+  router.post('/credit-requests/:id/approve', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { approved_amount, notes } = req.body;
+
+      res.json({
+        id,
+        status: 'approved',
+        approved_amount,
+        notes,
+        approved_by: (req as any).user.id,
+        approved_at: new Date().toISOString(),
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Reject credit request
+  router.post('/credit-requests/:id/reject', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { reason } = req.body;
+
+      res.json({
+        id,
+        status: 'rejected',
+        rejection_reason: reason,
+        rejected_by: (req as any).user.id,
+        rejected_at: new Date().toISOString(),
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // ==================== REPORTS ROUTES ====================
 
   router.get('/reports/sales', authMiddleware, async (req: Request, res: Response) => {
