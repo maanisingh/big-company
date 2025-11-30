@@ -51,15 +51,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const response = await authService.login(credentials, role);
 
-      // Decode user info from token or use response
-      const user: User = {
-        id: response.user?.id || 'unknown',
-        email: credentials.email,
-        role,
-        name: response.user?.name,
-        shop_name: response.user?.shop_name,
-        company_name: response.user?.company_name,
-      };
+      // Use user from response or build from credentials
+      let user: User;
+      if (response.user) {
+        user = {
+          ...response.user,
+          role,
+        };
+      } else {
+        user = {
+          id: 'unknown',
+          email: role === 'consumer'
+            ? `${credentials.phone_number}@bigcompany.rw`
+            : credentials.email || 'unknown@bigcompany.rw',
+          phone: credentials.phone_number,
+          role,
+        };
+      }
+
+      // Ensure role is set
+      user.role = role;
 
       localStorage.setItem(TOKEN_KEY, response.access_token);
       localStorage.setItem(USER_KEY, JSON.stringify(user));

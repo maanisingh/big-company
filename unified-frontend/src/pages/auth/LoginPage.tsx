@@ -84,7 +84,8 @@ const roleConfig = {
     textColor: 'text-emerald-700',
     buttonColor: 'bg-emerald-600 hover:bg-emerald-700',
     redirect: '/consumer/shop',
-    credentials: { email: 'customer@test.com', password: 'customer123' },
+    authType: 'phone' as const,
+    credentials: { phone: '250788100001', pin: '1234', email: '', password: '' },
   },
   retailer: {
     title: 'Retailer Dashboard',
@@ -97,7 +98,8 @@ const roleConfig = {
     textColor: 'text-blue-700',
     buttonColor: 'bg-blue-600 hover:bg-blue-700',
     redirect: '/retailer/dashboard',
-    credentials: { email: 'retailer@bigcompany.rw', password: 'retailer123' },
+    authType: 'email' as const,
+    credentials: { phone: '', pin: '', email: 'retailer@bigcompany.rw', password: 'retailer123' },
   },
   wholesaler: {
     title: 'Wholesaler Portal',
@@ -110,7 +112,8 @@ const roleConfig = {
     textColor: 'text-purple-700',
     buttonColor: 'bg-purple-600 hover:bg-purple-700',
     redirect: '/wholesaler/dashboard',
-    credentials: { email: 'wholesaler@bigcompany.rw', password: 'wholesaler123' },
+    authType: 'email' as const,
+    credentials: { phone: '', pin: '', email: 'wholesaler@bigcompany.rw', password: 'wholesaler123' },
   },
 };
 
@@ -142,6 +145,10 @@ export const LoginPage: React.FC = () => {
   // Get role from URL or default to consumer
   const initialRole = (searchParams.get('role') as UserRole) || 'consumer';
   const [activeRole, setActiveRole] = useState<UserRole>(initialRole);
+  // Phone/PIN for consumers
+  const [phone, setPhone] = useState('');
+  const [pin, setPin] = useState('');
+  // Email/Password for retailer/wholesaler
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -151,9 +158,14 @@ export const LoginPage: React.FC = () => {
 
   // Update credentials when role changes
   useEffect(() => {
-    setEmail(config.credentials.email);
-    setPassword(config.credentials.password);
-  }, [activeRole, config.credentials.email, config.credentials.password]);
+    if (config.authType === 'phone') {
+      setPhone(config.credentials.phone);
+      setPin(config.credentials.pin);
+    } else {
+      setEmail(config.credentials.email);
+      setPassword(config.credentials.password);
+    }
+  }, [activeRole, config.authType, config.credentials]);
 
   const copyToClipboard = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
@@ -164,17 +176,25 @@ export const LoginPage: React.FC = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await login({ email, password }, activeRole);
+      const credentials = config.authType === 'phone'
+        ? { phone_number: phone, pin }
+        : { email, password };
+      await login(credentials, activeRole);
       message.success('Login successful!');
       navigate(config.redirect);
     } catch (error: any) {
-      message.error(error.response?.data?.message || 'Login failed. Please try again.');
+      message.error(error.response?.data?.error || error.response?.data?.message || 'Login failed. Please try again.');
     }
   };
 
   const fillDemoCredentials = () => {
-    setEmail(config.credentials.email);
-    setPassword(config.credentials.password);
+    if (config.authType === 'phone') {
+      setPhone(config.credentials.phone);
+      setPin(config.credentials.pin);
+    } else {
+      setEmail(config.credentials.email);
+      setPassword(config.credentials.password);
+    }
   };
 
   return (
@@ -235,43 +255,71 @@ export const LoginPage: React.FC = () => {
               </div>
 
               <div className="space-y-3">
-                {/* Email */}
-                <div className="flex items-center justify-between bg-white rounded-xl px-4 py-3 border border-gray-100">
-                  <div>
-                    <span className="text-xs text-gray-500 block">Email</span>
-                    <code className="text-sm font-mono text-gray-800">{config.credentials.email}</code>
-                  </div>
-                  <button
-                    onClick={() => copyToClipboard(config.credentials.email, 'email')}
-                    className={`p-2 rounded-lg ${config.lightBg} hover:opacity-80 transition-opacity`}
-                    title="Copy email"
-                  >
-                    {copiedField === 'email' ? (
-                      <CheckIcon />
-                    ) : (
-                      <CopyIcon />
-                    )}
-                  </button>
-                </div>
+                {config.authType === 'phone' ? (
+                  <>
+                    {/* Phone */}
+                    <div className="flex items-center justify-between bg-white rounded-xl px-4 py-3 border border-gray-100">
+                      <div>
+                        <span className="text-xs text-gray-500 block">Phone Number</span>
+                        <code className="text-sm font-mono text-gray-800">{config.credentials.phone}</code>
+                      </div>
+                      <button
+                        onClick={() => copyToClipboard(config.credentials.phone, 'phone')}
+                        className={`p-2 rounded-lg ${config.lightBg} hover:opacity-80 transition-opacity`}
+                        title="Copy phone"
+                      >
+                        {copiedField === 'phone' ? <CheckIcon /> : <CopyIcon />}
+                      </button>
+                    </div>
 
-                {/* Password */}
-                <div className="flex items-center justify-between bg-white rounded-xl px-4 py-3 border border-gray-100">
-                  <div>
-                    <span className="text-xs text-gray-500 block">Password</span>
-                    <code className="text-sm font-mono text-gray-800">{config.credentials.password}</code>
-                  </div>
-                  <button
-                    onClick={() => copyToClipboard(config.credentials.password, 'password')}
-                    className={`p-2 rounded-lg ${config.lightBg} hover:opacity-80 transition-opacity`}
-                    title="Copy password"
-                  >
-                    {copiedField === 'password' ? (
-                      <CheckIcon />
-                    ) : (
-                      <CopyIcon />
-                    )}
-                  </button>
-                </div>
+                    {/* PIN */}
+                    <div className="flex items-center justify-between bg-white rounded-xl px-4 py-3 border border-gray-100">
+                      <div>
+                        <span className="text-xs text-gray-500 block">PIN</span>
+                        <code className="text-sm font-mono text-gray-800">{config.credentials.pin}</code>
+                      </div>
+                      <button
+                        onClick={() => copyToClipboard(config.credentials.pin, 'pin')}
+                        className={`p-2 rounded-lg ${config.lightBg} hover:opacity-80 transition-opacity`}
+                        title="Copy PIN"
+                      >
+                        {copiedField === 'pin' ? <CheckIcon /> : <CopyIcon />}
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Email */}
+                    <div className="flex items-center justify-between bg-white rounded-xl px-4 py-3 border border-gray-100">
+                      <div>
+                        <span className="text-xs text-gray-500 block">Email</span>
+                        <code className="text-sm font-mono text-gray-800">{config.credentials.email}</code>
+                      </div>
+                      <button
+                        onClick={() => copyToClipboard(config.credentials.email, 'email')}
+                        className={`p-2 rounded-lg ${config.lightBg} hover:opacity-80 transition-opacity`}
+                        title="Copy email"
+                      >
+                        {copiedField === 'email' ? <CheckIcon /> : <CopyIcon />}
+                      </button>
+                    </div>
+
+                    {/* Password */}
+                    <div className="flex items-center justify-between bg-white rounded-xl px-4 py-3 border border-gray-100">
+                      <div>
+                        <span className="text-xs text-gray-500 block">Password</span>
+                        <code className="text-sm font-mono text-gray-800">{config.credentials.password}</code>
+                      </div>
+                      <button
+                        onClick={() => copyToClipboard(config.credentials.password, 'password')}
+                        className={`p-2 rounded-lg ${config.lightBg} hover:opacity-80 transition-opacity`}
+                        title="Copy password"
+                      >
+                        {copiedField === 'password' ? <CheckIcon /> : <CopyIcon />}
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Auto-fill button */}
@@ -288,52 +336,106 @@ export const LoginPage: React.FC = () => {
 
             {/* Login Form */}
             <form onSubmit={handleLogin} className="space-y-6">
-              {/* Email Input */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <UserIcon />
+              {config.authType === 'phone' ? (
+                <>
+                  {/* Phone Input */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Phone Number
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <UserIcon />
+                      </div>
+                      <input
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="250788xxxxxx"
+                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+                        required
+                      />
+                    </div>
                   </div>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
-                    required
-                  />
-                </div>
-              </div>
 
-              {/* Password Input */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Password
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <LockIcon />
+                  {/* PIN Input */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      PIN Code
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <LockIcon />
+                      </div>
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={pin}
+                        onChange={(e) => setPin(e.target.value)}
+                        placeholder="Enter your 4-6 digit PIN"
+                        maxLength={6}
+                        className="w-full pl-12 pr-12 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                      >
+                        {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                      </button>
+                    </div>
                   </div>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
-                    className="w-full pl-12 pr-12 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center"
-                  >
-                    {showPassword ? <EyeOffIcon /> : <EyeIcon />}
-                  </button>
-                </div>
-              </div>
+                </>
+              ) : (
+                <>
+                  {/* Email Input */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email Address
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <UserIcon />
+                      </div>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="email@bigcompany.rw"
+                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Password Input */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Password
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <LockIcon />
+                      </div>
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Enter your password"
+                        className="w-full pl-12 pr-12 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                      >
+                        {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* Remember me & Forgot password */}
               <div className="flex items-center justify-between text-sm">

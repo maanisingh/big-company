@@ -257,10 +257,21 @@ router.post('/register', wrapHandler(async (req, res) => {
  * POST /store/auth/login
  */
 router.post('/login', wrapHandler(async (req, res) => {
-  const { phone, pin } = req.body;
+  // Ensure body exists
+  if (!req.body || typeof req.body !== 'object') {
+    return res.status(400).json({ error: 'Invalid request body' });
+  }
+
+  const phone = req.body.phone;
+  const pin = req.body.pin;
 
   if (!phone || !pin) {
     return res.status(400).json({ error: 'Phone number and PIN are required' });
+  }
+
+  // Ensure phone is a string before calling replace
+  if (typeof phone !== 'string') {
+    return res.status(400).json({ error: 'Phone must be a string' });
   }
 
   // Normalize phone

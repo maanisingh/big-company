@@ -59,7 +59,7 @@ services:
       dockerfile: Dockerfile
     container_name: bigcompany-medusa
     environment:
-      DATABASE_URL: postgres://bigcompany:bigcompany_secure_2024@postgres:5432/bigcompany
+      DATABASE_URL: postgres://bigcompany:bigcompany_secure_2024@postgres:5432/bigcompany?sslmode=disable
       REDIS_URL: redis://redis:6379
       JWT_SECRET: bigcompany_jwt_secret_2024_very_secure_production_key
       COOKIE_SECRET: bigcompany_cookie_secret_2024_production_key

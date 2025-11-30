@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, json, urlencoded } from 'express';
 import walletRoutes from './routes/wallet';
 import gasRoutes from './routes/gas';
 import loansRoutes from './routes/loans';
@@ -7,11 +7,23 @@ import nfcRoutes from './routes/nfc';
 import rewardsRoutes from './routes/rewards';
 import retailerRoutes from './routes/retailer';
 import wholesalerRoutes from './routes/wholesaler';
+import authRoutes from './routes/auth';
+import adminRoutes from './routes/admin';
 
 export default (rootDirectory: string): Router | Router[] => {
   const router = Router();
 
+  // Body parser middleware for all custom routes
+  router.use(json());
+  router.use(urlencoded({ extended: true }));
+
   // BigCompany Custom API Routes
+
+  // Auth routes (consumer-facing)
+  router.use('/store/auth', authRoutes);
+
+  // Admin dashboard routes
+  router.use('/admin', adminRoutes);
 
   // Store routes (customer-facing)
   router.use('/store/wallet', walletRoutes);
