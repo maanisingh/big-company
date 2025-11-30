@@ -33,6 +33,8 @@ import { InventoryPage as WholesalerInventoryPage } from './pages/wholesaler/Inv
 import WholesalerOrdersPage from './pages/wholesaler/OrdersPage';
 import RetailersPage from './pages/wholesaler/RetailersPage';
 import WholesalerAnalyticsPage from './pages/wholesaler/AnalyticsPage';
+import CreditApprovalsPage from './pages/wholesaler/CreditApprovalsPage';
+import ProfileSettingsPage from './pages/shared/ProfileSettingsPage';
 
 // Placeholder for pages not yet implemented
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
@@ -94,7 +96,7 @@ function App() {
               <Route path="wallet" element={<WalletPage />} />
               <Route path="nfc-cards" element={<NFCCardsPage />} />
               <Route path="analytics" element={<RetailerAnalyticsPage />} />
-              <Route path="profile" element={<PlaceholderPage title="Profile" />} />
+              <Route path="profile" element={<ProfileSettingsPage />} />
             </Route>
 
             {/* Wholesaler Routes */}
@@ -111,9 +113,9 @@ function App() {
               <Route path="inventory" element={<WholesalerInventoryPage />} />
               <Route path="orders" element={<WholesalerOrdersPage />} />
               <Route path="retailers" element={<RetailersPage />} />
-              <Route path="credit" element={<PlaceholderPage title="Credit Approvals" />} />
+              <Route path="credit" element={<CreditApprovalsPage />} />
               <Route path="analytics" element={<WholesalerAnalyticsPage />} />
-              <Route path="profile" element={<PlaceholderPage title="Profile" />} />
+              <Route path="profile" element={<ProfileSettingsPage />} />
             </Route>
 
             {/* Catch all - redirect to home */}
