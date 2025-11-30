@@ -353,10 +353,11 @@ const BranchesPage: React.FC = () => {
   };
 
   const formatCurrency = (amount: number) => {
-    if (amount >= 1000000) {
-      return `${(amount / 1000000).toFixed(1)}M RWF`;
+    const safeAmount = amount ?? 0;
+    if (safeAmount >= 1000000) {
+      return `${(safeAmount / 1000000).toFixed(1)}M RWF`;
     }
-    return `${amount.toLocaleString()} RWF`;
+    return `${safeAmount.toLocaleString()} RWF`;
   };
 
   const getStatusColor = (status: string) => {
