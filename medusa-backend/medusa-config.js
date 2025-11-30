@@ -74,8 +74,9 @@ const projectConfig = {
   store_cors: STORE_CORS,
   database_url: DATABASE_URL,
   admin_cors: ADMIN_CORS,
-  // REMOVED: redis_url - not needed since we use local event bus and in-memory cache
-  // Redis is only used by BullMQ workers separately
+  // Redis URL is REQUIRED for session storage to prevent MemoryStore memory leaks
+  // Even with local event bus, session middleware needs Redis in production
+  redis_url: REDIS_URL,
   // Use Railway's PORT environment variable or default to 9000
   http: {
     port: parseInt(process.env.PORT) || 9000,
