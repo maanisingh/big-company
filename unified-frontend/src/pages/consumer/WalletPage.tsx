@@ -302,7 +302,7 @@ const ConsumerWalletPage: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: 24 }}>
+    <div style={{ padding: '16px' }} className="wallet-page">
       <Row gutter={[16, 16]} align="middle" style={{ marginBottom: 24 }}>
         <Col flex="auto">
           <Title level={3} style={{ margin: 0 }}>
@@ -431,9 +431,12 @@ const ConsumerWalletPage: React.FC = () => {
                   dataSource={transactions}
                   rowKey="id"
                   loading={loading}
+                  scroll={{ x: 600 }}
+                  size="small"
                   pagination={{
                     showSizeChanger: true,
                     showTotal: (total) => `${total} transactions`,
+                    size: 'small',
                   }}
                 />
               ),

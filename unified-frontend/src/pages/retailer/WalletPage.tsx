@@ -469,7 +469,7 @@ export const WalletPage = () => {
   }
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div style={{ padding: '16px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <Title level={3} style={{ margin: 0 }}>
           <WalletOutlined style={{ marginRight: '8px' }} />
@@ -546,12 +546,15 @@ export const WalletPage = () => {
                 dataSource={transactions}
                 columns={transactionColumns}
                 rowKey="id"
+                scroll={{ x: 800 }}
+                size="small"
                 pagination={{
                   current: transactionPagination.current,
                   pageSize: transactionPagination.pageSize,
                   total: transactionPagination.total,
                   showSizeChanger: true,
                   showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} transactions`,
+                  size: 'small',
                   onChange: (page, pageSize) => setTransactionPagination({ ...transactionPagination, current: page, pageSize }),
                 }}
               />
@@ -719,12 +722,15 @@ export const WalletPage = () => {
                 dataSource={filteredOrders}
                 columns={creditOrderColumns}
                 rowKey="id"
+                scroll={{ x: 900 }}
+                size="small"
                 pagination={{
                   current: creditPagination.current,
                   pageSize: creditPagination.pageSize,
                   total: creditPagination.total,
                   showSizeChanger: true,
                   showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} orders`,
+                  size: 'small',
                   onChange: (page, pageSize) => setCreditPagination({ ...creditPagination, current: page, pageSize }),
                 }}
                 rowClassName={(record) => {

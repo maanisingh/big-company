@@ -385,7 +385,7 @@ export const CreditApprovalsPage: React.FC = () => {
       <div
         style={{
           background: 'linear-gradient(135deg, #722ed1 0%, #531dab 100%)',
-          padding: '24px',
+          padding: '16px',
           marginBottom: 24,
           borderRadius: 8,
           color: 'white',
@@ -463,7 +463,9 @@ export const CreditApprovalsPage: React.FC = () => {
           dataSource={requests}
           rowKey="id"
           loading={loading}
-          pagination={{ pageSize: 10 }}
+          scroll={{ x: 1100 }}
+          size="small"
+          pagination={{ pageSize: 10, size: 'small' }}
         />
       </Card>
 

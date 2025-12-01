@@ -339,7 +339,7 @@ const RetailersPage = () => {
   }
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div style={{ padding: '16px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <Title level={3} style={{ margin: 0 }}>Retailers</Title>
         <Button
@@ -427,12 +427,15 @@ const RetailersPage = () => {
           dataSource={retailers}
           columns={columns}
           rowKey="id"
+          scroll={{ x: 1000 }}
+          size="small"
           pagination={{
             current: pagination.current,
             pageSize: pagination.pageSize,
             total: pagination.total,
             showSizeChanger: true,
             showTotal: (total) => `Total ${total} retailers`,
+            size: 'small',
             onChange: (page, pageSize) => {
               setPagination(prev => ({ ...prev, current: page, pageSize }));
             },

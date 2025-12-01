@@ -386,7 +386,7 @@ export const OrdersPage = () => {
   ];
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div style={{ padding: '16px' }}>
       <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
         <Title level={3} style={{ margin: 0 }}>Orders</Title>
         <Button
@@ -520,12 +520,14 @@ export const OrdersPage = () => {
           columns={columns}
           rowKey="id"
           loading={loading}
-          scroll={{ x: 'max-content' }}
+          scroll={{ x: 900 }}
+          size="small"
           pagination={{
             ...pagination,
             showSizeChanger: true,
             showQuickJumper: true,
             showTotal: (total) => `Total ${total} orders`,
+            size: 'small',
             onChange: (page, pageSize) => setPagination({ ...pagination, current: page, pageSize }),
           }}
           rowClassName={(record) =>
