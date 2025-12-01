@@ -1,7 +1,35 @@
 import { Router } from 'express';
 import { wrapHandler } from '@medusajs/medusa';
+import jwt from 'jsonwebtoken';
 
 const router = Router();
+
+// JWT secret (in production, use environment variable)
+const JWT_SECRET = process.env.JWT_SECRET || 'bigcompany_customer_secret_2024';
+
+// Authentication middleware for customer endpoints
+const authenticateCustomer = (req: any, res: any, next: any) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+
+    const token = authHeader.substring(7);
+
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      req.customer = decoded;
+      next();
+    } catch (err) {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+  } catch (error: any) {
+    console.error('Auth error:', error);
+    return res.status(500).json({ error: error.message });
+  }
+};
 
 // Mock data for retailers (in production, this would come from database)
 const mockRetailers = [
@@ -9,7 +37,8 @@ const mockRetailers = [
     id: 'ret_001',
     name: 'Kigali Central Shop',
     shop_name: 'Kigali Central Shop',
-    location: { lat: -1.9441, lng: 30.0619 },
+    coordinates: { lat: -1.9441, lng: 30.0619 },
+    location: 'KN 5 Rd, Kigali',
     address: 'KN 5 Rd, Kigali',
     distance: 0.5,
     rating: 4.8,
@@ -17,12 +46,14 @@ const mockRetailers = [
     categories: ['beverages', 'food', 'household'],
     phone: '+250788000001',
     opening_hours: '07:00 - 22:00',
+    delivery_time: '20-30 min',
   },
   {
     id: 'ret_002',
     name: 'Nyarugenge Mini-mart',
     shop_name: 'Nyarugenge Mini-mart',
-    location: { lat: -1.9503, lng: 30.0588 },
+    coordinates: { lat: -1.9503, lng: 30.0588 },
+    location: 'KN 3 Ave, Nyarugenge',
     address: 'KN 3 Ave, Nyarugenge',
     distance: 1.2,
     rating: 4.5,
@@ -30,12 +61,14 @@ const mockRetailers = [
     categories: ['beverages', 'food', 'personal_care'],
     phone: '+250788000002',
     opening_hours: '06:00 - 21:00',
+    delivery_time: '30-45 min',
   },
   {
     id: 'ret_003',
     name: 'Gasabo Store',
     shop_name: 'Gasabo Store',
-    location: { lat: -1.9256, lng: 30.1025 },
+    coordinates: { lat: -1.9256, lng: 30.1025 },
+    location: 'KG 7 Ave, Gasabo',
     address: 'KG 7 Ave, Gasabo',
     distance: 2.5,
     rating: 4.7,
@@ -43,12 +76,14 @@ const mockRetailers = [
     categories: ['food', 'household', 'electronics'],
     phone: '+250788000003',
     opening_hours: '08:00 - 20:00',
+    delivery_time: '25-40 min',
   },
   {
     id: 'ret_004',
     name: 'Kimironko Market Shop',
     shop_name: 'Kimironko Market Shop',
-    location: { lat: -1.9356, lng: 30.1145 },
+    coordinates: { lat: -1.9356, lng: 30.1145 },
+    location: 'KG 15 Rd, Kimironko',
     address: 'KG 15 Rd, Kimironko',
     distance: 3.0,
     rating: 4.3,
@@ -56,12 +91,14 @@ const mockRetailers = [
     categories: ['beverages', 'food'],
     phone: '+250788000004',
     opening_hours: '07:00 - 19:00',
+    delivery_time: '15-25 min',
   },
   {
     id: 'ret_005',
     name: 'Remera Corner Store',
     shop_name: 'Remera Corner Store',
-    location: { lat: -1.9578, lng: 30.1089 },
+    coordinates: { lat: -1.9578, lng: 30.1089 },
+    location: 'KG 11 Ave, Remera',
     address: 'KG 11 Ave, Remera',
     distance: 1.8,
     rating: 4.6,
@@ -69,6 +106,7 @@ const mockRetailers = [
     categories: ['beverages', 'food', 'personal_care', 'household'],
     phone: '+250788000005',
     opening_hours: '06:30 - 22:00',
+    delivery_time: '20-35 min',
   },
 ];
 
@@ -101,6 +139,58 @@ const mockProducts = [
   { id: 'prod_013', name: 'Onions 1kg', category: 'food', price: 600, image: '/images/onions.jpg', retailer_id: 'ret_004', stock: 55, unit: 'Kg' },
   { id: 'prod_014', name: 'Soda (Fanta 500ml)', category: 'beverages', price: 500, image: '/images/fanta.jpg', retailer_id: 'ret_005', stock: 120, unit: 'Bottle' },
   { id: 'prod_015', name: 'Tissue Paper (Pack)', category: 'household', price: 800, image: '/images/tissue.jpg', retailer_id: 'ret_001', stock: 40, unit: 'Pack' },
+];
+
+// Mock customer orders
+const mockOrders = [
+  {
+    id: 'ord_001',
+    customer_id: 'cus_demo_consumer_001',
+    retailer_id: 'ret_001',
+    retailer_name: 'Kigali Central Shop',
+    status: 'delivered',
+    total: 4600,
+    created_at: '2024-11-25T10:30:00Z',
+    delivered_at: '2024-11-25T14:20:00Z',
+    items: [
+      { product_id: 'prod_001', name: 'Inyange Milk 1L', quantity: 2, price: 900 },
+      { product_id: 'prod_003', name: 'Bread (Large)', quantity: 1, price: 500 },
+      { product_id: 'prod_010', name: 'Bottled Water 500ml', quantity: 10, price: 300 },
+    ],
+    payment_method: 'NFC Card',
+    delivery_address: 'KN 10 Rd, Kigali',
+  },
+  {
+    id: 'ord_002',
+    customer_id: 'cus_demo_consumer_001',
+    retailer_id: 'ret_002',
+    retailer_name: 'Nyarugenge Mini-mart',
+    status: 'pending',
+    total: 7500,
+    created_at: '2024-11-28T08:15:00Z',
+    items: [
+      { product_id: 'prod_004', name: 'Sugar 1kg', quantity: 2, price: 1000 },
+      { product_id: 'prod_005', name: 'Cooking Oil 1L', quantity: 1, price: 2000 },
+      { product_id: 'prod_011', name: 'Eggs (Tray of 30)', quantity: 1, price: 4500 },
+    ],
+    payment_method: 'Wallet',
+    delivery_address: 'KN 10 Rd, Kigali',
+  },
+  {
+    id: 'ord_003',
+    customer_id: 'cus_demo_consumer_001',
+    retailer_id: 'ret_005',
+    retailer_name: 'Remera Corner Store',
+    status: 'in_transit',
+    total: 2800,
+    created_at: '2024-11-29T16:45:00Z',
+    items: [
+      { product_id: 'prod_014', name: 'Soda (Fanta 500ml)', quantity: 4, price: 500 },
+      { product_id: 'prod_015', name: 'Tissue Paper (Pack)', quantity: 1, price: 800 },
+    ],
+    payment_method: 'NFC Card',
+    delivery_address: 'KN 10 Rd, Kigali',
+  },
 ];
 
 /**
@@ -136,7 +226,7 @@ router.get('/retailers', wrapHandler(async (req, res) => {
 
       retailers = retailers.map(r => ({
         ...r,
-        distance: calculateDistance(userLat, userLng, r.location.lat, r.location.lng),
+        distance: calculateDistance(userLat, userLng, r.coordinates.lat, r.coordinates.lng),
       }));
 
       // Sort by distance
@@ -294,5 +384,130 @@ function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: numbe
 function toRad(deg: number): number {
   return deg * (Math.PI / 180);
 }
+
+/**
+ * Get current customer info
+ * GET /store/customers/me
+ */
+router.get('/customers/me', authenticateCustomer, wrapHandler(async (req: any, res) => {
+  try {
+    const customer = req.customer;
+
+    res.json({
+      id: customer.customer_id || customer.id,
+      phone: customer.phone,
+      email: customer.email,
+      first_name: customer.first_name || 'Demo',
+      last_name: customer.last_name || 'Customer',
+      wallet_balance: 50000, // Mock wallet balance
+    });
+  } catch (error: any) {
+    console.error('Get customer error:', error);
+    res.status(500).json({ error: error.message });
+  }
+}));
+
+/**
+ * Get customer orders
+ * GET /store/customers/me/orders
+ */
+router.get('/customers/me/orders', authenticateCustomer, wrapHandler(async (req: any, res) => {
+  try {
+    const customer = req.customer;
+    const customerId = customer.customer_id || customer.id;
+    const { status, limit = 20, offset = 0 } = req.query;
+
+    let orders = mockOrders.filter(o => o.customer_id === customerId);
+
+    // Filter by status if provided
+    if (status) {
+      orders = orders.filter(o => o.status === String(status).toLowerCase());
+    }
+
+    const total = orders.length;
+
+    // Apply pagination
+    const start = parseInt(String(offset));
+    const end = start + parseInt(String(limit));
+    orders = orders.slice(start, end);
+
+    res.json({
+      orders,
+      count: orders.length,
+      total,
+      offset: start,
+      limit: parseInt(String(limit)),
+    });
+  } catch (error: any) {
+    console.error('Get customer orders error:', error);
+    res.status(500).json({ error: error.message });
+  }
+}));
+
+/**
+ * Get single order by ID
+ * GET /store/customers/me/orders/:id
+ */
+router.get('/customers/me/orders/:id', authenticateCustomer, wrapHandler(async (req: any, res) => {
+  try {
+    const customer = req.customer;
+    const customerId = customer.customer_id || customer.id;
+    const { id } = req.params;
+
+    const order = mockOrders.find(o => o.id === id && o.customer_id === customerId);
+
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    res.json(order);
+  } catch (error: any) {
+    console.error('Get order error:', error);
+    res.status(500).json({ error: error.message });
+  }
+}));
+
+/**
+ * Track order
+ * GET /store/customers/me/orders/:id/track
+ */
+router.get('/customers/me/orders/:id/track', authenticateCustomer, wrapHandler(async (req: any, res) => {
+  try {
+    const customer = req.customer;
+    const customerId = customer.customer_id || customer.id;
+    const { id } = req.params;
+
+    const order = mockOrders.find(o => o.id === id && o.customer_id === customerId);
+
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    // Mock tracking data
+    const trackingData = {
+      order_id: order.id,
+      status: order.status,
+      current_location: order.status === 'delivered'
+        ? order.delivery_address
+        : order.status === 'in_transit'
+        ? 'En route to delivery address'
+        : order.retailer_name,
+      estimated_delivery: order.status === 'delivered'
+        ? order.delivered_at
+        : new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // 2 hours from now
+      history: [
+        { status: 'pending', timestamp: order.created_at, location: order.retailer_name },
+        ...(order.status !== 'pending' ? [{ status: 'confirmed', timestamp: order.created_at, location: order.retailer_name }] : []),
+        ...(order.status === 'in_transit' || order.status === 'delivered' ? [{ status: 'in_transit', timestamp: order.created_at, location: 'On delivery truck' }] : []),
+        ...(order.status === 'delivered' ? [{ status: 'delivered', timestamp: order.delivered_at, location: order.delivery_address }] : []),
+      ],
+    };
+
+    res.json(trackingData);
+  } catch (error: any) {
+    console.error('Track order error:', error);
+    res.status(500).json({ error: error.message });
+  }
+}));
 
 export default router;

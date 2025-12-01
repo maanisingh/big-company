@@ -632,6 +632,55 @@ router.use(corsMiddleware);
     }
   });
 
+  // ==================== CREDIT ROUTES ====================
+
+  // Credit summary endpoint
+  router.get('/credit', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      res.json({
+        total_credit_given: 450000,
+        total_collected: 285000,
+        total_outstanding: 165000,
+        overdue_amount: 32000,
+        active_credit_customers: 12,
+        collection_rate: 63.3,
+        currency: 'RWF',
+        recent_orders: [
+          { id: 'crd_001', customer: 'Jean Uwimana', phone: '+250788111222', total: 45000, paid: 20000, balance: 25000, due_date: '2024-12-05', status: 'partial', created_at: '2024-11-20T10:30:00Z' },
+          { id: 'crd_002', customer: 'Marie Mukamana', phone: '+250788222333', total: 28000, paid: 0, balance: 28000, due_date: '2024-12-01', status: 'pending', created_at: '2024-11-22T09:15:00Z' },
+          { id: 'crd_003', customer: 'Emmanuel Habimana', phone: '+250788333444', total: 15000, paid: 15000, balance: 0, due_date: '2024-11-28', status: 'paid', created_at: '2024-11-15T08:45:00Z' },
+        ],
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Credit orders endpoint (alias for /credit-orders for backward compatibility)
+  router.get('/credit/orders', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { limit = 10, offset = 0, status } = req.query;
+
+      let creditOrders = [
+        { id: 'crd_001', customer: 'Jean Uwimana', phone: '+250788111222', total: 45000, paid: 20000, balance: 25000, due_date: '2024-12-05', status: 'partial', created_at: '2024-11-20T10:30:00Z' },
+        { id: 'crd_002', customer: 'Marie Mukamana', phone: '+250788222333', total: 28000, paid: 0, balance: 28000, due_date: '2024-12-01', status: 'pending', created_at: '2024-11-22T09:15:00Z' },
+        { id: 'crd_003', customer: 'Emmanuel Habimana', phone: '+250788333444', total: 15000, paid: 15000, balance: 0, due_date: '2024-11-28', status: 'paid', created_at: '2024-11-15T08:45:00Z' },
+        { id: 'crd_004', customer: 'Alice Uwase', phone: '+250788444555', total: 62000, paid: 30000, balance: 32000, due_date: '2024-11-25', status: 'overdue', created_at: '2024-11-10T16:20:00Z' },
+      ];
+
+      if (status) {
+        creditOrders = creditOrders.filter(o => o.status === status);
+      }
+
+      res.json({
+        credit_orders: creditOrders.slice(Number(offset), Number(offset) + Number(limit)),
+        count: creditOrders.length,
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // ==================== CREDIT ORDERS ROUTES ====================
 
   router.get('/credit-orders', authMiddleware, async (req: Request, res: Response) => {
