@@ -141,6 +141,35 @@ const mockProducts = [
   { id: 'prod_015', name: 'Tissue Paper (Pack)', category: 'household', price: 800, image: '/images/tissue.jpg', retailer_id: 'ret_001', stock: 40, unit: 'Pack' },
 ];
 
+// Helper function to get product image URL
+const getProductImageUrl = (productName: string, productId: string) => {
+  // Use product-specific placeholder images from Unsplash
+  const imageMap: Record<string, string> = {
+    'milk': 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&h=400&fit=crop',
+    'beer': 'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=400&h=400&fit=crop',
+    'bread': 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&h=400&fit=crop',
+    'sugar': 'https://images.unsplash.com/photo-1587735243615-c03f25aaff15?w=400&h=400&fit=crop',
+    'oil': 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400&h=400&fit=crop',
+    'rice': 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&h=400&fit=crop',
+    'soap': 'https://images.unsplash.com/photo-1622137500141-e0c0ecbd7ec8?w=400&h=400&fit=crop',
+    'toothpaste': 'https://images.unsplash.com/photo-1622654862197-c7f5b9e30b8f?w=400&h=400&fit=crop',
+    'detergent': 'https://images.unsplash.com/photo-1610557892470-55d9e80c0bce?w=400&h=400&fit=crop',
+    'water': 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=400&h=400&fit=crop',
+    'eggs': 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=400&h=400&fit=crop',
+    'tomatoes': 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=400&h=400&fit=crop',
+    'onions': 'https://images.unsplash.com/photo-1580201092675-a0a6a6cafbb1?w=400&h=400&fit=crop',
+    'fanta': 'https://images.unsplash.com/photo-1629203851122-3726ecdf080e?w=400&h=400&fit=crop',
+    'tissue': 'https://images.unsplash.com/photo-1584556326561-c8746083993b?w=400&h=400&fit=crop',
+  };
+
+  // Try to find a matching key in the product name
+  const nameKey = Object.keys(imageMap).find(key =>
+    productName.toLowerCase().includes(key)
+  );
+
+  return nameKey ? imageMap[nameKey] : `https://via.placeholder.com/400x400/52c41a/ffffff?text=${encodeURIComponent(productName.substring(0, 20))}`;
+};
+
 // Mock customer orders
 const mockOrders = [
   {
@@ -329,7 +358,7 @@ router.get('/products', wrapHandler(async (req, res) => {
       id: p.id,
       title: p.name,
       description: p.name,
-      thumbnail: p.image,
+      thumbnail: getProductImageUrl(p.name, p.id),
       variants: [{
         id: `${p.id}_v1`,
         title: 'Default',
@@ -376,7 +405,7 @@ router.get('/products/:id', wrapHandler(async (req, res) => {
       id: product.id,
       title: product.name,
       description: product.name,
-      thumbnail: product.image,
+      thumbnail: getProductImageUrl(product.name, product.id),
       variants: [{
         id: `${product.id}_v1`,
         title: 'Default',
