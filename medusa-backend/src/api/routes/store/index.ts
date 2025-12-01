@@ -465,9 +465,50 @@ router.get('/customers/me/orders', authenticateCustomer, wrapHandler(async (req:
     const end = start + parseInt(String(limit));
     orders = orders.slice(start, end);
 
+    // Transform orders to match frontend expectations
+    const transformedOrders = orders.map(order => {
+      // Find retailer details
+      const retailer = mockRetailers.find(r => r.id === order.retailer_id);
+
+      // Transform items to match frontend interface
+      const transformedItems = order.items.map(item => ({
+        id: `${order.id}_${item.product_id}`,
+        product_id: item.product_id,
+        product_name: item.name, // Rename 'name' to 'product_name'
+        quantity: item.quantity,
+        unit_price: item.price, // Rename 'price' to 'unit_price'
+        total: item.price * item.quantity, // Calculate total
+      }));
+
+      // Calculate subtotal from items
+      const subtotal = transformedItems.reduce((sum, item) => sum + item.total, 0);
+      const delivery_fee = 500; // Mock delivery fee
+
+      return {
+        id: order.id,
+        order_number: `ORD-${order.id.toUpperCase()}`, // Generate order_number
+        status: order.status,
+        retailer: {
+          id: order.retailer_id,
+          name: retailer?.name || order.retailer_name || 'Unknown Store',
+          location: retailer?.address || 'Kigali, Rwanda',
+          phone: retailer?.phone || '+250 788 000 000',
+        },
+        items: transformedItems,
+        subtotal,
+        delivery_fee,
+        total: order.total,
+        delivery_address: order.delivery_address,
+        notes: order.payment_method ? `Payment: ${order.payment_method}` : undefined,
+        created_at: order.created_at,
+        updated_at: order.delivered_at || order.created_at, // Use delivered_at or created_at
+        estimated_delivery: order.status === 'in_transit' ? new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString() : undefined,
+      };
+    });
+
     res.json({
-      orders,
-      count: orders.length,
+      orders: transformedOrders,
+      count: transformedOrders.length,
       total,
       offset: start,
       limit: parseInt(String(limit)),
@@ -494,7 +535,43 @@ router.get('/customers/me/orders/:id', authenticateCustomer, wrapHandler(async (
       return res.status(404).json({ error: 'Order not found' });
     }
 
-    res.json(order);
+    // Transform order to match frontend expectations
+    const retailer = mockRetailers.find(r => r.id === order.retailer_id);
+
+    const transformedItems = order.items.map(item => ({
+      id: `${order.id}_${item.product_id}`,
+      product_id: item.product_id,
+      product_name: item.name,
+      quantity: item.quantity,
+      unit_price: item.price,
+      total: item.price * item.quantity,
+    }));
+
+    const subtotal = transformedItems.reduce((sum, item) => sum + item.total, 0);
+    const delivery_fee = 500;
+
+    const transformedOrder = {
+      id: order.id,
+      order_number: `ORD-${order.id.toUpperCase()}`,
+      status: order.status,
+      retailer: {
+        id: order.retailer_id,
+        name: retailer?.name || order.retailer_name || 'Unknown Store',
+        location: retailer?.address || 'Kigali, Rwanda',
+        phone: retailer?.phone || '+250 788 000 000',
+      },
+      items: transformedItems,
+      subtotal,
+      delivery_fee,
+      total: order.total,
+      delivery_address: order.delivery_address,
+      notes: order.payment_method ? `Payment: ${order.payment_method}` : undefined,
+      created_at: order.created_at,
+      updated_at: order.delivered_at || order.created_at,
+      estimated_delivery: order.status === 'in_transit' ? new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString() : undefined,
+    };
+
+    res.json(transformedOrder);
   } catch (error: any) {
     console.error('Get order error:', error);
     res.status(500).json({ error: error.message });
