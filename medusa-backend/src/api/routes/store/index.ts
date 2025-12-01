@@ -324,9 +324,27 @@ router.get('/products', wrapHandler(async (req, res) => {
     const end = start + parseInt(String(limit));
     products = products.slice(start, end);
 
+    // Transform products to match frontend expectations
+    const transformedProducts = products.map(p => ({
+      id: p.id,
+      title: p.name,
+      description: p.name,
+      thumbnail: p.image,
+      variants: [{
+        id: `${p.id}_v1`,
+        title: 'Default',
+        prices: [{ amount: p.price, currency_code: 'RWF' }],
+        inventory_quantity: p.stock,
+      }],
+      categories: [{
+        id: `cat_${p.category}`,
+        name: p.category.charAt(0).toUpperCase() + p.category.slice(1),
+      }],
+    }));
+
     res.json({
-      products,
-      count: products.length,
+      products: transformedProducts,
+      count: transformedProducts.length,
       total,
       offset: start,
       limit: parseInt(String(limit)),
@@ -353,15 +371,31 @@ router.get('/products/:id', wrapHandler(async (req, res) => {
     // Get retailer info
     const retailer = mockRetailers.find(r => r.id === product.retailer_id);
 
-    res.json({
-      ...product,
+    // Transform to match frontend expectations
+    const transformedProduct = {
+      id: product.id,
+      title: product.name,
+      description: product.name,
+      thumbnail: product.image,
+      variants: [{
+        id: `${product.id}_v1`,
+        title: 'Default',
+        prices: [{ amount: product.price, currency_code: 'RWF' }],
+        inventory_quantity: product.stock,
+      }],
+      categories: [{
+        id: `cat_${product.category}`,
+        name: product.category.charAt(0).toUpperCase() + product.category.slice(1),
+      }],
       retailer: retailer ? {
         id: retailer.id,
         name: retailer.name,
         address: retailer.address,
         is_open: retailer.is_open,
       } : null,
-    });
+    };
+
+    res.json(transformedProduct);
   } catch (error: any) {
     console.error('Get product error:', error);
     res.status(500).json({ error: error.message });
