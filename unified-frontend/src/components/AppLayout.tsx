@@ -1,5 +1,5 @@
-import React from 'react';
-import { Layout, Menu, Avatar, Dropdown, Space, Typography, Button } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Layout, Menu, Avatar, Dropdown, Space, Typography, Button, Drawer, Badge } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   DashboardOutlined,
@@ -15,6 +15,8 @@ import {
   ScanOutlined,
   CreditCardOutlined,
   ApartmentOutlined,
+  MenuOutlined,
+  CloseOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { UserRole } from '../types/auth';
@@ -23,63 +25,88 @@ const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
 
 // Menu items per role
-const menuItems: Record<UserRole, { key: string; icon: React.ReactNode; label: string; path: string }[]> = {
+const menuItems: Record<UserRole, { key: string; icon: React.ReactNode; label: string; path: string; mobileLabel?: string }[]> = {
   consumer: [
-    { key: 'shop', icon: <ShoppingCartOutlined />, label: 'Shop', path: '/consumer/shop' },
-    { key: 'orders', icon: <InboxOutlined />, label: 'My Orders', path: '/consumer/orders' },
-    { key: 'wallet', icon: <CreditCardOutlined />, label: 'Wallet & Cards', path: '/consumer/wallet' },
-    { key: 'profile', icon: <UserOutlined />, label: 'Profile', path: '/consumer/profile' },
+    { key: 'shop', icon: <ShoppingCartOutlined />, label: 'Shop', path: '/consumer/shop', mobileLabel: 'Shop' },
+    { key: 'orders', icon: <InboxOutlined />, label: 'My Orders', path: '/consumer/orders', mobileLabel: 'Orders' },
+    { key: 'wallet', icon: <CreditCardOutlined />, label: 'Wallet & Cards', path: '/consumer/wallet', mobileLabel: 'Wallet' },
+    { key: 'profile', icon: <UserOutlined />, label: 'Profile', path: '/consumer/profile', mobileLabel: 'Profile' },
   ],
   retailer: [
-    { key: 'dashboard', icon: <DashboardOutlined />, label: 'Dashboard', path: '/retailer/dashboard' },
-    { key: 'pos', icon: <ScanOutlined />, label: 'POS', path: '/retailer/pos' },
-    { key: 'inventory', icon: <InboxOutlined />, label: 'Inventory', path: '/retailer/inventory' },
-    { key: 'orders', icon: <ShoppingCartOutlined />, label: 'Orders', path: '/retailer/orders' },
-    { key: 'branches', icon: <ApartmentOutlined />, label: 'Branches', path: '/retailer/branches' },
-    { key: 'wallet', icon: <DollarOutlined />, label: 'Wallet & Credit', path: '/retailer/wallet' },
-    { key: 'nfc-cards', icon: <CreditCardOutlined />, label: 'NFC Cards', path: '/retailer/nfc-cards' },
-    { key: 'analytics', icon: <BarChartOutlined />, label: 'Analytics', path: '/retailer/analytics' },
+    { key: 'dashboard', icon: <DashboardOutlined />, label: 'Dashboard', path: '/retailer/dashboard', mobileLabel: 'Home' },
+    { key: 'pos', icon: <ScanOutlined />, label: 'POS', path: '/retailer/pos', mobileLabel: 'POS' },
+    { key: 'inventory', icon: <InboxOutlined />, label: 'Inventory', path: '/retailer/inventory', mobileLabel: 'Stock' },
+    { key: 'orders', icon: <ShoppingCartOutlined />, label: 'Orders', path: '/retailer/orders', mobileLabel: 'Orders' },
+    { key: 'branches', icon: <ApartmentOutlined />, label: 'Branches', path: '/retailer/branches', mobileLabel: 'Branches' },
+    { key: 'wallet', icon: <DollarOutlined />, label: 'Wallet & Credit', path: '/retailer/wallet', mobileLabel: 'Wallet' },
+    { key: 'nfc-cards', icon: <CreditCardOutlined />, label: 'NFC Cards', path: '/retailer/nfc-cards', mobileLabel: 'Cards' },
+    { key: 'analytics', icon: <BarChartOutlined />, label: 'Analytics', path: '/retailer/analytics', mobileLabel: 'Stats' },
   ],
   wholesaler: [
-    { key: 'dashboard', icon: <DashboardOutlined />, label: 'Dashboard', path: '/wholesaler/dashboard' },
-    { key: 'inventory', icon: <InboxOutlined />, label: 'Inventory', path: '/wholesaler/inventory' },
-    { key: 'orders', icon: <ShoppingCartOutlined />, label: 'Retailer Orders', path: '/wholesaler/orders' },
-    { key: 'retailers', icon: <TeamOutlined />, label: 'My Retailers', path: '/wholesaler/retailers' },
-    { key: 'credit', icon: <DollarOutlined />, label: 'Credit Approvals', path: '/wholesaler/credit' },
-    { key: 'analytics', icon: <BarChartOutlined />, label: 'Analytics', path: '/wholesaler/analytics' },
+    { key: 'dashboard', icon: <DashboardOutlined />, label: 'Dashboard', path: '/wholesaler/dashboard', mobileLabel: 'Home' },
+    { key: 'inventory', icon: <InboxOutlined />, label: 'Inventory', path: '/wholesaler/inventory', mobileLabel: 'Stock' },
+    { key: 'orders', icon: <ShoppingCartOutlined />, label: 'Retailer Orders', path: '/wholesaler/orders', mobileLabel: 'Orders' },
+    { key: 'retailers', icon: <TeamOutlined />, label: 'My Retailers', path: '/wholesaler/retailers', mobileLabel: 'Retailers' },
+    { key: 'credit', icon: <DollarOutlined />, label: 'Credit Approvals', path: '/wholesaler/credit', mobileLabel: 'Credit' },
+    { key: 'analytics', icon: <BarChartOutlined />, label: 'Analytics', path: '/wholesaler/analytics', mobileLabel: 'Stats' },
   ],
   admin: [
-    { key: 'dashboard', icon: <DashboardOutlined />, label: 'Dashboard', path: '/admin/dashboard' },
-    { key: 'customers', icon: <UserOutlined />, label: 'Customers', path: '/admin/customers' },
-    { key: 'retailers', icon: <ShopOutlined />, label: 'Retailers', path: '/admin/retailers' },
-    { key: 'wholesalers', icon: <TeamOutlined />, label: 'Wholesalers', path: '/admin/wholesalers' },
-    { key: 'loans', icon: <DollarOutlined />, label: 'Loans', path: '/admin/loans' },
-    { key: 'nfc-cards', icon: <CreditCardOutlined />, label: 'NFC Cards', path: '/admin/nfc-cards' },
-    { key: 'reports', icon: <BarChartOutlined />, label: 'Reports', path: '/admin/reports' },
+    { key: 'dashboard', icon: <DashboardOutlined />, label: 'Dashboard', path: '/admin/dashboard', mobileLabel: 'Home' },
+    { key: 'customers', icon: <UserOutlined />, label: 'Customers', path: '/admin/customers', mobileLabel: 'Users' },
+    { key: 'retailers', icon: <ShopOutlined />, label: 'Retailers', path: '/admin/retailers', mobileLabel: 'Retailers' },
+    { key: 'wholesalers', icon: <TeamOutlined />, label: 'Wholesalers', path: '/admin/wholesalers', mobileLabel: 'Wholesalers' },
+    { key: 'loans', icon: <DollarOutlined />, label: 'Loans', path: '/admin/loans', mobileLabel: 'Loans' },
+    { key: 'nfc-cards', icon: <CreditCardOutlined />, label: 'NFC Cards', path: '/admin/nfc-cards', mobileLabel: 'Cards' },
+    { key: 'reports', icon: <BarChartOutlined />, label: 'Reports', path: '/admin/reports', mobileLabel: 'Reports' },
   ],
 };
 
+// Mobile bottom nav items (limited to 5 most important items per role)
+const mobileBottomNavItems: Record<UserRole, string[]> = {
+  consumer: ['shop', 'orders', 'wallet', 'profile'],
+  retailer: ['dashboard', 'pos', 'orders', 'wallet', 'inventory'],
+  wholesaler: ['dashboard', 'orders', 'retailers', 'credit', 'analytics'],
+  admin: ['dashboard', 'customers', 'retailers', 'reports', 'loans'],
+};
+
 // Theme colors per role
-const themeColors: Record<UserRole, string> = {
-  consumer: '#52c41a',
-  retailer: '#1890ff',
-  wholesaler: '#722ed1',
-  admin: '#f5222d',
+const themeColors: Record<UserRole, { primary: string; gradient: string; light: string }> = {
+  consumer: { primary: '#10b981', gradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', light: 'rgba(16, 185, 129, 0.1)' },
+  retailer: { primary: '#3b82f6', gradient: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', light: 'rgba(59, 130, 246, 0.1)' },
+  wholesaler: { primary: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', light: 'rgba(139, 92, 246, 0.1)' },
+  admin: { primary: '#ef4444', gradient: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', light: 'rgba(239, 68, 68, 0.1)' },
 };
 
 export const AppLayout: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [collapsed, setCollapsed] = React.useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [drawerVisible, setDrawerVisible] = useState(false);
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setDrawerVisible(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   if (!user) return null;
 
   const currentMenuItems = menuItems[user.role];
   const themeColor = themeColors[user.role];
+  const bottomNavKeys = mobileBottomNavItems[user.role];
+  const bottomNavItems = currentMenuItems?.filter(item => bottomNavKeys.includes(item.key)) || [];
 
   const handleMenuClick = (path: string) => {
     navigate(path);
+    setDrawerVisible(false);
   };
 
   const handleLogout = () => {
@@ -118,6 +145,176 @@ export const AppLayout: React.FC = () => {
     return null;
   }
 
+  // Mobile Layout
+  if (isMobile) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        {/* Mobile Header */}
+        <header
+          className="fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-4 shadow-sm"
+          style={{ background: themeColor.gradient }}
+        >
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setDrawerVisible(true)}
+              className="w-9 h-9 flex items-center justify-center rounded-lg bg-white/20 text-white"
+            >
+              <MenuOutlined style={{ fontSize: 18 }} />
+            </button>
+            <div className="flex items-center gap-2">
+              <ShopOutlined className="text-white text-xl" />
+              <span className="text-white font-semibold text-base">BIG Company</span>
+            </div>
+          </div>
+
+          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" trigger={['click']}>
+            <button className="flex items-center gap-2 bg-white/20 rounded-full px-2 py-1.5 pr-3">
+              <Avatar
+                style={{ backgroundColor: 'white', color: themeColor.primary }}
+                icon={<UserOutlined />}
+                size={28}
+              />
+              <span className="text-white text-sm font-medium max-w-[80px] truncate">
+                {user.name || user.email?.split('@')[0]}
+              </span>
+            </button>
+          </Dropdown>
+        </header>
+
+        {/* Mobile Drawer Menu */}
+        <Drawer
+          title={
+            <div className="flex items-center gap-3">
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold"
+                style={{ background: themeColor.gradient }}
+              >
+                B
+              </div>
+              <div>
+                <div className="font-semibold text-gray-900">BIG Company</div>
+                <div className="text-xs text-gray-500 capitalize">{user.role} Portal</div>
+              </div>
+            </div>
+          }
+          placement="left"
+          onClose={() => setDrawerVisible(false)}
+          open={drawerVisible}
+          width={280}
+          closeIcon={<CloseOutlined />}
+          styles={{
+            body: { padding: 0 },
+            header: { borderBottom: '1px solid #f0f0f0' }
+          }}
+        >
+          <div className="py-2">
+            {/* Home Button */}
+            <div
+              className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors"
+              onClick={() => { navigate('/'); setDrawerVisible(false); }}
+            >
+              <HomeOutlined style={{ fontSize: 20, color: '#6b7280' }} />
+              <span className="text-gray-700">Back to Home</span>
+            </div>
+
+            <div className="h-px bg-gray-100 my-2" />
+
+            {/* Menu Items */}
+            {currentMenuItems.map((item) => {
+              const isActive = activeKey === item.key;
+              return (
+                <div
+                  key={item.key}
+                  className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-all ${
+                    isActive
+                      ? 'border-r-4'
+                      : 'hover:bg-gray-50'
+                  }`}
+                  style={{
+                    backgroundColor: isActive ? themeColor.light : undefined,
+                    borderColor: isActive ? themeColor.primary : undefined,
+                  }}
+                  onClick={() => handleMenuClick(item.path)}
+                >
+                  <span style={{ fontSize: 20, color: isActive ? themeColor.primary : '#6b7280' }}>
+                    {item.icon}
+                  </span>
+                  <span
+                    className="font-medium"
+                    style={{ color: isActive ? themeColor.primary : '#374151' }}
+                  >
+                    {item.label}
+                  </span>
+                </div>
+              );
+            })}
+
+            <div className="h-px bg-gray-100 my-2" />
+
+            {/* Logout */}
+            <div
+              className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-red-50 transition-colors"
+              onClick={handleLogout}
+            >
+              <LogoutOutlined style={{ fontSize: 20, color: '#ef4444' }} />
+              <span className="text-red-500 font-medium">Logout</span>
+            </div>
+          </div>
+        </Drawer>
+
+        {/* Main Content */}
+        <main className="flex-1 mt-14 mb-16 overflow-auto">
+          <div className="p-4">
+            <Outlet />
+          </div>
+        </main>
+
+        {/* Mobile Bottom Navigation */}
+        <nav
+          className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        >
+          <div className="flex items-center justify-around h-16">
+            {bottomNavItems.map((item) => {
+              const isActive = activeKey === item.key;
+              return (
+                <button
+                  key={item.key}
+                  onClick={() => handleMenuClick(item.path)}
+                  className={`flex flex-col items-center justify-center flex-1 h-full py-1 px-1 transition-all ${
+                    isActive ? 'scale-105' : 'opacity-60 hover:opacity-100'
+                  }`}
+                >
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center mb-0.5 transition-all ${
+                      isActive ? 'shadow-lg' : ''
+                    }`}
+                    style={{
+                      background: isActive ? themeColor.gradient : 'transparent',
+                      color: isActive ? 'white' : '#6b7280',
+                      fontSize: 20,
+                    }}
+                  >
+                    {item.icon}
+                  </div>
+                  <span
+                    className={`text-[10px] font-medium transition-colors ${
+                      isActive ? '' : 'text-gray-500'
+                    }`}
+                    style={{ color: isActive ? themeColor.primary : undefined }}
+                  >
+                    {item.mobileLabel || item.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </nav>
+      </div>
+    );
+  }
+
+  // Desktop Layout
   return (
     <Layout style={{ minHeight: '100vh' }}>
       {/* Sidebar */}
@@ -141,11 +338,11 @@ export const AppLayout: React.FC = () => {
           }}
         >
           {collapsed ? (
-            <ShopOutlined style={{ fontSize: 24, color: themeColor }} />
+            <ShopOutlined style={{ fontSize: 24, color: themeColor.primary }} />
           ) : (
             <Space>
-              <ShopOutlined style={{ fontSize: 24, color: themeColor }} />
-              <Text strong style={{ color: themeColor }}>
+              <ShopOutlined style={{ fontSize: 24, color: themeColor.primary }} />
+              <Text strong style={{ color: themeColor.primary }}>
                 BIG Company
               </Text>
             </Space>
@@ -192,7 +389,7 @@ export const AppLayout: React.FC = () => {
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
             <Space style={{ cursor: 'pointer', padding: '8px 0' }}>
               <Avatar
-                style={{ backgroundColor: themeColor }}
+                style={{ backgroundColor: themeColor.primary }}
                 icon={<UserOutlined />}
                 size="default"
               />
