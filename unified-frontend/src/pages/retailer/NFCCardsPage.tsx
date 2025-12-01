@@ -572,6 +572,7 @@ const NFCCardsPage: React.FC = () => {
                   dataSource={cards}
                   rowKey="id"
                   loading={loading}
+                  scroll={{ x: 'max-content' }}
                   pagination={{
                     showSizeChanger: true,
                     showQuickJumper: true,
