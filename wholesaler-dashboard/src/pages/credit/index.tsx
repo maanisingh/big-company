@@ -37,6 +37,16 @@ import { creditApi } from '../../lib/api';
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 
+// Helper function to format location (handles both string and {lat, lng} object)
+const formatLocation = (location: any): string => {
+  if (!location) return 'N/A';
+  if (typeof location === 'string') return location;
+  if (typeof location === 'object' && location.lat && location.lng) {
+    return `${location.lat}, ${location.lng}`;
+  }
+  return 'N/A';
+};
+
 interface CreditRequest {
   id: string;
   request_number: string;
@@ -44,7 +54,7 @@ interface CreditRequest {
   retailer_name: string;
   owner_name: string;
   phone: string;
-  location: string;
+  location: string | { lat: number; lng: number };
   current_limit: number;
   requested_limit: number;
   credit_used: number;
@@ -645,7 +655,7 @@ export const CreditApprovalShow = () => {
               <Descriptions.Item label="Retailer">{request.retailer_name}</Descriptions.Item>
               <Descriptions.Item label="Owner">{request.owner_name}</Descriptions.Item>
               <Descriptions.Item label="Phone">{request.phone}</Descriptions.Item>
-              <Descriptions.Item label="Location">{request.location}</Descriptions.Item>
+              <Descriptions.Item label="Location">{formatLocation(request.location)}</Descriptions.Item>
               <Descriptions.Item label="Submitted">
                 <DateField value={request.created_at} format="DD MMMM YYYY HH:mm" />
               </Descriptions.Item>

@@ -41,6 +41,16 @@ import { ordersApi } from '../../lib/api';
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 
+// Helper function to format location (handles both string and {lat, lng} object)
+const formatLocation = (location: any): string => {
+  if (!location) return 'N/A';
+  if (typeof location === 'string') return location;
+  if (typeof location === 'object' && location.lat && location.lng) {
+    return `${location.lat}, ${location.lng}`;
+  }
+  return 'N/A';
+};
+
 interface OrderItem {
   id: string;
   product_id: string;
@@ -57,7 +67,7 @@ interface RetailerOrder {
   retailer_id: string;
   retailer_name: string;
   retailer_phone: string;
-  retailer_location: string;
+  retailer_location: string | { lat: number; lng: number };
   total: number;
   subtotal: number;
   tax: number;
@@ -235,7 +245,7 @@ export const RetailerOrderList = () => {
       render: (_: any, record: RetailerOrder) => (
         <div>
           <div><strong>{record.retailer_name}</strong></div>
-          <Text type="secondary" style={{ fontSize: '12px' }}>{record.retailer_location}</Text>
+          <Text type="secondary" style={{ fontSize: '12px' }}>{formatLocation(record.retailer_location)}</Text>
         </div>
       ),
     },
@@ -678,7 +688,7 @@ export const RetailerOrderShow = () => {
               </Descriptions.Item>
               <Descriptions.Item label="Retailer">{order.retailer_name}</Descriptions.Item>
               <Descriptions.Item label="Phone">{order.retailer_phone}</Descriptions.Item>
-              <Descriptions.Item label="Location">{order.retailer_location}</Descriptions.Item>
+              <Descriptions.Item label="Location">{formatLocation(order.retailer_location)}</Descriptions.Item>
               <Descriptions.Item label="Payment Type">
                 <Tag color={paymentTypeColors[order.payment_type]}>
                   {order.payment_type.replace('_', ' ').toUpperCase()}

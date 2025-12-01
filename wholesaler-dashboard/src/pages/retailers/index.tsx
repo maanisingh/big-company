@@ -37,13 +37,23 @@ import { retailersApi } from '../../lib/api';
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 
+// Helper function to format location (handles both string and {lat, lng} object)
+const formatLocation = (location: any): string => {
+  if (!location) return 'N/A';
+  if (typeof location === 'string') return location;
+  if (typeof location === 'object' && location.lat && location.lng) {
+    return `${location.lat}, ${location.lng}`;
+  }
+  return 'N/A';
+};
+
 interface Retailer {
   id: string;
   business_name: string;
   owner_name: string;
   email: string;
   phone: string;
-  location: string;
+  location: string | { lat: number; lng: number };
   address: string;
   credit_limit: number;
   credit_used: number;
@@ -557,7 +567,7 @@ export const RetailerShow = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
           <Title level={3} style={{ margin: 0 }}>{retailer.business_name}</Title>
-          <Text type="secondary">{retailer.owner_name} • {retailer.location}</Text>
+          <Text type="secondary">{retailer.owner_name} • {formatLocation(retailer.location)}</Text>
         </div>
         <Tag
           color={retailer.status === 'active' ? 'green' : retailer.status === 'blocked' ? 'red' : 'default'}
@@ -628,7 +638,7 @@ export const RetailerShow = () => {
               <Descriptions.Item label="Owner">{retailer.owner_name}</Descriptions.Item>
               <Descriptions.Item label="Email">{retailer.email}</Descriptions.Item>
               <Descriptions.Item label="Phone">{retailer.phone}</Descriptions.Item>
-              <Descriptions.Item label="Location">{retailer.location}</Descriptions.Item>
+              <Descriptions.Item label="Location">{formatLocation(retailer.location)}</Descriptions.Item>
               <Descriptions.Item label="Address">{retailer.address}</Descriptions.Item>
               <Descriptions.Item label="Member Since">{retailer.joined_at}</Descriptions.Item>
               <Descriptions.Item label="Last Order">
