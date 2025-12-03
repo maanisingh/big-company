@@ -76,6 +76,27 @@ export const consumerApi = {
   getOrders: (params?: any) => api.get('/store/customers/me/orders', { params }),
   getOrder: (id: string) => api.get(`/store/customers/me/orders/${id}`),
   trackOrder: (id: string) => api.get(`/store/customers/me/orders/${id}/track`),
+
+  // Wallet
+  getWallet: () => api.get('/store/customers/me/wallet'),
+  getWalletTransactions: (params?: any) => api.get('/store/customers/me/wallet/transactions', { params }),
+
+  // Gas Service
+  getGasMeters: () => api.get('/store/gas/meters'),
+  registerGasMeter: (meterNumber: string, alias: string) =>
+    api.post('/store/gas/register-meter', { meter_number: meterNumber, alias }),
+  topUpGas: (meterNumber: string, amount: number, paymentMethod: string) =>
+    api.post('/store/gas/topup', { meter_number: meterNumber, amount, payment_method: paymentMethod }),
+  getGasHistory: () => api.get('/store/gas/history'),
+
+  // Rewards
+  getRewardsBalance: () => api.get('/store/rewards/balance'),
+  getRewardsHistory: (limit?: number) => api.get('/store/rewards/history', { params: { limit } }),
+  redeemRewards: (points: number) => api.post('/store/rewards/redeem', { points }),
+  getReferralCode: () => api.get('/store/rewards/referral-code'),
+  applyReferralCode: (code: string) => api.post('/store/rewards/apply-referral', { code }),
+  getLeaderboard: (period: 'week' | 'month' | 'all') =>
+    api.get('/store/rewards/leaderboard', { params: { period } }),
 };
 
 // Retailer APIs

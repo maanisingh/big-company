@@ -17,6 +17,8 @@ import {
   ApartmentOutlined,
   MenuOutlined,
   CloseOutlined,
+  FireOutlined,
+  GiftOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { UserRole } from '../types/auth';
@@ -30,6 +32,8 @@ const menuItems: Record<UserRole, { key: string; icon: React.ReactNode; label: s
     { key: 'shop', icon: <ShoppingCartOutlined />, label: 'Shop', path: '/consumer/shop', mobileLabel: 'Shop' },
     { key: 'orders', icon: <InboxOutlined />, label: 'My Orders', path: '/consumer/orders', mobileLabel: 'Orders' },
     { key: 'wallet', icon: <CreditCardOutlined />, label: 'Wallet & Cards', path: '/consumer/wallet', mobileLabel: 'Wallet' },
+    { key: 'gas', icon: <FireOutlined />, label: 'Gas Top-up', path: '/consumer/gas', mobileLabel: 'Gas' },
+    { key: 'rewards', icon: <GiftOutlined />, label: 'Rewards', path: '/consumer/rewards', mobileLabel: 'Rewards' },
     { key: 'profile', icon: <UserOutlined />, label: 'Profile', path: '/consumer/profile', mobileLabel: 'Profile' },
   ],
   retailer: [
@@ -64,7 +68,7 @@ const menuItems: Record<UserRole, { key: string; icon: React.ReactNode; label: s
 
 // Mobile bottom nav items (limited to 5 most important items per role)
 const mobileBottomNavItems: Record<UserRole, string[]> = {
-  consumer: ['shop', 'orders', 'wallet', 'profile'],
+  consumer: ['shop', 'gas', 'rewards', 'wallet', 'profile'],
   retailer: ['dashboard', 'pos', 'orders', 'wallet', 'inventory'],
   wholesaler: ['dashboard', 'orders', 'retailers', 'credit', 'analytics'],
   admin: ['dashboard', 'accounts', 'categories', 'customers', 'retailers'],
