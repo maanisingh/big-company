@@ -209,7 +209,7 @@ const ReportsPage: React.FC = () => {
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Total Revenue"
-                value={`${summary.total_revenue.toLocaleString()} RWF`}
+                value={`${(summary?.total_revenue || 0).toLocaleString()} RWF`}
                 icon={<TrendingUpIcon />}
                 color="#4caf50"
               />
@@ -217,7 +217,7 @@ const ReportsPage: React.FC = () => {
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Total Sales"
-                value={summary.total_sales.toLocaleString()}
+                value={(summary?.total_sales || 0).toLocaleString()}
                 icon={<SalesIcon />}
                 color="#2196f3"
               />
@@ -225,7 +225,7 @@ const ReportsPage: React.FC = () => {
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Total Orders"
-                value={summary.total_orders.toLocaleString()}
+                value={(summary?.total_orders || 0).toLocaleString()}
                 icon={<SalesIcon />}
                 color="#ff9800"
               />
@@ -233,7 +233,7 @@ const ReportsPage: React.FC = () => {
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Total Products"
-                value={summary.total_products.toLocaleString()}
+                value={(summary?.total_products || 0).toLocaleString()}
                 icon={<InventoryIcon />}
                 color="#9c27b0"
               />
@@ -301,7 +301,7 @@ const ReportsPage: React.FC = () => {
               <Grid item xs={12} sm={6}>
                 <Paper sx={{ p: 2, textAlign: 'center' }}>
                   <Typography variant="h4" fontWeight="bold" color="info.main">
-                    {summary.total_loan_amount.toLocaleString()} RWF
+                    {(summary?.total_loan_amount || 0).toLocaleString()} RWF
                   </Typography>
                   <Typography variant="body2" color="textSecondary">
                     Total Loan Amount

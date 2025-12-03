@@ -235,8 +235,8 @@ const RetailerManagementPage: React.FC = () => {
                       {retailer.location}
                     </Typography>
                   </TableCell>
-                  <TableCell>{retailer.credit_limit.toLocaleString()} RWF</TableCell>
-                  <TableCell>{retailer.current_balance.toLocaleString()} RWF</TableCell>
+                  <TableCell>{(retailer.credit_limit || 0).toLocaleString()} RWF</TableCell>
+                  <TableCell>{(retailer.current_balance || 0).toLocaleString()} RWF</TableCell>
                   <TableCell>
                     <Chip
                       label={retailer.status}

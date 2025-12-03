@@ -234,8 +234,8 @@ const WholesalerManagementPage: React.FC = () => {
                       {wholesaler.location}
                     </Typography>
                   </TableCell>
-                  <TableCell>{wholesaler.credit_limit.toLocaleString()} RWF</TableCell>
-                  <TableCell>{wholesaler.current_balance.toLocaleString()} RWF</TableCell>
+                  <TableCell>{(wholesaler.credit_limit || 0).toLocaleString()} RWF</TableCell>
+                  <TableCell>{(wholesaler.current_balance || 0).toLocaleString()} RWF</TableCell>
                   <TableCell>
                     <Chip
                       label={wholesaler.status}

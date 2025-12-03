@@ -232,7 +232,7 @@ const AccountManagementPage: React.FC = () => {
           status === 'pending' ? 'orange' :
           status === 'blocked' ? 'red' : 'default'
         }>
-          {status.toUpperCase()}
+          {status?.toUpperCase() || 'UNKNOWN'}
         </Tag>
       ),
     },
@@ -311,7 +311,7 @@ const AccountManagementPage: React.FC = () => {
           status === 'pending' ? 'orange' :
           status === 'blocked' ? 'red' : 'default'
         }>
-          {status.toUpperCase()}
+          {status?.toUpperCase() || 'UNKNOWN'}
         </Tag>
       ),
     },
