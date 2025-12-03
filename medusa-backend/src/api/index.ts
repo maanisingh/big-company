@@ -21,7 +21,18 @@ export default (rootDirectory: string): Router | Router[] => {
 
   const adminCorsOrigins = ADMIN_CORS.split(',').map(origin => origin.trim());
   const storeCorsOrigins = STORE_CORS.split(',').map(origin => origin.trim());
-  const allCorsOrigins = [...adminCorsOrigins, ...storeCorsOrigins];
+
+  // Add common production domains
+  const productionOrigins = [
+    'https://bigcompany.alexandratechlab.com',
+    'https://bigcompany-retailer.alexandratechlab.com',
+    'https://bigcompany-wholesaler.alexandratechlab.com',
+    'https://unified-frontend-production.up.railway.app',
+    // Allow all Railway subdomains
+    /https:\/\/.*\.up\.railway\.app$/
+  ];
+
+  const allCorsOrigins = [...adminCorsOrigins, ...storeCorsOrigins, ...productionOrigins];
 
   // Apply CORS to all custom routes
   router.use(cors({
