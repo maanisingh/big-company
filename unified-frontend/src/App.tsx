@@ -66,6 +66,11 @@ import LoanManagementPage from './pages/admin/LoanManagementPage';
 import NFCCardManagementPage from './pages/admin/NFCCardManagementPage';
 import ReportsPage from './pages/admin/ReportsPage';
 import CustomerManagementPage from './pages/admin/CustomerManagementPage';
+import EmployeeManagementPage from './pages/admin/EmployeeManagementPage';
+import PayrollProcessingPage from './pages/admin/PayrollProcessingPage';
+import RecruitmentPage from './pages/admin/RecruitmentPage';
+import VendorManagementPage from './pages/admin/VendorManagementPage';
+import DealsPage from './pages/admin/DealsPage';
 
 // Placeholder for pages not yet implemented
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
@@ -190,6 +195,11 @@ function App() {
             >
               <Route index element={<Navigate to="/admin/dashboard" replace />} />
               <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="employees" element={<EmployeeManagementPage />} />
+              <Route path="payroll" element={<PayrollProcessingPage />} />
+              <Route path="recruitment" element={<RecruitmentPage />} />
+              <Route path="vendors" element={<VendorManagementPage />} />
+              <Route path="deals" element={<DealsPage />} />
               <Route path="accounts" element={<AccountManagementPage />} />
               <Route path="categories" element={<CategoriesPage />} />
               <Route path="customers" element={<CustomerManagementPage />} />
