@@ -43,6 +43,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     // Redirect to their appropriate dashboard
     const roleRedirects: Record<UserRole, string> = {
       consumer: '/consumer/shop',
+      employee: '/employee/dashboard',
       retailer: '/retailer/dashboard',
       wholesaler: '/wholesaler/dashboard',
       admin: '/admin/dashboard',

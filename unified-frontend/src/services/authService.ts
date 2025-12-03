@@ -6,6 +6,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'https://bigcompany-api.alexandr
 // Role-specific endpoints (admin uses separate internal authentication)
 const AUTH_ENDPOINTS: Record<UserRole, string> = {
   consumer: `${API_URL}/store/auth/login`,
+  employee: `${API_URL}/employee/auth/login`, // Employee authentication endpoint
   retailer: `${API_URL}/retailer/auth/login`,
   wholesaler: `${API_URL}/wholesaler/auth/login`,
   admin: `${API_URL}/admin/auth/login`, // Admin authentication endpoint
@@ -25,7 +26,7 @@ export const authService = {
         pin: credentials.pin || '',
       };
     } else {
-      // Retailer and wholesaler use email/password
+      // Employee, retailer, wholesaler, and admin use email/password
       payload = {
         email: credentials.email || '',
         password: credentials.password || '',
@@ -82,6 +83,25 @@ export const authService = {
           name: wholesaler.name || wholesaler.company_name,
           role: 'wholesaler' as const,
           company_name: wholesaler.company_name,
+        }
+      };
+    }
+
+    // Handle employee response format
+    if (role === 'employee' && response.data.employee) {
+      const employee = response.data.employee;
+      return {
+        success: true,
+        access_token: response.data.access_token,
+        user: {
+          id: employee.id,
+          email: employee.email,
+          phone: employee.phone,
+          name: employee.name || `${employee.first_name} ${employee.last_name}`,
+          role: 'employee' as const,
+          employee_number: employee.employee_number,
+          department: employee.department,
+          position: employee.position,
         }
       };
     }

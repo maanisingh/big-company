@@ -19,6 +19,8 @@ import {
   CloseOutlined,
   FireOutlined,
   GiftOutlined,
+  ClockCircleOutlined,
+  CalendarOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { UserRole } from '../types/auth';
@@ -35,6 +37,14 @@ const menuItems: Record<UserRole, { key: string; icon: React.ReactNode; label: s
     { key: 'gas', icon: <FireOutlined />, label: 'Gas Top-up', path: '/consumer/gas', mobileLabel: 'Gas' },
     { key: 'rewards', icon: <GiftOutlined />, label: 'Rewards', path: '/consumer/rewards', mobileLabel: 'Rewards' },
     { key: 'profile', icon: <UserOutlined />, label: 'Profile', path: '/consumer/profile', mobileLabel: 'Profile' },
+  ],
+  employee: [
+    { key: 'dashboard', icon: <DashboardOutlined />, label: 'Dashboard', path: '/employee/dashboard', mobileLabel: 'Home' },
+    { key: 'attendance', icon: <ClockCircleOutlined />, label: 'Attendance', path: '/employee/attendance', mobileLabel: 'Attendance' },
+    { key: 'leave', icon: <CalendarOutlined />, label: 'Leave', path: '/employee/leave', mobileLabel: 'Leave' },
+    { key: 'payslips', icon: <DollarOutlined />, label: 'Payslips', path: '/employee/payslips', mobileLabel: 'Payslips' },
+    { key: 'bill-payments', icon: <CreditCardOutlined />, label: 'Bill Payments', path: '/employee/bill-payments', mobileLabel: 'Bills' },
+    { key: 'profile', icon: <UserOutlined />, label: 'Profile', path: '/employee/profile', mobileLabel: 'Profile' },
   ],
   retailer: [
     { key: 'dashboard', icon: <DashboardOutlined />, label: 'Dashboard', path: '/retailer/dashboard', mobileLabel: 'Home' },
@@ -69,6 +79,7 @@ const menuItems: Record<UserRole, { key: string; icon: React.ReactNode; label: s
 // Mobile bottom nav items (limited to 5 most important items per role)
 const mobileBottomNavItems: Record<UserRole, string[]> = {
   consumer: ['shop', 'gas', 'rewards', 'wallet', 'profile'],
+  employee: ['dashboard', 'attendance', 'payslips', 'bill-payments', 'profile'],
   retailer: ['dashboard', 'pos', 'orders', 'wallet', 'inventory'],
   wholesaler: ['dashboard', 'orders', 'retailers', 'credit', 'analytics'],
   admin: ['dashboard', 'accounts', 'categories', 'customers', 'retailers'],
@@ -77,6 +88,7 @@ const mobileBottomNavItems: Record<UserRole, string[]> = {
 // Theme colors per role
 const themeColors: Record<UserRole, { primary: string; gradient: string; light: string }> = {
   consumer: { primary: '#10b981', gradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', light: 'rgba(16, 185, 129, 0.1)' },
+  employee: { primary: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', light: 'rgba(245, 158, 11, 0.1)' },
   retailer: { primary: '#3b82f6', gradient: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', light: 'rgba(59, 130, 246, 0.1)' },
   wholesaler: { primary: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', light: 'rgba(139, 92, 246, 0.1)' },
   admin: { primary: '#ef4444', gradient: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', light: 'rgba(239, 68, 68, 0.1)' },
@@ -119,6 +131,7 @@ export const AppLayout: React.FC = () => {
     // Redirect to appropriate login page based on user role
     const loginUrls: Record<UserRole, string> = {
       consumer: '/login',
+      employee: '/employee/login',
       retailer: '/login',
       wholesaler: '/login',
       admin: '/admin/login',

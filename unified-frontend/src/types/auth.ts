@@ -1,4 +1,4 @@
-export type UserRole = 'consumer' | 'retailer' | 'wholesaler' | 'admin';
+export type UserRole = 'consumer' | 'retailer' | 'wholesaler' | 'admin' | 'employee';
 
 export interface User {
   id: string;
@@ -8,6 +8,9 @@ export interface User {
   role: UserRole;
   shop_name?: string;      // For retailers
   company_name?: string;   // For wholesalers
+  employee_number?: string; // For employees
+  department?: string;      // For employees
+  position?: string;        // For employees
 }
 
 export interface AuthState {
