@@ -23,7 +23,11 @@ This document contains test account credentials for all user types in the BigCom
 
 **Store Portal**: https://bigcompany.alexandratechlab.com/
 
-**Credentials:**
+**Demo Credentials (shown on login page):**
+- Phone: `250788100001` or `0788100001`
+- PIN: `1234`
+
+**Alternative Test Account:**
 - Phone: `0788123456` (or `250788123456`)
 - PIN: `1234`
 
