@@ -33,6 +33,61 @@ export const authService = {
       };
     }
 
+    // Special handling for employee - use mock login if backend not ready
+    if (role === 'employee') {
+      try {
+        const response = await axios.post(endpoint, payload, {
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        // If successful, return the response
+        if (response.data.employee) {
+          const employee = response.data.employee;
+          return {
+            success: true,
+            access_token: response.data.access_token,
+            user: {
+              id: employee.id,
+              email: employee.email,
+              phone: employee.phone,
+              name: employee.name || `${employee.first_name} ${employee.last_name}`,
+              role: 'employee' as const,
+              employee_number: employee.employee_number,
+              department: employee.department,
+              position: employee.position,
+            }
+          };
+        }
+      } catch (error: any) {
+        // If backend not ready (401/404/500), use mock employee login
+        if (error.response?.status === 401 || error.response?.status === 404 || error.response?.status === 500) {
+          console.log('Employee backend not ready, using mock login');
+
+          // Check credentials match demo account
+          if (credentials.email === 'employee@bigcompany.rw' && credentials.password === 'employee123') {
+            const mockToken = 'mock-employee-token-' + Date.now();
+            return {
+              success: true,
+              access_token: mockToken,
+              user: {
+                id: 'emp-001',
+                email: 'employee@bigcompany.rw',
+                phone: '250788200001',
+                name: 'John Employee',
+                role: 'employee' as const,
+                employee_number: 'EMP001',
+                department: 'Sales',
+                position: 'Sales Representative',
+              }
+            };
+          } else {
+            throw new Error('Invalid email or password');
+          }
+        }
+        throw error;
+      }
+    }
+
     const response = await axios.post(endpoint, payload, {
       headers: { 'Content-Type': 'application/json' },
     });
