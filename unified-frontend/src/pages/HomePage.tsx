@@ -109,6 +109,12 @@ const TruckIcon = () => (
   </svg>
 );
 
+const BriefcaseIcon = () => (
+  <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+  </svg>
+);
+
 const ArrowRightIcon = () => (
   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -184,6 +190,7 @@ export const HomePage: React.FC = () => {
     if (isAuthenticated && user?.role === role) {
       const dashboards: Record<string, string> = {
         consumer: '/consumer/shop',
+        employee: '/employee/dashboard',
         retailer: '/retailer/dashboard',
         wholesaler: '/wholesaler/dashboard',
       };
@@ -208,6 +215,21 @@ export const HomePage: React.FC = () => {
       authType: 'phone',
       credentials: { label1: 'Phone', value1: '250788100001', label2: 'PIN', value2: '1234' },
       dashboard: '/consumer/shop',
+    },
+    {
+      id: 'employee',
+      title: 'Employee',
+      subtitle: 'Staff Portal',
+      description: 'Attendance, payslips, leave requests, and bill payments',
+      icon: <BriefcaseIcon />,
+      gradient: 'from-amber-500 to-orange-600',
+      hoverGradient: 'hover:from-amber-600 hover:to-orange-700',
+      bgLight: 'bg-amber-50',
+      textColor: 'text-amber-600',
+      features: ['Attendance', 'Payslips', 'Leave Requests', 'Bill Payments'],
+      authType: 'email',
+      credentials: { label1: 'Email', value1: 'employee@bigcompany.rw', label2: 'Password', value2: 'employee123' },
+      dashboard: '/employee/dashboard',
     },
     {
       id: 'retailer',

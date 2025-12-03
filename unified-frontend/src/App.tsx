@@ -20,6 +20,9 @@ import ConsumerProfilePage from './pages/consumer/ProfilePage';
 import GasPage from './pages/consumer/GasPage';
 import RewardsPage from './pages/consumer/RewardsPage';
 
+// Employee Pages
+import EmployeeDashboardPage from './pages/employee/DashboardPage';
+
 // Retailer Pages
 import { RetailerDashboard } from './pages/retailer/RetailerDashboard';
 import { InventoryPage as RetailerInventoryPage } from './pages/retailer/InventoryPage';
@@ -94,6 +97,20 @@ function App() {
               <Route path="gas" element={<GasPage />} />
               <Route path="rewards" element={<RewardsPage />} />
               <Route path="profile" element={<ConsumerProfilePage />} />
+            </Route>
+
+            {/* Employee Routes */}
+            <Route
+              path="/employee"
+              element={
+                <ProtectedRoute allowedRoles={['employee']}>
+                  <AppLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Navigate to="/employee/dashboard" replace />} />
+              <Route path="dashboard" element={<EmployeeDashboardPage />} />
+              {/* More employee routes will be added here */}
             </Route>
 
             {/* Retailer Routes */}
