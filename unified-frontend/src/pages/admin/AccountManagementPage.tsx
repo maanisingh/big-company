@@ -149,20 +149,20 @@ const AccountManagementPage: React.FC = () => {
 
   // Toggle account status
   const handleToggleStatus = async (id: string, type: 'retailer' | 'wholesaler', currentStatus: string) => {
-    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+    const isActive = currentStatus !== 'active';
 
     Modal.confirm({
-      title: `${newStatus === 'active' ? 'Activate' : 'Deactivate'} Account`,
-      content: `Are you sure you want to ${newStatus === 'active' ? 'activate' : 'deactivate'} this ${type} account?`,
+      title: `${isActive ? 'Activate' : 'Deactivate'} Account`,
+      content: `Are you sure you want to ${isActive ? 'activate' : 'deactivate'} this ${type} account?`,
       okText: 'Confirm',
       onOk: async () => {
         try {
           if (type === 'retailer') {
-            await adminApi.updateRetailerStatus(id, newStatus);
+            await adminApi.updateRetailerStatus(id, isActive);
           } else {
-            await adminApi.updateWholesalerStatus(id, newStatus);
+            await adminApi.updateWholesalerStatus(id, isActive);
           }
-          message.success(`Account ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully`);
+          message.success(`Account ${isActive ? 'activated' : 'deactivated'} successfully`);
           loadAccounts();
         } catch (error: any) {
           message.error(error.response?.data?.message || 'Failed to update account status');
@@ -562,7 +562,7 @@ const AccountManagementPage: React.FC = () => {
             name="address"
             label="Business Address"
           >
-            <TextArea prefix={<EnvironmentOutlined />} rows={2} placeholder="Street, District, City" />
+            <TextArea rows={2} placeholder="Street, District, City" />
           </Form.Item>
 
           <Form.Item
@@ -575,7 +575,7 @@ const AccountManagementPage: React.FC = () => {
               min={0}
               step={10000}
               formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-              parser={(value) => value!.replace(/\$\s?|(,*)/g, '')}
+              parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) as any}
             />
           </Form.Item>
 

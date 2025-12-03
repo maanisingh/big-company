@@ -137,7 +137,7 @@ export const ManualPaymentFlow: React.FC<ManualPaymentFlowProps> = ({
     try {
       const token = localStorage.getItem('auth_token');
       const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/retailer/manual-payment/verify-pin`,
+        `${import.meta.env.VITE_APP_API_URL || 'https://bigcompany-api.alexandratechlab.com'}/retailer/manual-payment/verify-pin`,
         {
           card_id: cardId,
           pin: pin,
@@ -186,7 +186,7 @@ export const ManualPaymentFlow: React.FC<ManualPaymentFlowProps> = ({
     try {
       const token = localStorage.getItem('auth_token');
       const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/retailer/manual-payment/generate-code`,
+        `${import.meta.env.VITE_APP_API_URL || 'https://bigcompany-api.alexandratechlab.com'}/retailer/manual-payment/generate-code`,
         {
           card_id: cardId,
           amount: amount,
@@ -221,7 +221,7 @@ export const ManualPaymentFlow: React.FC<ManualPaymentFlowProps> = ({
     try {
       const token = localStorage.getItem('auth_token');
       const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/retailer/manual-payment/verify-code`,
+        `${import.meta.env.VITE_APP_API_URL || 'https://bigcompany-api.alexandratechlab.com'}/retailer/manual-payment/verify-code`,
         {
           card_id: cardId,
           code: enteredCode,
@@ -265,7 +265,7 @@ export const ManualPaymentFlow: React.FC<ManualPaymentFlowProps> = ({
     try {
       const token = localStorage.getItem('auth_token');
       const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/retailer/manual-payment/request-otp`,
+        `${import.meta.env.VITE_APP_API_URL || 'https://bigcompany-api.alexandratechlab.com'}/retailer/manual-payment/request-otp`,
         {
           card_id: cardId,
           amount: amount,
@@ -297,7 +297,7 @@ export const ManualPaymentFlow: React.FC<ManualPaymentFlowProps> = ({
     try {
       const token = localStorage.getItem('auth_token');
       const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/retailer/manual-payment/verify-otp`,
+        `${import.meta.env.VITE_APP_API_URL || 'https://bigcompany-api.alexandratechlab.com'}/retailer/manual-payment/verify-otp`,
         {
           card_id: cardId,
           otp: otpCode,
@@ -722,7 +722,7 @@ export const ManualPaymentFlow: React.FC<ManualPaymentFlowProps> = ({
         {/* Step 2: Verification */}
         {currentStep === 2 && (
           <div>
-            <Divider orientation="left">
+            <Divider>
               <Space>
                 <CreditCardOutlined />
                 <Text strong>Card: {cardId}</Text>
