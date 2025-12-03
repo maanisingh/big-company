@@ -45,6 +45,8 @@ import POSPage from './pages/retailer/POSPage';
 import { WalletPage } from './pages/retailer/WalletPage';
 import NFCCardsPage from './pages/retailer/NFCCardsPage';
 import RetailerAnalyticsPage from './pages/retailer/AnalyticsPage';
+import RetailerEmployeeManagementPage from './pages/retailer/EmployeeManagementPage';
+import RetailerVendorManagementPage from './pages/retailer/VendorManagementPage';
 
 // Wholesaler Pages
 import { WholesalerDashboard } from './pages/wholesaler/WholesalerDashboard';
@@ -53,6 +55,8 @@ import WholesalerOrdersPage from './pages/wholesaler/OrdersPage';
 import RetailersPage from './pages/wholesaler/RetailersPage';
 import WholesalerAnalyticsPage from './pages/wholesaler/AnalyticsPage';
 import CreditApprovalsPage from './pages/wholesaler/CreditApprovalsPage';
+import WholesalerEmployeeManagementPage from './pages/wholesaler/EmployeeManagementPage';
+import WholesalerVendorManagementPage from './pages/wholesaler/VendorManagementPage';
 import ProfileSettingsPage from './pages/shared/ProfileSettingsPage';
 
 // Admin Pages
@@ -162,6 +166,8 @@ function App() {
               <Route path="wallet" element={<WalletPage />} />
               <Route path="nfc-cards" element={<NFCCardsPage />} />
               <Route path="analytics" element={<RetailerAnalyticsPage />} />
+              <Route path="employees" element={<RetailerEmployeeManagementPage />} />
+              <Route path="vendors" element={<RetailerVendorManagementPage />} />
               <Route path="profile" element={<ProfileSettingsPage />} />
             </Route>
 
@@ -181,6 +187,8 @@ function App() {
               <Route path="retailers" element={<RetailersPage />} />
               <Route path="credit" element={<CreditApprovalsPage />} />
               <Route path="analytics" element={<WholesalerAnalyticsPage />} />
+              <Route path="employees" element={<WholesalerEmployeeManagementPage />} />
+              <Route path="vendors" element={<WholesalerVendorManagementPage />} />
               <Route path="profile" element={<ProfileSettingsPage />} />
             </Route>
 

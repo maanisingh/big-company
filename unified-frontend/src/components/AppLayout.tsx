@@ -64,6 +64,8 @@ const menuItems: Record<UserRole, { key: string; icon: React.ReactNode; label: s
     { key: 'wallet', icon: <DollarOutlined />, label: 'Wallet & Credit', path: '/retailer/wallet', mobileLabel: 'Wallet' },
     { key: 'nfc-cards', icon: <CreditCardOutlined />, label: 'NFC Cards', path: '/retailer/nfc-cards', mobileLabel: 'Cards' },
     { key: 'analytics', icon: <BarChartOutlined />, label: 'Analytics', path: '/retailer/analytics', mobileLabel: 'Stats' },
+    { key: 'employees', icon: <TeamOutlined />, label: 'Employees', path: '/retailer/employees', mobileLabel: 'Staff' },
+    { key: 'vendors', icon: <ShopOutlined />, label: 'Vendors', path: '/retailer/vendors', mobileLabel: 'Vendors' },
     { key: 'profile', icon: <UserOutlined />, label: 'Profile', path: '/retailer/profile', mobileLabel: 'Profile' },
   ],
   wholesaler: [
@@ -73,6 +75,8 @@ const menuItems: Record<UserRole, { key: string; icon: React.ReactNode; label: s
     { key: 'retailers', icon: <TeamOutlined />, label: 'My Retailers', path: '/wholesaler/retailers', mobileLabel: 'Retailers' },
     { key: 'credit', icon: <DollarOutlined />, label: 'Credit Approvals', path: '/wholesaler/credit', mobileLabel: 'Credit' },
     { key: 'analytics', icon: <BarChartOutlined />, label: 'Analytics', path: '/wholesaler/analytics', mobileLabel: 'Stats' },
+    { key: 'employees', icon: <TeamOutlined />, label: 'Employees', path: '/wholesaler/employees', mobileLabel: 'Staff' },
+    { key: 'vendors', icon: <ShopOutlined />, label: 'Vendors', path: '/wholesaler/vendors', mobileLabel: 'Vendors' },
     { key: 'profile', icon: <UserOutlined />, label: 'Profile', path: '/wholesaler/profile', mobileLabel: 'Profile' },
   ],
   admin: [
