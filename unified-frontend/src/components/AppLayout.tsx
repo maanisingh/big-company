@@ -21,6 +21,10 @@ import {
   GiftOutlined,
   ClockCircleOutlined,
   CalendarOutlined,
+  ProjectOutlined,
+  BookOutlined,
+  FileTextOutlined,
+  TrophyOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { UserRole } from '../types/auth';
@@ -44,6 +48,10 @@ const menuItems: Record<UserRole, { key: string; icon: React.ReactNode; label: s
     { key: 'leave', icon: <CalendarOutlined />, label: 'Leave', path: '/employee/leave', mobileLabel: 'Leave' },
     { key: 'payslips', icon: <DollarOutlined />, label: 'Payslips', path: '/employee/payslips', mobileLabel: 'Payslips' },
     { key: 'bill-payments', icon: <CreditCardOutlined />, label: 'Bill Payments', path: '/employee/bill-payments', mobileLabel: 'Bills' },
+    { key: 'projects', icon: <ProjectOutlined />, label: 'Projects', path: '/employee/projects', mobileLabel: 'Projects' },
+    { key: 'training', icon: <BookOutlined />, label: 'Training', path: '/employee/training', mobileLabel: 'Training' },
+    { key: 'expense-claims', icon: <FileTextOutlined />, label: 'Expense Claims', path: '/employee/expense-claims', mobileLabel: 'Expenses' },
+    { key: 'performance-reviews', icon: <TrophyOutlined />, label: 'Performance', path: '/employee/performance-reviews', mobileLabel: 'Reviews' },
     { key: 'profile', icon: <UserOutlined />, label: 'Profile', path: '/employee/profile', mobileLabel: 'Profile' },
   ],
   retailer: [
@@ -79,7 +87,7 @@ const menuItems: Record<UserRole, { key: string; icon: React.ReactNode; label: s
 // Mobile bottom nav items (limited to 5 most important items per role)
 const mobileBottomNavItems: Record<UserRole, string[]> = {
   consumer: ['shop', 'gas', 'rewards', 'wallet', 'profile'],
-  employee: ['dashboard', 'attendance', 'payslips', 'bill-payments', 'profile'],
+  employee: ['dashboard', 'attendance', 'projects', 'payslips', 'profile'],
   retailer: ['dashboard', 'pos', 'orders', 'wallet', 'inventory'],
   wholesaler: ['dashboard', 'orders', 'retailers', 'credit', 'analytics'],
   admin: ['dashboard', 'accounts', 'categories', 'customers', 'retailers'],

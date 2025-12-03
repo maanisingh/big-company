@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Card,
   Row,
@@ -24,6 +25,7 @@ import {
   FieldTimeOutlined,
   EnvironmentOutlined,
   CalendarOutlined,
+  EyeOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../../contexts/AuthContext';
 import type { Dayjs } from 'dayjs';
@@ -51,6 +53,7 @@ interface TodayStatus {
 
 export const AttendancePage: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [todayStatus, setTodayStatus] = useState<TodayStatus>({
     isCheckedIn: false,
@@ -246,6 +249,19 @@ export const AttendancePage: React.FC = () => {
       key: 'status',
       render: (status: string) => (
         <Tag color={getStatusColor(status)}>{status.replace('_', ' ').toUpperCase()}</Tag>
+      ),
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_: any, record: AttendanceRecord) => (
+        <Button
+          type="link"
+          icon={<EyeOutlined />}
+          onClick={() => navigate(`/employee/attendance/${record.id}`)}
+        >
+          View Details
+        </Button>
       ),
     },
   ];
