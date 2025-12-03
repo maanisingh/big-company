@@ -39,7 +39,7 @@ import {
   SafetyOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
-import { nfcApi } from '../../services/apiService';
+import { retailerApi } from '../../services/apiService';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -88,11 +88,9 @@ const NFCCardsPage: React.FC = () => {
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
   const [balanceCheckModalVisible, setBalanceCheckModalVisible] = useState(false);
   const [cardDetailsModalVisible, setCardDetailsModalVisible] = useState(false);
-  const [issueCardModalVisible, setIssueCardModalVisible] = useState(false);
   const [cardBalance, setCardBalance] = useState<{ balance: number; available: number } | null>(null);
   const [paymentForm] = Form.useForm();
   const [balanceForm] = Form.useForm();
-  const [issueForm] = Form.useForm();
   const [activeTab, setActiveTab] = useState('cards');
 
   // Mock data for demonstration (will be replaced with API calls)
@@ -160,17 +158,13 @@ const NFCCardsPage: React.FC = () => {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      // Try to load real data, fall back to mock
-      // const [cardsRes, statsRes] = await Promise.all([
-      //   nfcApi.getAllCards(),
-      //   nfcApi.getCardStats(),
-      // ]);
-      // setCards(cardsRes.data.cards);
-      // setStats(statsRes.data);
-
-      // Using mock data for now
-      setCards(mockCards);
-      setStats(mockStats);
+      // Load real data from API - only shows cards used at this retailer's shop
+      const [cardsRes, statsRes] = await Promise.all([
+        retailerApi.getNFCCards(),
+        retailerApi.getNFCCardStats(),
+      ]);
+      setCards(cardsRes.data.cards || cardsRes.data);
+      setStats(statsRes.data);
     } catch (error) {
       console.error('Failed to load NFC cards:', error);
       // Use mock data on error
@@ -188,9 +182,8 @@ const NFCCardsPage: React.FC = () => {
   const loadCardTransactions = async (cardId: string) => {
     setTransactionsLoading(true);
     try {
-      // const response = await nfcApi.getCardTransactions(cardId);
-      // setCardTransactions(response.data.transactions);
-      setCardTransactions(mockTransactions);
+      const response = await retailerApi.getNFCCardTransactions(cardId);
+      setCardTransactions(response.data.transactions || response.data);
     } catch (error) {
       console.error('Failed to load transactions:', error);
       setCardTransactions(mockTransactions);
@@ -236,7 +229,7 @@ const NFCCardsPage: React.FC = () => {
       okType: 'danger',
       onOk: async () => {
         try {
-          // await nfcApi.blockCard(card.id, 'Blocked by retailer');
+          await retailerApi.blockNFCCard(card.id, 'Blocked by retailer');
           message.success('Card blocked successfully');
           loadData();
         } catch (error: any) {
@@ -253,7 +246,7 @@ const NFCCardsPage: React.FC = () => {
       okText: 'Unblock',
       onOk: async () => {
         try {
-          // await nfcApi.unblockCard(card.id);
+          await retailerApi.unblockNFCCard(card.id);
           message.success('Card unblocked successfully');
           loadData();
         } catch (error: any) {
@@ -263,20 +256,7 @@ const NFCCardsPage: React.FC = () => {
     });
   };
 
-  const handleIssueCard = async (values: any) => {
-    try {
-      setLoading(true);
-      // await nfcApi.issueNewCard(values.customer_id, values.uid, values.pin);
-      message.success('New card issued successfully!');
-      setIssueCardModalVisible(false);
-      issueForm.resetFields();
-      loadData();
-    } catch (error: any) {
-      message.error(error.response?.data?.message || 'Failed to issue card');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Card issuance removed - admin-only feature (Requirement #12)
 
   const viewCardDetails = (card: NFCCard) => {
     setSelectedCard(card);
@@ -581,104 +561,7 @@ const NFCCardsPage: React.FC = () => {
                 />
               ),
             },
-            {
-              key: 'issue',
-              label: (
-                <span>
-                  <CreditCardOutlined /> Issue New Card
-                </span>
-              ),
-              children: (
-                <Card style={{ maxWidth: 600 }}>
-                  <Title level={4}>Issue New NFC Card</Title>
-                  <Paragraph type="secondary">
-                    Link a new cheap NFC tag/sticker to a customer account. The customer can then
-                    use their phone's NFC reader or present the card at any NFC-enabled POS.
-                  </Paragraph>
-                  <Form
-                    form={issueForm}
-                    layout="vertical"
-                    onFinish={handleIssueCard}
-                    style={{ marginTop: 24 }}
-                  >
-                    <Form.Item
-                      name="customer_phone"
-                      label="Customer Phone"
-                      rules={[{ required: true, message: 'Please enter customer phone' }]}
-                    >
-                      <Input
-                        prefix={<UserOutlined />}
-                        placeholder="+250788123456"
-                      />
-                    </Form.Item>
-                    <Form.Item
-                      name="uid"
-                      label="NFC Card UID"
-                      rules={[{ required: true, message: 'Please enter or scan the NFC UID' }]}
-                      extra="Scan the NFC tag with your phone to get the UID, or enter it manually"
-                    >
-                      <Input
-                        prefix={<CreditCardOutlined />}
-                        placeholder="04:A1:B2:C3:D4:E5:F6"
-                        addonAfter={
-                          <Tooltip title="Use BigCompany Wallet app to scan">
-                            <ScanOutlined style={{ cursor: 'pointer' }} />
-                          </Tooltip>
-                        }
-                      />
-                    </Form.Item>
-                    <Form.Item
-                      name="pin"
-                      label="Initial PIN"
-                      rules={[
-                        { required: true, message: 'Please set a 4-digit PIN' },
-                        { pattern: /^\d{4}$/, message: 'PIN must be exactly 4 digits' },
-                      ]}
-                    >
-                      <Input.Password
-                        prefix={<LockOutlined />}
-                        maxLength={4}
-                        placeholder="4-digit PIN"
-                      />
-                    </Form.Item>
-                    <Form.Item
-                      name="confirm_pin"
-                      label="Confirm PIN"
-                      dependencies={['pin']}
-                      rules={[
-                        { required: true, message: 'Please confirm the PIN' },
-                        ({ getFieldValue }) => ({
-                          validator(_, value) {
-                            if (!value || getFieldValue('pin') === value) {
-                              return Promise.resolve();
-                            }
-                            return Promise.reject(new Error('PINs do not match'));
-                          },
-                        }),
-                      ]}
-                    >
-                      <Input.Password
-                        prefix={<LockOutlined />}
-                        maxLength={4}
-                        placeholder="Confirm 4-digit PIN"
-                      />
-                    </Form.Item>
-                    <Form.Item>
-                      <Button
-                        type="primary"
-                        htmlType="submit"
-                        icon={<CreditCardOutlined />}
-                        loading={loading}
-                        size="large"
-                        block
-                      >
-                        Issue Card
-                      </Button>
-                    </Form.Item>
-                  </Form>
-                </Card>
-              ),
-            },
+            // Issue New Card tab removed - card issuance is admin-only (Requirement #12)
           ]}
         />
       </Card>

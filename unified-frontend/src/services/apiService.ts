@@ -158,6 +158,34 @@ export const retailerApi = {
     api.post(`/retailer/nfc-cards/${cardId}/topup`, data),
   getNFCCardTransactions: (cardId: string, params?: any) =>
     api.get(`/retailer/nfc-cards/${cardId}/transactions`, { params }),
+
+  // Manual Card Payments (3 Verification Methods)
+  verifyPinAndCharge: (cardId: string, pin: string, amount: number, branchId?: string) =>
+    api.post('/retailer/manual-payment/verify-pin', { card_id: cardId, pin, amount, branch_id: branchId }),
+  generatePaymentCode: (cardId: string, amount: number, customerPhone?: string, branchId?: string) =>
+    api.post('/retailer/manual-payment/generate-code', {
+      card_id: cardId,
+      amount,
+      customer_phone: customerPhone,
+      branch_id: branchId
+    }),
+  verifyCodeAndCharge: (cardId: string, code: string, amount: number, branchId?: string) =>
+    api.post('/retailer/manual-payment/verify-code', { card_id: cardId, code, amount, branch_id: branchId }),
+  requestPaymentOTP: (cardId: string, amount: number, customerPhone: string) =>
+    api.post('/retailer/manual-payment/request-otp', {
+      card_id: cardId,
+      amount,
+      customer_phone: customerPhone
+    }),
+  verifyOTPAndCharge: (cardId: string, otp: string, customerPhone: string, amount: number) =>
+    api.post('/retailer/manual-payment/verify-otp', {
+      card_id: cardId,
+      otp,
+      customer_phone: customerPhone,
+      amount
+    }),
+  getPaymentAuditLogs: (params?: { limit?: number; offset?: number; card_id?: string; method?: string }) =>
+    api.get('/retailer/manual-payment/audit', { params }),
 };
 
 // Wholesaler APIs
@@ -282,6 +310,14 @@ export const adminApi = {
 
   // Retailers
   getRetailers: (params?: any) => api.get('/admin/retailers', { params }),
+  createRetailer: (data: {
+    email: string;
+    password: string;
+    business_name: string;
+    phone: string;
+    address?: string;
+    credit_limit?: number;
+  }) => api.post('/admin/accounts/create-retailer', data),
   verifyRetailer: (id: string) => api.post(`/admin/retailers/${id}/verify`),
   updateRetailerStatus: (id: string, isActive: boolean, reason?: string) =>
     api.post(`/admin/retailers/${id}/status`, { isActive, reason }),
@@ -290,6 +326,14 @@ export const adminApi = {
 
   // Wholesalers
   getWholesalers: (params?: any) => api.get('/admin/wholesalers', { params }),
+  createWholesaler: (data: {
+    email: string;
+    password: string;
+    company_name: string;
+    phone: string;
+    address?: string;
+  }) => api.post('/admin/accounts/create-wholesaler', data),
+  verifyWholesaler: (id: string) => api.post(`/admin/wholesalers/${id}/verify`),
   updateWholesalerStatus: (id: string, isActive: boolean, reason?: string) =>
     api.post(`/admin/wholesalers/${id}/status`, { isActive, reason }),
 

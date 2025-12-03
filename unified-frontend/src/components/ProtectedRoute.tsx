@@ -32,8 +32,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (!isAuthenticated) {
-    // Redirect to login with return URL
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    // Redirect to appropriate login page based on the route
+    const isAdminRoute = location.pathname.startsWith('/admin');
+    const loginPath = isAdminRoute ? '/admin/login' : '/login';
+    return <Navigate to={loginPath} state={{ from: location }} replace />;
   }
 
   // Check if user has the required role

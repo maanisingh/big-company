@@ -405,16 +405,6 @@ export default function LoginPage() {
             </form>
           )}
 
-          {/* Register Link */}
-          <div className="mt-8 text-center">
-            <p className="text-gray-600">
-              Don't have an account?{' '}
-              <Link href="/auth/register" className="text-primary-600 font-medium hover:underline">
-                Register
-              </Link>
-            </p>
-          </div>
-
           {/* USSD Info */}
           <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <p className="text-sm text-yellow-800 text-center">

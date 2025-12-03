@@ -911,4 +911,111 @@ router.use(corsMiddleware);
     }
   });
 
+// ==================== ESCROW ENDPOINTS ====================
+
+/**
+ * GET /wholesaler/escrow/pending-confirmations
+ * Get all escrow transactions awaiting wholesaler confirmation
+ */
+router.get('/escrow/pending-confirmations', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    const wholesaler_id = user.id;
+
+    const escrowService = req.scope.resolve('escrowService');
+    const escrows = await escrowService.getWholesalerPendingEscrows(wholesaler_id);
+
+    res.json({
+      count: escrows.length,
+      pending_confirmations: escrows,
+    });
+  } catch (error: any) {
+    console.error('Error fetching pending confirmations:', error);
+    res.status(500).json({ error: 'Failed to fetch pending confirmations' });
+  }
+});
+
+/**
+ * POST /wholesaler/escrow/confirm-delivery/:id
+ * Confirm delivery and request escrow release
+ */
+router.post('/escrow/confirm-delivery/:id', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    const escrow_id = req.params.id;
+    const { notes } = req.body;
+
+    const escrowService = req.scope.resolve('escrowService');
+
+    // Verify escrow belongs to this wholesaler
+    const escrow = await escrowService.getEscrowById(escrow_id);
+    if (!escrow || escrow.wholesaler_id !== user.id) {
+      return res.status(404).json({ error: 'Escrow transaction not found' });
+    }
+
+    if (escrow.status !== 'held') {
+      return res.status(400).json({
+        error: 'Escrow must be in "held" status to confirm delivery',
+      });
+    }
+
+    // Release escrow to wholesaler
+    const released = await escrowService.releaseEscrow({
+      escrow_id,
+      confirmed_by: user.id,
+      notes: notes || 'Delivery confirmed by wholesaler',
+    });
+
+    res.json({
+      message: 'Delivery confirmed and escrow released',
+      transaction: released,
+    });
+  } catch (error: any) {
+    console.error('Error confirming delivery:', error);
+    res.status(500).json({ error: error.message || 'Failed to confirm delivery' });
+  }
+});
+
+/**
+ * GET /wholesaler/escrow/summary
+ * Get wholesaler's escrow summary (pending releases, total received, etc.)
+ */
+router.get('/escrow/summary', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    const wholesaler_id = user.id;
+
+    const escrowService = req.scope.resolve('escrowService');
+    const summary = await escrowService.getWholesalerSummary(wholesaler_id);
+
+    res.json(summary);
+  } catch (error: any) {
+    console.error('Error fetching escrow summary:', error);
+    res.status(500).json({ error: 'Failed to fetch escrow summary' });
+  }
+});
+
+/**
+ * GET /wholesaler/escrow/transactions
+ * Get all escrow transactions for wholesaler
+ */
+router.get('/escrow/transactions', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    const wholesaler_id = user.id;
+    const status = req.query.status as string;
+
+    const escrowService = req.scope.resolve('escrowService');
+    const transactions = await escrowService.getWholesalerEscrows(wholesaler_id, status);
+
+    res.json({
+      count: transactions.length,
+      transactions,
+    });
+  } catch (error: any) {
+    console.error('Error fetching escrow transactions:', error);
+    res.status(500).json({ error: 'Failed to fetch escrow transactions' });
+  }
+});
+
 export default router;

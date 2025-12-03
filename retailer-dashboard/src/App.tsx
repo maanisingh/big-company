@@ -26,6 +26,9 @@ import { POSPage } from './pages/pos';
 import { CreditOrderList, CreditOrderShow } from './pages/credit';
 import { LoginPage } from './pages/auth/Login';
 import { AuthCallback } from './pages/auth/AuthCallback';
+import CategoriesPage from './pages/categories';
+import ProfitMarginPage from './pages/reports/profit-margin';
+import WalletPage from './pages/wallet';
 
 // Components
 import { Authenticated } from './components/Authenticated';
@@ -38,6 +41,9 @@ import {
   CreditCardOutlined,
   DollarOutlined,
   ShopOutlined,
+  TagsOutlined,
+  BarChartOutlined,
+  WalletOutlined,
 } from '@ant-design/icons';
 
 const API_URL = import.meta.env.VITE_MEDUSA_BACKEND_URL || 'http://localhost:9000';
@@ -103,6 +109,30 @@ function App() {
                     icon: <DollarOutlined />,
                   },
                 },
+                {
+                  name: 'categories',
+                  list: '/categories',
+                  meta: {
+                    label: 'Categories',
+                    icon: <TagsOutlined />,
+                  },
+                },
+                {
+                  name: 'wallet',
+                  list: '/wallet',
+                  meta: {
+                    label: 'Wallet',
+                    icon: <WalletOutlined />,
+                  },
+                },
+                {
+                  name: 'reports',
+                  list: '/reports/profit-margin',
+                  meta: {
+                    label: 'Reports',
+                    icon: <BarChartOutlined />,
+                  },
+                },
               ]}
               options={{
                 syncWithLocation: true,
@@ -150,6 +180,9 @@ function App() {
                     <Route index element={<CreditOrderList />} />
                     <Route path="show/:id" element={<CreditOrderShow />} />
                   </Route>
+                  <Route path="/categories" element={<CategoriesPage />} />
+                  <Route path="/wallet" element={<WalletPage />} />
+                  <Route path="/reports/profit-margin" element={<ProfitMarginPage />} />
                   <Route path="*" element={<ErrorComponent />} />
                 </Route>
               </Routes>

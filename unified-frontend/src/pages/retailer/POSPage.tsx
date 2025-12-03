@@ -80,7 +80,7 @@ const POSPage = () => {
 
   // Payment modal state
   const [paymentModal, setPaymentModal] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'wallet' | 'nfc' | 'credit'>('cash');
+  const [paymentMethod, setPaymentMethod] = useState<'wallet' | 'nfc' | 'credit'>('nfc');
   const [processing, setProcessing] = useState(false);
 
   // Customer state (for wallet/credit payments)
@@ -310,10 +310,6 @@ const POSPage = () => {
     }
 
     switch (paymentMethod) {
-      case 'cash':
-        await completeSale('cash');
-        break;
-
       case 'wallet':
         if (!customer) {
           message.error('Please validate customer first');
@@ -649,12 +645,6 @@ const POSPage = () => {
           style={{ width: '100%', marginBottom: 24 }}
         >
           <Space direction="vertical" style={{ width: '100%' }}>
-            <Radio.Button value="cash" style={{ width: '100%', height: 50, display: 'flex', alignItems: 'center' }}>
-              <Space>
-                <DollarOutlined />
-                Cash Payment
-              </Space>
-            </Radio.Button>
             <Radio.Button value="nfc" style={{ width: '100%', height: 50, display: 'flex', alignItems: 'center' }}>
               <Space>
                 <CreditCardOutlined />

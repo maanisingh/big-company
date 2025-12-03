@@ -84,16 +84,16 @@
     <!-- Navigation -->
     <nav class="relative z-50 px-6 py-4">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <a href="../index.html" class="flex items-center space-x-3">
+            <div class="flex items-center space-x-3">
                 <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
                     <span class="text-purple-700 font-display font-bold">BC</span>
                 </div>
                 <span class="text-white font-display font-bold text-xl">BIG Company</span>
-            </a>
-            <a href="../index.html" class="text-white/80 hover:text-white transition-colors flex items-center gap-2">
-                <i class="fas fa-arrow-left"></i>
-                <span>Back to Home</span>
-            </a>
+            </div>
+            <div class="text-white/60 text-sm">
+                <i class="fas fa-shopping-bag mr-2"></i>
+                <span>Consumer Portal</span>
+            </div>
         </div>
     </nav>
 
@@ -326,21 +326,33 @@
         }
 
         // Form submission
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             const email = document.getElementById('emailInput').value;
             const password = document.getElementById('passwordInput').value;
+            const submitButton = this.querySelector('button[type="submit"]');
 
-            // Redirect to storefront with credentials
-            const storefrontUrl = 'https://bigcompany.alexandratechlab.com';
+            // Show loading state
+            const originalButtonText = submitButton.innerHTML;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Signing in...';
+            submitButton.disabled = true;
 
-            // Store credentials for autofill (optional)
-            sessionStorage.setItem('consumer_email', email);
-            sessionStorage.setItem('consumer_password', password);
+            try {
+                // Store credentials for autofill (optional)
+                sessionStorage.setItem('consumer_email', email);
+                sessionStorage.setItem('consumer_password', password);
 
-            // Open storefront in new tab
-            window.open(storefrontUrl, '_blank');
+                // Simulate API call delay for UX
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // Redirect to storefront in same tab
+                window.location.href = 'https://bigcompany.alexandratechlab.com';
+            } catch (error) {
+                console.error('Login error:', error);
+                submitButton.innerHTML = originalButtonText;
+                submitButton.disabled = false;
+            }
         });
     </script>
 </body>

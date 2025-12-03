@@ -37,7 +37,6 @@ const menuItems: Record<UserRole, { key: string; icon: React.ReactNode; label: s
     { key: 'pos', icon: <ScanOutlined />, label: 'POS', path: '/retailer/pos', mobileLabel: 'POS' },
     { key: 'inventory', icon: <InboxOutlined />, label: 'Inventory', path: '/retailer/inventory', mobileLabel: 'Stock' },
     { key: 'orders', icon: <ShoppingCartOutlined />, label: 'Orders', path: '/retailer/orders', mobileLabel: 'Orders' },
-    { key: 'branches', icon: <ApartmentOutlined />, label: 'Branches', path: '/retailer/branches', mobileLabel: 'Branches' },
     { key: 'wallet', icon: <DollarOutlined />, label: 'Wallet & Credit', path: '/retailer/wallet', mobileLabel: 'Wallet' },
     { key: 'nfc-cards', icon: <CreditCardOutlined />, label: 'NFC Cards', path: '/retailer/nfc-cards', mobileLabel: 'Cards' },
     { key: 'analytics', icon: <BarChartOutlined />, label: 'Analytics', path: '/retailer/analytics', mobileLabel: 'Stats' },
@@ -52,6 +51,8 @@ const menuItems: Record<UserRole, { key: string; icon: React.ReactNode; label: s
   ],
   admin: [
     { key: 'dashboard', icon: <DashboardOutlined />, label: 'Dashboard', path: '/admin/dashboard', mobileLabel: 'Home' },
+    { key: 'accounts', icon: <TeamOutlined />, label: 'Account Management', path: '/admin/accounts', mobileLabel: 'Accounts' },
+    { key: 'categories', icon: <ApartmentOutlined />, label: 'Categories', path: '/admin/categories', mobileLabel: 'Categories' },
     { key: 'customers', icon: <UserOutlined />, label: 'Customers', path: '/admin/customers', mobileLabel: 'Users' },
     { key: 'retailers', icon: <ShopOutlined />, label: 'Retailers', path: '/admin/retailers', mobileLabel: 'Retailers' },
     { key: 'wholesalers', icon: <TeamOutlined />, label: 'Wholesalers', path: '/admin/wholesalers', mobileLabel: 'Wholesalers' },
@@ -66,7 +67,7 @@ const mobileBottomNavItems: Record<UserRole, string[]> = {
   consumer: ['shop', 'orders', 'wallet', 'profile'],
   retailer: ['dashboard', 'pos', 'orders', 'wallet', 'inventory'],
   wholesaler: ['dashboard', 'orders', 'retailers', 'credit', 'analytics'],
-  admin: ['dashboard', 'customers', 'retailers', 'reports', 'loans'],
+  admin: ['dashboard', 'accounts', 'categories', 'customers', 'retailers'],
 };
 
 // Theme colors per role
@@ -111,7 +112,14 @@ export const AppLayout: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    // Redirect to appropriate login page based on user role
+    const loginUrls: Record<UserRole, string> = {
+      consumer: '/login',
+      retailer: '/login',
+      wholesaler: '/login',
+      admin: '/admin/login',
+    };
+    window.location.href = loginUrls[user.role];
   };
 
   const userMenuItems = [

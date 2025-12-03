@@ -75,6 +75,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       localStorage.setItem(TOKEN_KEY, response.access_token);
       localStorage.setItem(USER_KEY, JSON.stringify(user));
 
+      // Also set admin_token for admin users (for backward compatibility with admin pages)
+      if (role === 'admin') {
+        localStorage.setItem('admin_token', response.access_token);
+      }
+
       setState({
         user,
         token: response.access_token,

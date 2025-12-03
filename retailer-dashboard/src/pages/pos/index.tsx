@@ -72,6 +72,9 @@ interface Customer {
   name: string;
   phone: string;
   wallet_balance: number;
+  loan_balance: number;
+  total_balance: number;
+  available_for_purchase: number;
   credit_limit: number;
   credit_used: number;
 }
@@ -86,7 +89,7 @@ export const POSPage = () => {
 
   // Payment modal state
   const [paymentModal, setPaymentModal] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'wallet' | 'nfc' | 'credit'>('cash');
+  const [paymentMethod, setPaymentMethod] = useState<'wallet' | 'nfc' | 'credit'>('nfc');
   const [processing, setProcessing] = useState(false);
 
   // NFC payment state
@@ -337,8 +340,9 @@ export const POSPage = () => {
           quantity: item.quantity,
           price: item.price,
         })),
-        payment_method: method as 'cash' | 'wallet' | 'nfc' | 'credit',
+        payment_method: method as 'wallet' | 'nfc' | 'credit',
         customer_phone: customer?.phone || customerPhone || undefined,
+        customer_id: customer?.id || undefined, // Pass customer_id for gas rewards
         discount: discountAmount > 0 ? discountAmount : undefined,
         notes: transactionId ? `Transaction: ${transactionId}` : undefined,
       };
@@ -389,20 +393,52 @@ export const POSPage = () => {
     }
 
     switch (paymentMethod) {
-      case 'cash':
-        await completeSale('cash');
-        break;
-
       case 'wallet':
         if (!customer) {
           message.error('Please validate customer first');
           return;
         }
-        if (customer.wallet_balance < total) {
-          message.error('Insufficient wallet balance');
+
+        // Check total balance (wallet + loan)
+        if (customer.total_balance < total) {
+          message.error(`Insufficient balance. Available: ${customer.total_balance.toLocaleString()} RWF, Required: ${total.toLocaleString()} RWF`);
           return;
         }
-        await completeSale('wallet');
+
+        // Check if split payment is needed
+        if (customer.wallet_balance < total && customer.loan_balance > 0) {
+          const fromWallet = customer.wallet_balance;
+          const fromLoan = total - fromWallet;
+
+          // Show split payment confirmation
+          Modal.confirm({
+            title: 'Split Payment Required',
+            content: (
+              <div>
+                <p>Customer's wallet balance is insufficient. Payment will be split:</p>
+                <Divider style={{ margin: '12px 0' }} />
+                <p><strong>From Wallet:</strong> {fromWallet.toLocaleString()} RWF</p>
+                <p><strong>From Loan:</strong> {fromLoan.toLocaleString()} RWF</p>
+                <Divider style={{ margin: '12px 0' }} />
+                <p><strong>Total:</strong> {total.toLocaleString()} RWF</p>
+                <Alert
+                  type="info"
+                  message="Note: Only the wallet portion qualifies for gas rewards"
+                  style={{ marginTop: 12 }}
+                  showIcon
+                />
+              </div>
+            ),
+            okText: 'Proceed with Split Payment',
+            cancelText: 'Cancel',
+            onOk: async () => {
+              await completeSale('wallet');
+            },
+          });
+        } else {
+          // Sufficient wallet balance - proceed normally
+          await completeSale('wallet');
+        }
         break;
 
       case 'nfc':
@@ -744,12 +780,6 @@ export const POSPage = () => {
           style={{ width: '100%', marginBottom: 24 }}
         >
           <Space direction="vertical" style={{ width: '100%' }}>
-            <Radio.Button value="cash" style={{ width: '100%', height: 50, display: 'flex', alignItems: 'center' }}>
-              <Space>
-                <DollarOutlined />
-                Cash Payment
-              </Space>
-            </Radio.Button>
             <Radio.Button value="nfc" style={{ width: '100%', height: 50, display: 'flex', alignItems: 'center' }}>
               <Space>
                 <CreditCardOutlined />
@@ -828,36 +858,70 @@ export const POSPage = () => {
 
             {customer && (
               <Card size="small" style={{ backgroundColor: '#f6ffed', borderColor: '#b7eb8f' }}>
-                <Row justify="space-between" align="middle">
-                  <Col>
-                    <Text strong>{customer.name}</Text>
-                    <br />
-                    <Text type="secondary">{customer.phone}</Text>
-                  </Col>
-                  <Col>
-                    {paymentMethod === 'wallet' ? (
-                      <Statistic
-                        title="Wallet"
-                        value={customer.wallet_balance}
-                        suffix="RWF"
-                        valueStyle={{
-                          fontSize: '16px',
-                          color: customer.wallet_balance >= total ? '#3f8600' : '#cf1322'
-                        }}
-                      />
-                    ) : (
-                      <Statistic
-                        title="Available Credit"
-                        value={customer.credit_limit - customer.credit_used}
-                        suffix="RWF"
-                        valueStyle={{
-                          fontSize: '16px',
-                          color: (customer.credit_limit - customer.credit_used) >= total ? '#3f8600' : '#cf1322'
-                        }}
-                      />
-                    )}
-                  </Col>
-                </Row>
+                <div style={{ marginBottom: 12 }}>
+                  <Text strong>{customer.name}</Text>
+                  <br />
+                  <Text type="secondary">{customer.phone}</Text>
+                </div>
+
+                {paymentMethod === 'wallet' ? (
+                  <div>
+                    <Row gutter={16}>
+                      <Col span={12}>
+                        <Statistic
+                          title="Wallet Balance"
+                          value={customer.wallet_balance}
+                          suffix="RWF"
+                          valueStyle={{
+                            fontSize: '14px',
+                            color: '#3f8600'
+                          }}
+                        />
+                      </Col>
+                      <Col span={12}>
+                        <Statistic
+                          title="Loan Balance"
+                          value={customer.loan_balance}
+                          suffix="RWF"
+                          valueStyle={{
+                            fontSize: '14px',
+                            color: '#fa8c16'
+                          }}
+                        />
+                      </Col>
+                    </Row>
+                    <Divider style={{ margin: '8px 0' }} />
+                    <Row>
+                      <Col span={24}>
+                        <Statistic
+                          title="Total Available"
+                          value={customer.total_balance}
+                          suffix="RWF"
+                          valueStyle={{
+                            fontSize: '16px',
+                            fontWeight: 'bold',
+                            color: customer.total_balance >= total ? '#3f8600' : '#cf1322'
+                          }}
+                        />
+                        {customer.total_balance < total && (
+                          <Text type="danger" style={{ fontSize: '12px' }}>
+                            Insufficient balance (Need {total.toLocaleString()} RWF)
+                          </Text>
+                        )}
+                      </Col>
+                    </Row>
+                  </div>
+                ) : (
+                  <Statistic
+                    title="Available Credit"
+                    value={customer.credit_limit - customer.credit_used}
+                    suffix="RWF"
+                    valueStyle={{
+                      fontSize: '16px',
+                      color: (customer.credit_limit - customer.credit_used) >= total ? '#3f8600' : '#cf1322'
+                    }}
+                  />
+                )}
               </Card>
             )}
           </div>
@@ -951,6 +1015,53 @@ export const POSPage = () => {
               <Title level={4} style={{ margin: 0 }}>Total:</Title>
               <Title level={4} style={{ margin: 0 }}>{lastSale.total?.toLocaleString()} RWF</Title>
             </Row>
+
+            {/* Gas Rewards Section */}
+            {lastSale.payment_details?.gasReward && (
+              <>
+                <Divider dashed style={{ margin: '12px 0' }} />
+
+                {lastSale.payment_details.gasReward.eligible ? (
+                  <div style={{ backgroundColor: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: 4, padding: 12, marginBottom: 12 }}>
+                    <Row justify="space-between" align="middle">
+                      <Col>
+                        <Text strong style={{ color: '#52c41a' }}>🎉 Gas Reward Earned!</Text>
+                        <br />
+                        <Text type="secondary" style={{ fontSize: 12 }}>
+                          {lastSale.payment_details.gasReward.message}
+                        </Text>
+                      </Col>
+                      <Col>
+                        <Text strong style={{ fontSize: 16, color: '#52c41a' }}>
+                          +{lastSale.payment_details.gasReward.rewardAmount?.toLocaleString()} RWF
+                        </Text>
+                      </Col>
+                    </Row>
+                  </div>
+                ) : (
+                  <div style={{ backgroundColor: '#fff7e6', border: '1px solid #ffd591', borderRadius: 4, padding: 12, marginBottom: 12 }}>
+                    <Text type="secondary" style={{ fontSize: 12 }}>
+                      ℹ️ {lastSale.payment_details.gasReward.message}
+                    </Text>
+                  </div>
+                )}
+
+                {/* Split Payment Details */}
+                {lastSale.payment_details?.splitPayment && (
+                  <div style={{ marginBottom: 12 }}>
+                    <Text type="secondary" style={{ fontSize: 12 }}>Payment Split:</Text>
+                    <br />
+                    <Text style={{ fontSize: 12 }}>
+                      From Wallet: {lastSale.payment_details.fromWallet?.toLocaleString()} RWF
+                    </Text>
+                    <br />
+                    <Text style={{ fontSize: 12 }}>
+                      From Loan: {lastSale.payment_details.fromLoan?.toLocaleString()} RWF
+                    </Text>
+                  </div>
+                )}
+              </>
+            )}
 
             <Divider dashed style={{ margin: '12px 0' }} />
 

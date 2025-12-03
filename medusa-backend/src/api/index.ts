@@ -1,4 +1,5 @@
 import { Router, json, urlencoded } from 'express';
+import cors from 'cors';
 import walletRoutes from './routes/wallet';
 import gasRoutes from './routes/gas';
 import loansRoutes from './routes/loans';
@@ -13,6 +14,22 @@ import storeRoutes from './routes/store';
 
 export default (rootDirectory: string): Router | Router[] => {
   const router = Router();
+
+  // CORS configuration for custom routes
+  const ADMIN_CORS = process.env.ADMIN_CORS || 'http://localhost:7001';
+  const STORE_CORS = process.env.STORE_CORS || 'http://localhost:3000,http://localhost:3001,http://localhost:3002';
+
+  const adminCorsOrigins = ADMIN_CORS.split(',').map(origin => origin.trim());
+  const storeCorsOrigins = STORE_CORS.split(',').map(origin => origin.trim());
+  const allCorsOrigins = [...adminCorsOrigins, ...storeCorsOrigins];
+
+  // Apply CORS to all custom routes
+  router.use(cors({
+    origin: allCorsOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With'],
+  }));
 
   // Body parser middleware for all custom routes
   router.use(json());

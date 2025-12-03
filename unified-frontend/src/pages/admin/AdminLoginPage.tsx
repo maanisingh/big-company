@@ -19,6 +19,7 @@ export const AdminLoginPage: React.FC = () => {
 
   const handleLogin = async (values: { email: string; password: string }) => {
     try {
+      // Try real backend authentication first
       await login(
         { email: values.email, password: values.password },
         'admin'
@@ -26,21 +27,8 @@ export const AdminLoginPage: React.FC = () => {
       message.success('Admin login successful!');
       navigate('/admin/dashboard');
     } catch (error: any) {
-      // For demo purposes, allow login with demo credentials
-      if (values.email === demoCredentials.email && values.password === demoCredentials.password) {
-        // Mock admin login for demo
-        localStorage.setItem('auth_token', 'demo_admin_token');
-        localStorage.setItem('user', JSON.stringify({
-          id: 'admin_001',
-          email: demoCredentials.email,
-          name: 'Admin User',
-          role: 'admin',
-        }));
-        message.success('Admin login successful (Demo Mode)!');
-        window.location.href = '/admin/dashboard';
-      } else {
-        message.error(error.response?.data?.message || 'Invalid admin credentials');
-      }
+      console.error('Admin login error:', error);
+      message.error(error.response?.data?.error || error.message || 'Invalid admin credentials');
     }
   };
 

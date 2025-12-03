@@ -87,6 +87,7 @@ export const InventoryPage = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [showLowStock, setShowLowStock] = useState(false);
+  const [profitMarginFilter, setProfitMarginFilter] = useState<string>('');
   const [pagination, setPagination] = useState({ current: 1, pageSize: 20, total: 0 });
 
   // Stock adjustment modal
@@ -115,7 +116,7 @@ export const InventoryPage = () => {
 
   useEffect(() => {
     loadProducts();
-  }, [categoryFilter, showLowStock, pagination.current]);
+  }, [categoryFilter, showLowStock, profitMarginFilter, pagination.current]);
 
   const loadProducts = async (silent = false) => {
     if (!silent) setLoading(true);
@@ -132,12 +133,33 @@ export const InventoryPage = () => {
 
       const data = response.data;
       // Normalize API response fields (API returns 'price', 'cost', 'threshold' but we use longer names)
-      const normalizedProducts = (data.products || []).map((p: any) => ({
+      let normalizedProducts = (data.products || []).map((p: any) => ({
         ...p,
         selling_price: p.selling_price || p.price || 0,
         cost_price: p.cost_price || p.cost || 0,
         low_stock_threshold: p.low_stock_threshold || p.threshold || 10,
       }));
+
+      // Apply profit margin filter (client-side)
+      if (profitMarginFilter) {
+        normalizedProducts = normalizedProducts.filter((p: Product) => {
+          const margin = p.cost_price > 0
+            ? ((p.selling_price - p.cost_price) / p.cost_price) * 100
+            : 0;
+
+          switch (profitMarginFilter) {
+            case 'high': // > 20%
+              return margin > 20;
+            case 'medium': // 10-20%
+              return margin >= 10 && margin <= 20;
+            case 'low': // < 10%
+              return margin < 10;
+            default:
+              return true;
+          }
+        });
+      }
+
       setProducts(normalizedProducts);
       setPagination((prev) => ({ ...prev, total: data.total || data.count || 0 }));
 
@@ -486,6 +508,20 @@ export const InventoryPage = () => {
               {categories.map((cat) => (
                 <Select.Option key={cat} value={cat}>{cat}</Select.Option>
               ))}
+            </Select>
+          </Col>
+          <Col xs={24} sm={12} md={4}>
+            <Select
+              placeholder="Profit Margin"
+              value={profitMarginFilter}
+              onChange={setProfitMarginFilter}
+              style={{ width: '100%' }}
+              allowClear
+            >
+              <Select.Option value="">All Margins</Select.Option>
+              <Select.Option value="high">High (&gt; 20%)</Select.Option>
+              <Select.Option value="medium">Medium (10-20%)</Select.Option>
+              <Select.Option value="low">Low (&lt; 10%)</Select.Option>
             </Select>
           </Col>
           <Col xs={24} sm={12} md={4}>

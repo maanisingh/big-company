@@ -247,6 +247,31 @@ export const posApi = {
   },
 };
 
+// ==================== WALLET ====================
+export const walletApi = {
+  getBalance: async () => {
+    const response = await api.get('/retailer/wallet/balance');
+    return response.data;
+  },
+
+  getTransactions: async (params?: {
+    limit?: number;
+    offset?: number;
+    type?: string;
+  }) => {
+    const response = await api.get('/retailer/wallet/transactions', { params });
+    return response.data;
+  },
+
+  topUp: async (amount: number, paymentMethod: string) => {
+    const response = await api.post('/retailer/wallet/top-up', {
+      amount,
+      payment_method: paymentMethod,
+    });
+    return response.data;
+  },
+};
+
 // ==================== REPORTS ====================
 export const reportsApi = {
   getSalesReport: async (startDate: string, endDate: string) => {
@@ -263,6 +288,15 @@ export const reportsApi = {
 
   getCreditReport: async () => {
     const response = await api.get('/retailer/reports/credit');
+    return response.data;
+  },
+
+  getProfitMarginReport: async (params?: {
+    period?: 'today' | 'yesterday' | 'week' | 'month' | 'custom';
+    start_date?: string;
+    end_date?: string;
+  }) => {
+    const response = await api.get('/retailer/reports/profit-margin', { params });
     return response.data;
   },
 

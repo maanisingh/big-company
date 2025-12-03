@@ -39,6 +39,7 @@ import {
   StarFilled,
   QrcodeOutlined,
   MobileOutlined,
+  FileTextOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { nfcApi, walletApi } from '../../services/apiService';
@@ -129,6 +130,25 @@ const ConsumerWalletPage: React.FC = () => {
     { id: '4', type: 'transfer', amount: -5000, description: 'Transfer to +250788******', status: 'completed', created_at: '2024-11-27T16:45:00Z' },
     { id: '5', type: 'refund', amount: 500, description: 'Refund from Kigali Shop', status: 'completed', created_at: '2024-11-26T10:20:00Z' },
     { id: '6', type: 'topup', amount: 20000, description: 'Airtel Money Top-up', status: 'completed', created_at: '2024-11-25T09:00:00Z' },
+  ];
+
+  interface CreditTransaction {
+    id: string;
+    type: 'approval' | 'purchase' | 'repayment';
+    amount: number;
+    description: string;
+    status: 'completed' | 'pending';
+    created_at: string;
+    merchant_name?: string;
+    balance_after: number;
+  }
+
+  const mockCreditTransactions: CreditTransaction[] = [
+    { id: 'c1', type: 'approval', amount: 5000, description: 'Food Credit Approval', status: 'completed', created_at: '2024-11-20T10:00:00Z', balance_after: 5000 },
+    { id: 'c2', type: 'purchase', amount: -1500, description: 'Purchase at Kigali Shop (Food)', status: 'completed', created_at: '2024-11-22T14:30:00Z', merchant_name: 'Kigali Shop', balance_after: 3500 },
+    { id: 'c3', type: 'purchase', amount: -800, description: 'Purchase at Nyamirambo Market (Food)', status: 'completed', created_at: '2024-11-25T09:15:00Z', merchant_name: 'Nyamirambo Market', balance_after: 2700 },
+    { id: 'c4', type: 'repayment', amount: -2700, description: 'Credit Repayment via Wallet', status: 'completed', created_at: '2024-11-28T16:00:00Z', balance_after: 0 },
+    { id: 'c5', type: 'approval', amount: 5000, description: 'Food Credit Approval', status: 'completed', created_at: '2024-11-29T11:00:00Z', balance_after: 5000 },
   ];
 
   const loadData = useCallback(async () => {
@@ -241,6 +261,75 @@ const ConsumerWalletPage: React.FC = () => {
     });
   };
 
+  const creditTransactionColumns: ColumnsType<CreditTransaction> = [
+    {
+      title: 'Date',
+      dataIndex: 'created_at',
+      key: 'created_at',
+      render: (date) => new Date(date).toLocaleDateString(),
+      width: 100,
+    },
+    {
+      title: 'Description',
+      key: 'description',
+      render: (_, record) => (
+        <Space direction="vertical" size={0}>
+          <Text>{record.description}</Text>
+          {record.merchant_name && (
+            <Text type="secondary" style={{ fontSize: 12 }}>{record.merchant_name}</Text>
+          )}
+        </Space>
+      ),
+    },
+    {
+      title: 'Type',
+      dataIndex: 'type',
+      key: 'type',
+      render: (type) => {
+        const config: Record<string, { color: string; label: string }> = {
+          approval: { color: 'green', label: 'Credit Approved' },
+          purchase: { color: 'orange', label: 'Purchase' },
+          repayment: { color: 'blue', label: 'Repayment' },
+        };
+        const { color, label } = config[type] || { color: 'default', label: type };
+        return <Tag color={color}>{label}</Tag>;
+      },
+      width: 130,
+    },
+    {
+      title: 'Amount',
+      dataIndex: 'amount',
+      key: 'amount',
+      render: (amount) => (
+        <Text strong style={{ color: amount > 0 ? '#52c41a' : '#ff4d4f' }}>
+          {amount > 0 ? '+' : ''}{amount.toLocaleString()} RWF
+        </Text>
+      ),
+      align: 'right',
+      width: 120,
+    },
+    {
+      title: 'Balance',
+      dataIndex: 'balance_after',
+      key: 'balance_after',
+      render: (balance) => (
+        <Text>{balance.toLocaleString()} RWF</Text>
+      ),
+      align: 'right',
+      width: 120,
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status) => {
+        const color = status === 'completed' ? 'success' : 'warning';
+        return <Tag color={color}>{status}</Tag>;
+      },
+      width: 100,
+    },
+  ];
+
   const transactionColumns: ColumnsType<Transaction> = [
     {
       title: 'Date',
@@ -337,26 +426,15 @@ const ConsumerWalletPage: React.FC = () => {
                   Includes {balance.food_loan_credit.toLocaleString()} RWF Food Credit
                 </Text>
               )}
-              <Space>
-                <Button
-                  type="primary"
-                  ghost
-                  icon={<PlusOutlined />}
-                  onClick={() => setTopUpModalVisible(true)}
-                  style={{ borderColor: 'white', color: 'white' }}
-                >
-                  Top Up
-                </Button>
-                <Button
-                  type="primary"
-                  ghost
-                  icon={<SendOutlined />}
-                  onClick={() => setTransferModalVisible(true)}
-                  style={{ borderColor: 'white', color: 'white' }}
-                >
-                  Transfer
-                </Button>
-              </Space>
+              <Button
+                type="primary"
+                ghost
+                icon={<PlusOutlined />}
+                onClick={() => setTopUpModalVisible(true)}
+                style={{ borderColor: 'white', color: 'white' }}
+              >
+                Top Up
+              </Button>
             </Space>
           </Card>
         </Col>
@@ -556,6 +634,44 @@ const ConsumerWalletPage: React.FC = () => {
                     Link Your First Card
                   </Button>
                 </Empty>
+              ),
+            },
+            {
+              key: 'credit',
+              label: (
+                <span>
+                  <FileTextOutlined /> Credit Ledger
+                </span>
+              ),
+              children: (
+                <>
+                  <Alert
+                    message="Food Credit Usage"
+                    description={
+                      <span>
+                        Current Credit: <Text strong>{balance?.food_loan_credit?.toLocaleString() || 0} RWF</Text>
+                        <br />
+                        This credit can only be used for food purchases at approved retailers.
+                      </span>
+                    }
+                    type="info"
+                    showIcon
+                    style={{ marginBottom: 16 }}
+                  />
+                  <Table
+                    columns={creditTransactionColumns}
+                    dataSource={mockCreditTransactions}
+                    rowKey="id"
+                    loading={loading}
+                    scroll={{ x: 700 }}
+                    size="small"
+                    pagination={{
+                      showSizeChanger: true,
+                      showTotal: (total) => `${total} credit transactions`,
+                      size: 'small',
+                    }}
+                  />
+                </>
               ),
             },
           ]}

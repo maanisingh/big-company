@@ -455,6 +455,7 @@ function toRad(deg: number): number {
 router.get('/customers/me', authenticateCustomer, wrapHandler(async (req: any, res) => {
   try {
     const customer = req.customer;
+    const metadata = customer.metadata || {};
 
     res.json({
       id: customer.customer_id || customer.id,
@@ -463,9 +464,72 @@ router.get('/customers/me', authenticateCustomer, wrapHandler(async (req: any, r
       first_name: customer.first_name || 'Demo',
       last_name: customer.last_name || 'Customer',
       wallet_balance: 50000, // Mock wallet balance
+      meter_id: metadata.meter_id || null,
+      address: metadata.address || null,
     });
   } catch (error: any) {
     console.error('Get customer error:', error);
+    res.status(500).json({ error: error.message });
+  }
+}));
+
+/**
+ * Update customer profile
+ * PUT /store/customers/me
+ */
+router.put('/customers/me', authenticateCustomer, wrapHandler(async (req: any, res) => {
+  try {
+    const customer = req.customer;
+    const { first_name, last_name, email, meter_id, address } = req.body;
+
+    const customerId = customer.customer_id || customer.id;
+
+    // Get current customer data
+    const result = await db.query('SELECT * FROM customer WHERE id = $1', [customerId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Customer not found' });
+    }
+
+    const currentCustomer = result.rows[0];
+    const metadata = currentCustomer.metadata || {};
+
+    // Update metadata with new values
+    if (meter_id !== undefined) metadata.meter_id = meter_id;
+    if (address !== undefined) metadata.address = address;
+
+    // Update customer
+    await db.query(`
+      UPDATE customer
+      SET
+        first_name = COALESCE($1, first_name),
+        last_name = COALESCE($2, last_name),
+        email = COALESCE($3, email),
+        metadata = $4,
+        updated_at = NOW()
+      WHERE id = $5
+    `, [
+      first_name,
+      last_name,
+      email,
+      JSON.stringify(metadata),
+      customerId
+    ]);
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      customer: {
+        id: customerId,
+        first_name: first_name || currentCustomer.first_name,
+        last_name: last_name || currentCustomer.last_name,
+        email: email || currentCustomer.email,
+        meter_id: metadata.meter_id,
+        address: metadata.address,
+      }
+    });
+  } catch (error: any) {
+    console.error('Update customer error:', error);
     res.status(500).json({ error: error.message });
   }
 }));

@@ -126,18 +126,46 @@ class RewardsService {
 
   /**
    * Process reward for completed order
+   *
+   * @param userId - Customer ID
+   * @param orderId - Order/transaction ID
+   * @param profitAmount - Total order profit
+   * @param walletFundedAmount - Amount paid from wallet (not loan) - only this portion earns rewards
+   * @param meterId - Optional meter ID to credit directly
    */
   async processOrderReward(
     userId: string,
     orderId: string,
     profitAmount: number,
+    walletFundedAmount: number,
     meterId?: string
   ): Promise<{ success: boolean; reward?: GasReward; error?: string }> {
-    // Calculate reward
+    // Only calculate rewards for wallet-funded portion
+    // If order was paid partially or fully from loan, those amounts don't earn rewards
+    if (walletFundedAmount <= 0) {
+      return {
+        success: false,
+        error: 'No wallet funds used in this transaction. Loan-funded purchases do not earn gas rewards.'
+      };
+    }
+
+    // Calculate reward only on wallet-funded amount
     const calculation = await this.calculateReward(orderId, profitAmount);
 
     if (!calculation.eligible) {
       return { success: false, error: calculation.reason };
+    }
+
+    // Adjust reward amount based on wallet funding ratio
+    const totalOrderAmount = profitAmount; // Assuming profit correlates to order amount
+    const walletFundingRatio = Math.min(walletFundedAmount / totalOrderAmount, 1.0);
+    const adjustedRewardAmount = Math.floor(calculation.rewardAmount * walletFundingRatio);
+
+    if (adjustedRewardAmount <= 0) {
+      return {
+        success: false,
+        error: 'Reward amount too small after wallet funding adjustment'
+      };
     }
 
     // Check for duplicate
@@ -165,19 +193,25 @@ class RewardsService {
       }
     }
 
-    // Create pending reward
+    // Create pending reward with wallet funding metadata
     const result = await this.db.query(`
       INSERT INTO bigcompany.gas_rewards
-      (user_id, order_id, profit_amount, reward_percentage, reward_amount, meter_id, status)
-      VALUES ($1, $2, $3, $4, $5, $6, 'pending')
+      (user_id, order_id, profit_amount, reward_percentage, reward_amount, meter_id, status, metadata)
+      VALUES ($1, $2, $3, $4, $5, $6, 'pending', $7)
       RETURNING *
     `, [
       userId,
       orderId,
       profitAmount,
       this.config.rewardPercentage,
-      calculation.rewardAmount,
+      adjustedRewardAmount,
       targetMeterId,
+      JSON.stringify({
+        wallet_funded_amount: walletFundedAmount,
+        wallet_funding_ratio: walletFundingRatio,
+        original_reward_amount: calculation.rewardAmount,
+        adjusted_reward_amount: adjustedRewardAmount,
+      }),
     ]);
 
     const reward = this.mapReward(result.rows[0]);

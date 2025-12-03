@@ -25,7 +25,6 @@ import { OrdersPage as RetailerOrdersPage } from './pages/retailer/OrdersPage';
 import POSPage from './pages/retailer/POSPage';
 import { WalletPage } from './pages/retailer/WalletPage';
 import NFCCardsPage from './pages/retailer/NFCCardsPage';
-import BranchesPage from './pages/retailer/BranchesPage';
 import RetailerAnalyticsPage from './pages/retailer/AnalyticsPage';
 
 // Wholesaler Pages
@@ -40,6 +39,14 @@ import ProfileSettingsPage from './pages/shared/ProfileSettingsPage';
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminLoginPage from './pages/admin/AdminLoginPage';
+import AccountManagementPage from './pages/admin/AccountManagementPage';
+import CategoriesPage from './pages/admin/CategoriesPage';
+import RetailerManagementPage from './pages/admin/RetailerManagementPage';
+import WholesalerManagementPage from './pages/admin/WholesalerManagementPage';
+import LoanManagementPage from './pages/admin/LoanManagementPage';
+import NFCCardManagementPage from './pages/admin/NFCCardManagementPage';
+import ReportsPage from './pages/admin/ReportsPage';
+import CustomerManagementPage from './pages/admin/CustomerManagementPage';
 
 // Placeholder for pages not yet implemented
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
@@ -101,7 +108,6 @@ function App() {
               <Route path="pos" element={<POSPage />} />
               <Route path="wallet" element={<WalletPage />} />
               <Route path="nfc-cards" element={<NFCCardsPage />} />
-              <Route path="branches" element={<BranchesPage />} />
               <Route path="analytics" element={<RetailerAnalyticsPage />} />
               <Route path="profile" element={<ProfileSettingsPage />} />
             </Route>
@@ -136,12 +142,14 @@ function App() {
             >
               <Route index element={<Navigate to="/admin/dashboard" replace />} />
               <Route path="dashboard" element={<AdminDashboard />} />
-              <Route path="customers" element={<PlaceholderPage title="Customer Management" />} />
-              <Route path="retailers" element={<PlaceholderPage title="Retailer Management" />} />
-              <Route path="wholesalers" element={<PlaceholderPage title="Wholesaler Management" />} />
-              <Route path="loans" element={<PlaceholderPage title="Loan Management" />} />
-              <Route path="nfc-cards" element={<PlaceholderPage title="NFC Card Management" />} />
-              <Route path="reports" element={<PlaceholderPage title="Reports" />} />
+              <Route path="accounts" element={<AccountManagementPage />} />
+              <Route path="categories" element={<CategoriesPage />} />
+              <Route path="customers" element={<CustomerManagementPage />} />
+              <Route path="retailers" element={<RetailerManagementPage />} />
+              <Route path="wholesalers" element={<WholesalerManagementPage />} />
+              <Route path="loans" element={<LoanManagementPage />} />
+              <Route path="nfc-cards" element={<NFCCardManagementPage />} />
+              <Route path="reports" element={<ReportsPage />} />
               <Route path="profile" element={<ProfileSettingsPage />} />
             </Route>
 

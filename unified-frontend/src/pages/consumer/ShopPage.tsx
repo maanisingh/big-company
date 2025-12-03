@@ -86,6 +86,8 @@ export const ShopPage: React.FC = () => {
   const [showRetailerModal, setShowRetailerModal] = useState(!selectedRetailer);
   const [showCartDrawer, setShowCartDrawer] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [locationFilter, setLocationFilter] = useState<string>('all'); // 'all', 'nearby', 'area'
+  const [customerAddress, setCustomerAddress] = useState<string>('');
 
   // Fetch retailers and categories on mount
   useEffect(() => {
@@ -349,12 +351,60 @@ export const ShopPage: React.FC = () => {
         <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
           Choose a retailer near you to start shopping
         </Text>
+
+        {/* Location Filter Buttons */}
+        <Space style={{ marginBottom: 16 }} wrap>
+          <Button
+            type={locationFilter === 'all' ? 'primary' : 'default'}
+            size="small"
+            onClick={() => setLocationFilter('all')}
+          >
+            All Stores
+          </Button>
+          <Button
+            type={locationFilter === 'nearby' ? 'primary' : 'default'}
+            size="small"
+            icon={<EnvironmentOutlined />}
+            onClick={() => setLocationFilter('nearby')}
+          >
+            Nearby (&lt; 3km)
+          </Button>
+          <Button
+            type={locationFilter === 'area' ? 'primary' : 'default'}
+            size="small"
+            onClick={() => setLocationFilter('area')}
+          >
+            My Area
+          </Button>
+        </Space>
+
         <div style={{ maxHeight: 400, overflow: 'auto' }}>
-          {retailers.length === 0 ? (
-            <Empty description="No retailers available" />
-          ) : (
-            <Space direction="vertical" style={{ width: '100%' }} size={12}>
-              {retailers.map((retailer) => (
+          {(() => {
+            // Filter retailers based on location filter
+            let filteredRetailers = retailers;
+
+            if (locationFilter === 'nearby') {
+              filteredRetailers = retailers.filter(r => (r.distance || 999) < 3);
+            } else if (locationFilter === 'area' && customerAddress) {
+              // Filter by customer's area (simplified: check if location contains customer address keywords)
+              const addressKeywords = customerAddress.toLowerCase().split(/[\s,]+/);
+              filteredRetailers = retailers.filter(r =>
+                addressKeywords.some(keyword =>
+                  r.location.toLowerCase().includes(keyword)
+                )
+              );
+            }
+
+            // Sort by distance
+            const sortedRetailers = [...filteredRetailers].sort((a, b) =>
+              (a.distance || 999) - (b.distance || 999)
+            );
+
+            return sortedRetailers.length === 0 ? (
+              <Empty description="No retailers available in this area" />
+            ) : (
+              <Space direction="vertical" style={{ width: '100%' }} size={12}>
+                {sortedRetailers.map((retailer) => (
                 <Card
                   key={retailer.id}
                   size="small"
@@ -424,7 +474,8 @@ export const ShopPage: React.FC = () => {
                 </Card>
               ))}
             </Space>
-          )}
+            );
+          })()}
         </div>
       </Modal>
 

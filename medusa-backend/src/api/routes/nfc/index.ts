@@ -890,4 +890,239 @@ router.post('/register-bulk', wrapHandler(async (req, res) => {
   }
 }));
 
+// ==================== BIG SHOP CARD PAYMENT ====================
+
+/**
+ * POST /store/nfc/pay-with-card
+ * Process payment using BIG Shop Card with PIN
+ */
+router.post('/pay-with-card', wrapHandler(async (req, res) => {
+  initServices(req.scope);
+  const { card_number, pin, amount, payment_source, order_id, retailer_id } = req.body;
+
+  // Validation
+  if (!card_number || !pin || !amount) {
+    return res.status(400).json({ error: 'Card number, PIN, and amount are required' });
+  }
+
+  if (!payment_source || !['wallet', 'credit'].includes(payment_source)) {
+    return res.status(400).json({ error: 'Payment source must be "wallet" or "credit"' });
+  }
+
+  if (amount <= 0) {
+    return res.status(400).json({ error: 'Amount must be greater than 0' });
+  }
+
+  try {
+    // 1. Find card by dashboard_id (card_number)
+    const cardResult = await db.query(`
+      SELECT * FROM bigcompany.nfc_cards
+      WHERE dashboard_id = $1 AND is_active = true
+    `, [card_number.toUpperCase()]);
+
+    if (cardResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Card not found or inactive' });
+    }
+
+    const card = cardResult.rows[0];
+
+    // 2. Verify PIN
+    if (!card.pin_hash) {
+      return res.status(400).json({ error: 'Card PIN not set. Please set PIN first.' });
+    }
+
+    if (!verifyPin(pin, card.pin_hash)) {
+      // Log failed attempt
+      await db.query(`
+        INSERT INTO bigcompany.audit_logs (user_id, action, entity_type, entity_id, metadata)
+        VALUES ($1, 'failed_pin_attempt', 'nfc_card', $2, $3)
+      `, [card.user_id, card.card_uid, JSON.stringify({ ip: req.ip, timestamp: new Date() })]);
+
+      return res.status(401).json({ error: 'Invalid PIN' });
+    }
+
+    // 3. Get user balance details
+    const balanceResult = await db.query(
+      'SELECT * FROM bigcompany.get_balance_details($1)',
+      [card.user_id]
+    );
+
+    if (balanceResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User wallet not found' });
+    }
+
+    const balances = balanceResult.rows[0];
+
+    // 4. Check balance based on payment source
+    let hasEnoughBalance = false;
+    let balanceType = '';
+
+    if (payment_source === 'wallet') {
+      hasEnoughBalance = Number(balances.wallet_balance) >= amount;
+      balanceType = 'wallet';
+    } else if (payment_source === 'credit') {
+      hasEnoughBalance = Number(balances.loan_balance) >= amount;
+      balanceType = 'loan';
+    }
+
+    if (!hasEnoughBalance) {
+      return res.status(400).json({
+        error: `Insufficient ${payment_source} balance`,
+        available: payment_source === 'wallet' ? balances.wallet_balance : balances.loan_balance,
+        required: amount,
+      });
+    }
+
+    // 5. Process payment - Record transaction
+    const transactionId = await db.query(
+      `SELECT bigcompany.record_balance_transaction(
+        $1, $2, $3, $4, $5, $6, $7, $8, NULL, $9
+      ) as transaction_id`,
+      [
+        card.user_id,
+        'purchase',
+        balanceType,
+        amount,
+        'debit',
+        order_id || null,
+        'order',
+        `BIG Shop Card payment via ${payment_source}`,
+        retailer_id || null
+      ]
+    );
+
+    // 6. Update card last used
+    await db.query(`
+      UPDATE bigcompany.nfc_cards
+      SET last_used_at = NOW()
+      WHERE card_uid = $1
+    `, [card.card_uid]);
+
+    // 7. Record NFC transaction
+    await db.query(`
+      INSERT INTO bigcompany.nfc_transactions
+      (card_uid, user_id, transaction_type, amount, balance_type, order_id, retailer_id, status)
+      VALUES ($1, $2, 'payment', $3, $4, $5, $6, 'completed')
+    `, [card.card_uid, card.user_id, amount, balanceType, order_id || null, retailer_id || null]);
+
+    // 8. Get updated balances
+    const newBalanceResult = await db.query(
+      'SELECT * FROM bigcompany.get_balance_details($1)',
+      [card.user_id]
+    );
+
+    const newBalances = newBalanceResult.rows[0];
+
+    // 9. Send SMS notification
+    const customerResult = await db.query(
+      'SELECT phone, first_name FROM customer WHERE id = $1',
+      [card.user_id]
+    );
+
+    if (customerResult.rows.length > 0 && customerResult.rows[0].phone) {
+      const phone = customerResult.rows[0].phone;
+      const name = customerResult.rows[0].first_name || 'Customer';
+
+      try {
+        await smsService.send({
+          to: phone,
+          message: `BIG Shop Card Payment\nAmount: ${amount.toLocaleString()} RWF\nPaid from: ${payment_source === 'wallet' ? 'Wallet' : 'Credit'}\nNew balance: ${(payment_source === 'wallet' ? newBalances.wallet_balance : newBalances.loan_balance).toLocaleString()} RWF\nCard: ${card_number}`
+        });
+      } catch (smsError) {
+        console.error('SMS notification failed:', smsError);
+        // Don't fail the transaction if SMS fails
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Payment processed successfully',
+      transaction_id: transactionId.rows[0].transaction_id,
+      amount,
+      payment_source,
+      balances: {
+        wallet: Number(newBalances.wallet_balance),
+        credit: Number(newBalances.loan_balance),
+        total: Number(newBalances.total_balance),
+      },
+      card: {
+        number: card_number,
+        last_used: new Date(),
+      },
+    });
+
+  } catch (error: any) {
+    console.error('Card payment error:', error);
+    res.status(500).json({ error: 'Payment processing failed' });
+  }
+}));
+
+/**
+ * POST /store/nfc/set-pin
+ * Set or update PIN for NFC card
+ */
+router.post('/set-pin', wrapHandler(async (req, res) => {
+  const customerId = req.user?.customer_id;
+  const { card_uid, new_pin, old_pin } = req.body;
+
+  if (!customerId) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  if (!card_uid || !new_pin) {
+    return res.status(400).json({ error: 'Card UID and new PIN are required' });
+  }
+
+  // Validate PIN format (4 digits)
+  if (!/^\d{4}$/.test(new_pin)) {
+    return res.status(400).json({ error: 'PIN must be exactly 4 digits' });
+  }
+
+  try {
+    // Get card
+    const cardResult = await db.query(`
+      SELECT * FROM bigcompany.nfc_cards
+      WHERE card_uid = $1 AND user_id = $2
+    `, [card_uid.toUpperCase(), customerId]);
+
+    if (cardResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Card not found or not owned by you' });
+    }
+
+    const card = cardResult.rows[0];
+
+    // If PIN already exists, verify old PIN
+    if (card.pin_hash && old_pin) {
+      if (!verifyPin(old_pin, card.pin_hash)) {
+        return res.status(401).json({ error: 'Invalid old PIN' });
+      }
+    }
+
+    // Hash new PIN
+    const newPinHash = hashPin(new_pin);
+
+    // Update PIN
+    await db.query(`
+      UPDATE bigcompany.nfc_cards
+      SET pin_hash = $1, updated_at = NOW()
+      WHERE card_uid = $2
+    `, [newPinHash, card_uid.toUpperCase()]);
+
+    // Log action
+    await db.query(`
+      INSERT INTO bigcompany.audit_logs (user_id, action, entity_type, entity_id)
+      VALUES ($1, 'set_card_pin', 'nfc_card', $2)
+    `, [customerId, card_uid]);
+
+    res.json({
+      success: true,
+      message: 'PIN set successfully',
+    });
+
+  } catch (error: any) {
+    console.error('Set PIN error:', error);
+    res.status(500).json({ error: 'Failed to set PIN' });
+  }
+}));
+
 export default router;

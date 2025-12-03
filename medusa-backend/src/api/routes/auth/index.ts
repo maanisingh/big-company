@@ -129,7 +129,7 @@ router.post('/verify-otp', wrapHandler(async (req, res) => {
  * POST /store/auth/register
  */
 router.post('/register', wrapHandler(async (req, res) => {
-  const { verification_token, first_name, last_name, email, pin } = req.body;
+  const { verification_token, first_name, last_name, email, pin, meter_id, address } = req.body;
 
   if (!verification_token || !first_name || !pin) {
     return res.status(400).json({ error: 'Verification token, first name, and PIN are required' });
@@ -182,6 +182,18 @@ router.post('/register', wrapHandler(async (req, res) => {
     // Create customer in Medusa
     const customerId = `cus_${crypto.randomBytes(12).toString('hex')}`;
 
+    // Build metadata object
+    const metadata: any = {
+      phone: phone,
+      pin_hash: pinHash,
+      registered_via: 'mobile_app',
+      kyc_status: 'pending',
+    };
+
+    // Add optional fields to metadata
+    if (meter_id) metadata.meter_id = meter_id;
+    if (address) metadata.address = address;
+
     await db.query(`
       INSERT INTO customer (id, email, first_name, last_name, phone, metadata, has_account, created_at, updated_at)
       VALUES ($1, $2, $3, $4, $5, $6, true, NOW(), NOW())
@@ -191,12 +203,7 @@ router.post('/register', wrapHandler(async (req, res) => {
       first_name,
       last_name || '',
       phone,
-      JSON.stringify({
-        phone: phone,
-        pin_hash: pinHash,
-        registered_via: 'mobile_app',
-        kyc_status: 'pending',
-      }),
+      JSON.stringify(metadata),
     ]);
 
     // Create Blnk wallet for customer

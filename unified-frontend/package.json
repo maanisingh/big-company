@@ -15,6 +15,10 @@
   "dependencies": {
     "@ant-design/charts": "^2.6.6",
     "@ant-design/icons": "^6.1.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.6",
+    "@mui/material": "^7.3.6",
     "antd": "^6.0.0",
     "axios": "^1.13.2",
     "dayjs": "^1.11.19",
