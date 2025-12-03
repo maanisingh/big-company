@@ -22,6 +22,11 @@ import RewardsPage from './pages/consumer/RewardsPage';
 
 // Employee Pages
 import EmployeeDashboardPage from './pages/employee/DashboardPage';
+import AttendancePage from './pages/employee/AttendancePage';
+import LeavePage from './pages/employee/LeavePage';
+import PayslipsPage from './pages/employee/PayslipsPage';
+import BillPaymentsPage from './pages/employee/BillPaymentsPage';
+import EmployeeProfilePage from './pages/employee/EmployeeProfilePage';
 
 // Retailer Pages
 import { RetailerDashboard } from './pages/retailer/RetailerDashboard';
@@ -110,7 +115,11 @@ function App() {
             >
               <Route index element={<Navigate to="/employee/dashboard" replace />} />
               <Route path="dashboard" element={<EmployeeDashboardPage />} />
-              {/* More employee routes will be added here */}
+              <Route path="attendance" element={<AttendancePage />} />
+              <Route path="leave" element={<LeavePage />} />
+              <Route path="payslips" element={<PayslipsPage />} />
+              <Route path="bill-payments" element={<BillPaymentsPage />} />
+              <Route path="profile" element={<EmployeeProfilePage />} />
             </Route>
 
             {/* Retailer Routes */}
