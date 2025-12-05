@@ -16,8 +16,10 @@ import {
   Drawer,
   InputNumber,
   Divider,
-  Rate,
   Alert,
+  Form,
+  Select,
+  Steps,
 } from 'antd';
 import {
   ShoppingCartOutlined,
@@ -32,12 +34,15 @@ import {
   CloseOutlined,
   FilterOutlined,
   RightOutlined,
+  AimOutlined,
 } from '@ant-design/icons';
 import { consumerApi } from '../../services/apiService';
 import { useCart, Retailer } from '../../contexts/CartContext';
 
 const { Title, Text, Paragraph } = Typography;
 const { Search } = Input;
+const { Option } = Select;
+const { Step } = Steps;
 
 interface Product {
   id: string;
@@ -59,6 +64,12 @@ interface Category {
   name: string;
   handle: string;
   product_count?: number;
+}
+
+interface CustomerLocation {
+  district: string;
+  sector: string;
+  cell: string;
 }
 
 export const ShopPage: React.FC = () => {
@@ -83,11 +94,93 @@ export const ShopPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [loadingProducts, setLoadingProducts] = useState(false);
-  const [showRetailerModal, setShowRetailerModal] = useState(!selectedRetailer);
+  const [showRetailerModal, setShowRetailerModal] = useState(false);
   const [showCartDrawer, setShowCartDrawer] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [locationFilter, setLocationFilter] = useState<string>('all'); // 'all', 'nearby', 'area'
-  const [customerAddress, setCustomerAddress] = useState<string>('');
+
+  // NEW: Location modal state
+  const [showLocationModal, setShowLocationModal] = useState(true); // Show on first load
+  const [customerLocation, setCustomerLocation] = useState<CustomerLocation | null>(null);
+  const [locationForm] = Form.useForm();
+
+  // NEW: Mock location data
+  const rwandaDistricts = [
+    'Gasabo',
+    'Kicukiro',
+    'Nyarugenge',
+    'Nyagatare',
+    'Musanze',
+    'Huye',
+    'Rubavu',
+    'Rusizi',
+  ];
+
+  const sectorsByDistrict: Record<string, string[]> = {
+    Gasabo: ['Remera', 'Kimironko', 'Kacyiru', 'Kimihurura', 'Gisozi', 'Rusororo'],
+    Kicukiro: ['Niboye', 'Gikondo', 'Kicukiro', 'Gahanga', 'Kanombe'],
+    Nyarugenge: ['Nyarugenge', 'Nyamirambo', 'Gitega', 'Kigali', 'Muhima'],
+    Nyagatare: ['Nyagatare', 'Karama', 'Mimuri', 'Rukomo'],
+    Musanze: ['Musanze', 'Muhoza', 'Cyuve', 'Busogo'],
+    Huye: ['Huye', 'Tumba', 'Ngoma', 'Rusatira'],
+    Rubavu: ['Rubavu', 'Gisenyi', 'Rugerero', 'Kanama'],
+    Rusizi: ['Rusizi', 'Kamembe', 'Nkungu', 'Bugarama'],
+  };
+
+  const cellsBySector: Record<string, string[]> = {
+    Remera: ['Rukiri I', 'Rukiri II', 'Kabuga', 'Nyabisindu'],
+    Kimironko: ['Kibagabaga', 'Biryogo', 'Nyarurama', 'Agatare'],
+    Kacyiru: ['Kamatamu', 'Mpazi', 'Mpanzi', 'Karama'],
+    Nyamirambo: ['Nyamirambo', 'Rugenge', 'Rwezamenyo', 'Nyakabanda'],
+    Niboye: ['Kagarama', 'Niboye', 'Karembure'],
+    Gikondo: ['Gikondo', 'Rebero', 'Ndera'],
+    // Add more cells as needed
+  };
+
+  // Handle location submission
+  const handleLocationSubmit = (values: CustomerLocation) => {
+    setCustomerLocation(values);
+    setShowLocationModal(false);
+    setShowRetailerModal(true); // Show retailer selection after location is set
+    message.success(`Location set to ${values.cell}, ${values.sector}, ${values.district}`);
+  };
+
+  // Calculate distance based on location hierarchy (Cell > Sector > District)
+  const calculateDistance = (retailer: Retailer, location: CustomerLocation | null): number => {
+    if (!location) return 999; // No location = far away
+
+    const retailerLocation = retailer.location.toLowerCase();
+    const { district, sector, cell } = location;
+
+    // Exact cell match = 0.5-1.5 km
+    if (retailerLocation.includes(cell.toLowerCase())) {
+      return 0.5 + Math.random() * 1.0;
+    }
+
+    // Sector match = 2-4 km
+    if (retailerLocation.includes(sector.toLowerCase())) {
+      return 2.0 + Math.random() * 2.0;
+    }
+
+    // District match = 5-10 km
+    if (retailerLocation.includes(district.toLowerCase())) {
+      return 5.0 + Math.random() * 5.0;
+    }
+
+    // No match = 10-20 km
+    return 10.0 + Math.random() * 10.0;
+  };
+
+  // Sort retailers by nearest location
+  const sortRetailersByLocation = (retailerList: Retailer[]): Retailer[] => {
+    if (!customerLocation) return retailerList;
+
+    return [...retailerList]
+      .map((retailer) => ({
+        ...retailer,
+        distance: calculateDistance(retailer, customerLocation),
+      }))
+      .sort((a, b) => (a.distance || 999) - (b.distance || 999));
+  };
 
   // Fetch retailers and categories on mount
   useEffect(() => {
@@ -209,8 +302,8 @@ export const ShopPage: React.FC = () => {
   const getMockRetailers = (): Retailer[] => [
     {
       id: 'ret_001',
-      name: 'Kigali Shop',
-      location: 'Kigali City Center, KN 78 St',
+      name: 'Remera Express Store',
+      location: 'Rukiri I, Remera, Gasabo',
       rating: 4.5,
       distance: 1.2,
       is_open: true,
@@ -220,7 +313,7 @@ export const ShopPage: React.FC = () => {
     {
       id: 'ret_002',
       name: 'Nyamirambo Market',
-      location: 'Nyamirambo, Kigali',
+      location: 'Nyamirambo, Nyamirambo, Nyarugenge',
       rating: 4.2,
       distance: 2.5,
       is_open: true,
@@ -229,8 +322,8 @@ export const ShopPage: React.FC = () => {
     },
     {
       id: 'ret_003',
-      name: 'Kimironko Fresh',
-      location: 'Kimironko, KG 11 Ave',
+      name: 'Kimironko Fresh Shop',
+      location: 'Kibagabaga, Kimironko, Gasabo',
       rating: 4.8,
       distance: 3.0,
       is_open: true,
@@ -239,13 +332,33 @@ export const ShopPage: React.FC = () => {
     },
     {
       id: 'ret_004',
-      name: 'Remera Convenience',
-      location: 'Remera, Kigali',
+      name: 'Kacyiru Convenience',
+      location: 'Kamatamu, Kacyiru, Gasabo',
       rating: 3.9,
       distance: 1.8,
-      is_open: false,
+      is_open: true,
       delivery_time: '15-25 min',
       minimum_order: 2000,
+    },
+    {
+      id: 'ret_005',
+      name: 'Gikondo Groceries',
+      location: 'Gikondo, Gikondo, Kicukiro',
+      rating: 4.3,
+      distance: 5.5,
+      is_open: true,
+      delivery_time: '35-50 min',
+      minimum_order: 4500,
+    },
+    {
+      id: 'ret_006',
+      name: 'Niboye SuperMart',
+      location: 'Kagarama, Niboye, Kicukiro',
+      rating: 4.6,
+      distance: 4.2,
+      is_open: false,
+      delivery_time: '30-40 min',
+      minimum_order: 6000,
     },
   ];
 
@@ -315,6 +428,20 @@ export const ShopPage: React.FC = () => {
       variants: [{ id: 'v8', title: 'Default', prices: [{ amount: 600, currency_code: 'RWF' }], inventory_quantity: 50 }],
       categories: [{ id: 'cat_3', name: 'Grains & Rice' }],
     },
+    {
+      id: '9',
+      title: 'Skol Beer 500ml',
+      description: 'Refreshing beer',
+      variants: [{ id: 'v9', title: 'Default', prices: [{ amount: 700, currency_code: 'RWF' }], inventory_quantity: 180 }],
+      categories: [{ id: 'cat_1', name: 'Beverages' }],
+    },
+    {
+      id: '10',
+      title: 'Sprite 500ml',
+      description: 'Lemon-lime soda',
+      variants: [{ id: 'v10', title: 'Default', prices: [{ amount: 500, currency_code: 'RWF' }], inventory_quantity: 120 }],
+      categories: [{ id: 'cat_1', name: 'Beverages' }],
+    },
   ];
 
   // Filter products by search
@@ -323,6 +450,9 @@ export const ShopPage: React.FC = () => {
       (p.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (p.description || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Get sorted retailers based on customer location
+  const sortedRetailers = sortRetailersByLocation(retailers);
 
   if (loading) {
     return (
@@ -335,9 +465,99 @@ export const ShopPage: React.FC = () => {
 
   return (
     <div>
+      {/* Location Entry Modal - Shows FIRST before shopping */}
+      <Modal
+        open={showLocationModal}
+        title={
+          <Space>
+            <EnvironmentOutlined />
+            <span>Enter Your Location</span>
+          </Space>
+        }
+        footer={null}
+        closable={false}
+        width={500}
+      >
+        <Alert
+          type="info"
+          message="To find the nearest stores, please enter your location"
+          style={{ marginBottom: 24 }}
+          showIcon
+        />
+
+        <Form form={locationForm} layout="vertical" onFinish={handleLocationSubmit}>
+          <Form.Item
+            label="District"
+            name="district"
+            rules={[{ required: true, message: 'Please select your district' }]}
+          >
+            <Select
+              size="large"
+              placeholder="Select your district"
+              onChange={() => {
+                locationForm.setFieldsValue({ sector: undefined, cell: undefined });
+              }}
+            >
+              {rwandaDistricts.map((district) => (
+                <Option key={district} value={district}>
+                  {district}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            label="Sector"
+            name="sector"
+            rules={[{ required: true, message: 'Please select your sector' }]}
+            dependencies={['district']}
+          >
+            <Select
+              size="large"
+              placeholder="Select your sector"
+              disabled={!locationForm.getFieldValue('district')}
+              onChange={() => {
+                locationForm.setFieldsValue({ cell: undefined });
+              }}
+            >
+              {(sectorsByDistrict[locationForm.getFieldValue('district')] || []).map((sector) => (
+                <Option key={sector} value={sector}>
+                  {sector}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            label="Cell"
+            name="cell"
+            rules={[{ required: true, message: 'Please select your cell' }]}
+            dependencies={['sector']}
+          >
+            <Select
+              size="large"
+              placeholder="Select your cell"
+              disabled={!locationForm.getFieldValue('sector')}
+            >
+              {(cellsBySector[locationForm.getFieldValue('sector')] || []).map((cell) => (
+                <Option key={cell} value={cell}>
+                  {cell}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item style={{ marginBottom: 0 }}>
+            <Button type="primary" htmlType="submit" size="large" block icon={<AimOutlined />}>
+              Find Nearest Stores
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
+
       {/* Retailer Selection Modal */}
       <Modal
-        open={showRetailerModal && !selectedRetailer}
+        open={showRetailerModal}
         title={
           <Space>
             <ShopOutlined />
@@ -345,66 +565,32 @@ export const ShopPage: React.FC = () => {
           </Space>
         }
         footer={null}
-        closable={false}
-        width={500}
+        closable={true}
+        onCancel={() => setShowRetailerModal(false)}
+        width={550}
       >
-        <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
-          Choose a retailer near you to start shopping
-        </Text>
-
-        {/* Location Filter Buttons */}
-        <Space style={{ marginBottom: 16 }} wrap>
-          <Button
-            type={locationFilter === 'all' ? 'primary' : 'default'}
-            size="small"
-            onClick={() => setLocationFilter('all')}
-          >
-            All Stores
-          </Button>
-          <Button
-            type={locationFilter === 'nearby' ? 'primary' : 'default'}
-            size="small"
+        {customerLocation && (
+          <Alert
+            type="success"
+            message={`Your location: ${customerLocation.cell}, ${customerLocation.sector}, ${customerLocation.district}`}
+            description="Stores are sorted by distance (Cell → Sector → District priority)"
+            style={{ marginBottom: 16 }}
+            showIcon
             icon={<EnvironmentOutlined />}
-            onClick={() => setLocationFilter('nearby')}
-          >
-            Nearby (&lt; 3km)
-          </Button>
-          <Button
-            type={locationFilter === 'area' ? 'primary' : 'default'}
-            size="small"
-            onClick={() => setLocationFilter('area')}
-          >
-            My Area
-          </Button>
-        </Space>
-
-        <div style={{ maxHeight: 400, overflow: 'auto' }}>
-          {(() => {
-            // Filter retailers based on location filter
-            let filteredRetailers = retailers;
-
-            if (locationFilter === 'nearby') {
-              filteredRetailers = retailers.filter(r => (r.distance || 999) < 3);
-            } else if (locationFilter === 'area' && customerAddress) {
-              // Filter by customer's area (simplified: check if location contains customer address keywords)
-              const addressKeywords = customerAddress.toLowerCase().split(/[\s,]+/);
-              filteredRetailers = retailers.filter(r =>
-                addressKeywords.some(keyword =>
-                  r.location.toLowerCase().includes(keyword)
-                )
-              );
+            action={
+              <Button size="small" type="link" onClick={() => setShowLocationModal(true)}>
+                Change
+              </Button>
             }
+          />
+        )}
 
-            // Sort by distance
-            const sortedRetailers = [...filteredRetailers].sort((a, b) =>
-              (a.distance || 999) - (b.distance || 999)
-            );
-
-            return sortedRetailers.length === 0 ? (
-              <Empty description="No retailers available in this area" />
-            ) : (
-              <Space direction="vertical" style={{ width: '100%' }} size={12}>
-                {sortedRetailers.map((retailer) => (
+        <div style={{ maxHeight: 450, overflow: 'auto' }}>
+          {sortedRetailers.length === 0 ? (
+            <Empty description="No retailers available" />
+          ) : (
+            <Space direction="vertical" style={{ width: '100%' }} size={12}>
+              {sortedRetailers.map((retailer) => (
                 <Card
                   key={retailer.id}
                   size="small"
@@ -428,7 +614,7 @@ export const ShopPage: React.FC = () => {
                           justifyContent: 'center',
                         }}
                       >
-                        <ShopOutlined style={{ fontSize: 24, color: '#722ed1' }} />
+                        <ShopOutlined style={{ fontSize: 24, color: '#52c41a' }} />
                       </div>
                     </Col>
                     <Col flex={1}>
@@ -451,7 +637,9 @@ export const ShopPage: React.FC = () => {
                             <Text>{retailer.rating.toFixed(1)}</Text>
                           </Space>
                           {retailer.distance && (
-                            <Text type="secondary">{retailer.distance.toFixed(1)} km</Text>
+                            <Text type="secondary" style={{ fontWeight: 'bold', color: '#52c41a' }}>
+                              {retailer.distance.toFixed(1)} km
+                            </Text>
                           )}
                           {retailer.delivery_time && (
                             <Space size={4}>
@@ -474,9 +662,22 @@ export const ShopPage: React.FC = () => {
                 </Card>
               ))}
             </Space>
-            );
-          })()}
+          )}
         </div>
+
+        <Divider style={{ margin: '16px 0' }} />
+
+        <Button
+          block
+          size="large"
+          icon={<ShopOutlined />}
+          onClick={() => {
+            // Show all stores regardless of location
+            message.info('Showing all available stores');
+          }}
+        >
+          Explore Another Store
+        </Button>
       </Modal>
 
       {/* Header */}
@@ -527,9 +728,7 @@ export const ShopPage: React.FC = () => {
                 <Text strong style={{ color: '#389e0d' }}>
                   {selectedRetailer.name}
                 </Text>
-                <Tag color={selectedRetailer.is_open ? 'success' : 'error'}>
-                  {selectedRetailer.is_open ? 'Open' : 'Closed'}
-                </Tag>
+                <Tag color="success">{selectedRetailer.distance?.toFixed(1)} km away</Tag>
               </Space>
             </Col>
             <Col>
