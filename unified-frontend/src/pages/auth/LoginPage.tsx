@@ -524,6 +524,21 @@ export const LoginPage: React.FC = () => {
                   </>
                 )}
               </button>
+
+              {/* Registration Link for Consumers */}
+              {activeRole === 'consumer' && (
+                <div className="mt-6 text-center">
+                  <p className="text-gray-600">
+                    First time using BIG Company?{' '}
+                    <a
+                      href="/auth/register"
+                      className="text-purple-600 hover:text-purple-700 font-semibold hover:underline"
+                    >
+                      Create Account
+                    </a>
+                  </p>
+                </div>
+              )}
             </form>
 
           </div>

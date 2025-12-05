@@ -1,0 +1,341 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e6]:
+        - generic [ref=e7]: B
+        - generic [ref=e8]:
+          - text: BIG Company
+          - paragraph [ref=e9]: Rwanda Distribution Platform
+    - generic [ref=e11]:
+      - generic [ref=e12]: Trusted by 500+ retailers across Rwanda
+      - heading "Rwanda's Complete Distribution Platform" [level=1] [ref=e13]:
+        - text: Rwanda's Complete
+        - generic [ref=e14]: Distribution Platform
+      - paragraph [ref=e15]: Connecting consumers, retailers, and wholesalers across all 30 districts with digital wallets, NFC cards, and seamless ordering.
+      - generic [ref=e16]:
+        - button "Start Free Trial" [ref=e17] [cursor=pointer]
+        - button "Watch Demo" [ref=e18] [cursor=pointer]
+    - generic [ref=e21]:
+      - generic [ref=e22]:
+        - generic [ref=e24]: 0+
+        - generic [ref=e25]: Active Retailers
+      - generic [ref=e26]:
+        - generic [ref=e28]: 0+
+        - generic [ref=e29]: Products Listed
+      - generic [ref=e30]:
+        - generic [ref=e31]: "0"
+        - generic [ref=e32]: Districts Covered
+      - generic [ref=e33]:
+        - generic [ref=e35]: RWF 0
+        - generic [ref=e36]: Monthly GMV
+    - generic [ref=e38]:
+      - generic [ref=e39]:
+        - heading "Powerful Dashboard Analytics" [level=2] [ref=e40]
+        - paragraph [ref=e41]: Real-time insights into your business with beautiful visualizations
+      - generic [ref=e43]:
+        - button "Wholesaler" [ref=e44] [cursor=pointer]
+        - button "Retailer" [ref=e45] [cursor=pointer]
+        - button "Consumer" [ref=e46] [cursor=pointer]
+      - generic [ref=e47]:
+        - generic [ref=e48]:
+          - generic [ref=e49]:
+            - generic [ref=e50]:
+              - generic [ref=e51]:
+                - heading "Revenue Overview" [level=3] [ref=e52]
+                - paragraph [ref=e53]: Monthly sales performance
+              - generic [ref=e54]:
+                - img [ref=e55]
+                - generic [ref=e57]: +24.5%
+            - application [ref=e60]:
+              - generic [ref=e77]:
+                - generic [ref=e78]:
+                  - generic [ref=e80]: Jan
+                  - generic [ref=e82]: Feb
+                  - generic [ref=e84]: Mar
+                  - generic [ref=e86]: Apr
+                  - generic [ref=e88]: May
+                  - generic [ref=e90]: Jun
+                  - generic [ref=e92]: Jul
+                - generic [ref=e93]:
+                  - generic [ref=e95]: "0"
+                  - generic [ref=e97]: "2000"
+                  - generic [ref=e99]: "4000"
+                  - generic [ref=e101]: "6000"
+                  - generic [ref=e103]: "8000"
+          - generic [ref=e104]:
+            - generic [ref=e105]:
+              - heading "Categories" [level=3] [ref=e106]
+              - application [ref=e109]
+              - generic [ref=e121]:
+                - generic [ref=e124]: Beverages
+                - generic [ref=e127]: Food
+                - generic [ref=e130]: Electronics
+                - generic [ref=e133]: Personal Care
+            - generic [ref=e134]:
+              - heading "Today's Activity" [level=3] [ref=e135]
+              - generic [ref=e136]:
+                - generic [ref=e137]:
+                  - generic [ref=e138]: Orders
+                  - generic [ref=e139]: "847"
+                - generic [ref=e140]:
+                  - generic [ref=e141]: Revenue
+                  - generic [ref=e142]: 1.2M RWF
+                - generic [ref=e143]:
+                  - generic [ref=e144]: New Retailers
+                  - generic [ref=e145]: "+12"
+        - generic [ref=e146]:
+          - generic [ref=e147]:
+            - heading "Top Districts by Sales" [level=3] [ref=e148]
+            - application [ref=e151]:
+              - generic [ref=e177]:
+                - generic [ref=e178]:
+                  - generic [ref=e180]: "0"
+                  - generic [ref=e182]: "1500"
+                  - generic [ref=e184]: "3000"
+                  - generic [ref=e186]: "4500"
+                  - generic [ref=e188]: "6000"
+                - generic [ref=e189]:
+                  - generic [ref=e191]: Kigali
+                  - generic [ref=e193]: Huye
+                  - generic [ref=e195]: Rubavu
+                  - generic [ref=e197]: Muhanga
+                  - generic [ref=e199]: Musanze
+          - generic [ref=e200]:
+            - heading "Real-time Transactions" [level=3] [ref=e201]
+            - application [ref=e204]:
+              - generic [ref=e228]:
+                - generic [ref=e229]:
+                  - generic [ref=e231]: 00:00
+                  - generic [ref=e233]: 04:00
+                  - generic [ref=e235]: 08:00
+                  - generic [ref=e237]: 12:00
+                  - generic [ref=e239]: 16:00
+                  - generic [ref=e241]: 20:00
+                  - generic [ref=e243]: 24:00
+                - generic [ref=e244]:
+                  - generic [ref=e246]: "0"
+                  - generic [ref=e248]: "150"
+                  - generic [ref=e250]: "300"
+                  - generic [ref=e252]: "450"
+                  - generic [ref=e254]: "600"
+    - generic [ref=e256]:
+      - generic [ref=e257]:
+        - heading "Everything You Need to Succeed" [level=2] [ref=e258]
+        - paragraph [ref=e259]: A complete suite of tools to manage your distribution business
+      - generic [ref=e260]:
+        - generic [ref=e261]:
+          - img [ref=e263]
+          - heading "Digital Wallets" [level=3] [ref=e265]
+          - paragraph [ref=e266]: Secure mobile payments with instant transfers between consumers, retailers, and wholesalers.
+        - generic [ref=e267]:
+          - img [ref=e269]
+          - heading "NFC Cards" [level=3] [ref=e271]
+          - paragraph [ref=e272]: Tap-to-pay contactless cards for consumers. Issue and manage cards for your customers.
+        - generic [ref=e273]:
+          - img [ref=e275]
+          - heading "Real-time Analytics" [level=3] [ref=e277]
+          - paragraph [ref=e278]: Track sales, inventory, and customer behavior with beautiful dashboards and reports.
+        - generic [ref=e279]:
+          - img [ref=e281]
+          - heading "B2B Distribution" [level=3] [ref=e283]
+          - paragraph [ref=e284]: Streamlined ordering between retailers and wholesalers with credit management.
+        - generic [ref=e285]:
+          - img [ref=e287]
+          - heading "30 Districts" [level=3] [ref=e290]
+          - paragraph [ref=e291]: Complete coverage across all of Rwanda with district-level analytics and management.
+        - generic [ref=e292]:
+          - img [ref=e294]
+          - heading "Secure Platform" [level=3] [ref=e296]
+          - paragraph [ref=e297]: Bank-grade security with encrypted transactions and multi-factor authentication.
+    - generic [ref=e299]:
+      - generic [ref=e300]:
+        - heading "Choose Your Portal" [level=2] [ref=e301]
+        - paragraph [ref=e302]: Select your role to access the appropriate dashboard with demo credentials
+      - generic [ref=e303]:
+        - generic [ref=e304]:
+          - generic [ref=e308]:
+            - generic [ref=e309]:
+              - img [ref=e311]
+              - generic [ref=e313]:
+                - heading "Consumer" [level=3] [ref=e314]
+                - paragraph [ref=e315]: Shop & Order
+            - paragraph [ref=e316]: Browse products, place orders, manage your wallet and NFC cards
+          - generic [ref=e317]:
+            - generic [ref=e318]:
+              - generic [ref=e319]: Browse Products
+              - generic [ref=e321]: Mobile Wallet
+              - generic [ref=e323]: NFC Cards
+              - generic [ref=e325]: Order Tracking
+            - generic [ref=e327]:
+              - paragraph [ref=e328]: Demo Credentials
+              - generic [ref=e329]:
+                - generic [ref=e330]:
+                  - generic [ref=e331]: "Phone:"
+                  - generic [ref=e332]:
+                    - code [ref=e333]: "250788100001"
+                    - button [ref=e334] [cursor=pointer]:
+                      - img [ref=e335]
+                - generic [ref=e337]:
+                  - generic [ref=e338]: "PIN:"
+                  - generic [ref=e339]:
+                    - code [ref=e340]: "1234"
+                    - button [ref=e341] [cursor=pointer]:
+                      - img [ref=e342]
+            - button "Access Consumer Portal" [ref=e344] [cursor=pointer]:
+              - text: Access Consumer Portal
+              - img [ref=e345]
+        - generic [ref=e347]:
+          - generic [ref=e351]:
+            - generic [ref=e352]:
+              - img [ref=e354]
+              - generic [ref=e356]:
+                - heading "Employee" [level=3] [ref=e357]
+                - paragraph [ref=e358]: Staff Portal
+            - paragraph [ref=e359]: Attendance, payslips, leave requests, and bill payments
+          - generic [ref=e360]:
+            - generic [ref=e361]:
+              - generic [ref=e362]: Attendance
+              - generic [ref=e364]: Payslips
+              - generic [ref=e366]: Leave Requests
+              - generic [ref=e368]: Bill Payments
+            - generic [ref=e370]:
+              - paragraph [ref=e371]: Demo Credentials
+              - generic [ref=e372]:
+                - generic [ref=e373]:
+                  - generic [ref=e374]: "Email:"
+                  - generic [ref=e375]:
+                    - code [ref=e376]: employee@bigcompany.rw
+                    - button [ref=e377] [cursor=pointer]:
+                      - img [ref=e378]
+                - generic [ref=e380]:
+                  - generic [ref=e381]: "Password:"
+                  - generic [ref=e382]:
+                    - code [ref=e383]: employee123
+                    - button [ref=e384] [cursor=pointer]:
+                      - img [ref=e385]
+            - button "Access Employee Portal" [ref=e387] [cursor=pointer]:
+              - text: Access Employee Portal
+              - img [ref=e388]
+        - generic [ref=e390]:
+          - generic [ref=e394]:
+            - generic [ref=e395]:
+              - img [ref=e397]
+              - generic [ref=e399]:
+                - heading "Retailer" [level=3] [ref=e400]
+                - paragraph [ref=e401]: Manage Your Shop
+            - paragraph [ref=e402]: POS system, inventory management, order from wholesalers
+          - generic [ref=e403]:
+            - generic [ref=e404]:
+              - generic [ref=e405]: POS System
+              - generic [ref=e407]: Inventory
+              - generic [ref=e409]: Wholesaler Orders
+              - generic [ref=e411]: NFC Management
+            - generic [ref=e413]:
+              - paragraph [ref=e414]: Demo Credentials
+              - generic [ref=e415]:
+                - generic [ref=e416]:
+                  - generic [ref=e417]: "Email:"
+                  - generic [ref=e418]:
+                    - code [ref=e419]: retailer@bigcompany.rw
+                    - button [ref=e420] [cursor=pointer]:
+                      - img [ref=e421]
+                - generic [ref=e423]:
+                  - generic [ref=e424]: "Password:"
+                  - generic [ref=e425]:
+                    - code [ref=e426]: retailer123
+                    - button [ref=e427] [cursor=pointer]:
+                      - img [ref=e428]
+            - button "Access Retailer Portal" [ref=e430] [cursor=pointer]:
+              - text: Access Retailer Portal
+              - img [ref=e431]
+        - generic [ref=e433]:
+          - generic [ref=e437]:
+            - generic [ref=e438]:
+              - img [ref=e440]
+              - generic [ref=e442]:
+                - heading "Wholesaler" [level=3] [ref=e443]
+                - paragraph [ref=e444]: Distribution Hub
+            - paragraph [ref=e445]: Manage retailers, process bulk orders, credit approvals
+          - generic [ref=e446]:
+            - generic [ref=e447]:
+              - generic [ref=e448]: Retailer Network
+              - generic [ref=e450]: Bulk Orders
+              - generic [ref=e452]: Credit Management
+              - generic [ref=e454]: Analytics
+            - generic [ref=e456]:
+              - paragraph [ref=e457]: Demo Credentials
+              - generic [ref=e458]:
+                - generic [ref=e459]:
+                  - generic [ref=e460]: "Email:"
+                  - generic [ref=e461]:
+                    - code [ref=e462]: wholesaler@bigcompany.rw
+                    - button [ref=e463] [cursor=pointer]:
+                      - img [ref=e464]
+                - generic [ref=e466]:
+                  - generic [ref=e467]: "Password:"
+                  - generic [ref=e468]:
+                    - code [ref=e469]: wholesaler123
+                    - button [ref=e470] [cursor=pointer]:
+                      - img [ref=e471]
+            - button "Access Wholesaler Portal" [ref=e473] [cursor=pointer]:
+              - text: Access Wholesaler Portal
+              - img [ref=e474]
+    - generic [ref=e481]:
+      - heading "Ready to Transform Your Distribution?" [level=2] [ref=e482]
+      - paragraph [ref=e483]: Join hundreds of businesses already using BIG Company platform to streamline their operations and grow revenue.
+      - button "Get Started Today" [ref=e484] [cursor=pointer]
+    - button "Admin Portal" [ref=e487] [cursor=pointer]:
+      - img [ref=e488]
+      - text: Admin Portal
+    - contentinfo [ref=e490]:
+      - generic [ref=e491]:
+        - generic [ref=e492]:
+          - generic [ref=e493]:
+            - generic [ref=e494]:
+              - generic [ref=e495]: B
+              - generic [ref=e496]: BIG Company
+            - paragraph [ref=e497]: Rwanda's leading distribution platform connecting consumers, retailers, and wholesalers.
+          - generic [ref=e498]:
+            - heading "Platform" [level=4] [ref=e499]
+            - list [ref=e500]:
+              - listitem [ref=e501]:
+                - link "Consumer Portal" [ref=e502] [cursor=pointer]:
+                  - /url: "#"
+              - listitem [ref=e503]:
+                - link "Retailer Portal" [ref=e504] [cursor=pointer]:
+                  - /url: "#"
+              - listitem [ref=e505]:
+                - link "Wholesaler Portal" [ref=e506] [cursor=pointer]:
+                  - /url: "#"
+              - listitem [ref=e507]:
+                - link "Admin Portal" [ref=e508] [cursor=pointer]:
+                  - /url: "#"
+          - generic [ref=e509]:
+            - heading "Features" [level=4] [ref=e510]
+            - list [ref=e511]:
+              - listitem [ref=e512]:
+                - link "Digital Wallets" [ref=e513] [cursor=pointer]:
+                  - /url: "#"
+              - listitem [ref=e514]:
+                - link "NFC Cards" [ref=e515] [cursor=pointer]:
+                  - /url: "#"
+              - listitem [ref=e516]:
+                - link "POS System" [ref=e517] [cursor=pointer]:
+                  - /url: "#"
+              - listitem [ref=e518]:
+                - link "Analytics" [ref=e519] [cursor=pointer]:
+                  - /url: "#"
+          - generic [ref=e520]:
+            - heading "Contact" [level=4] [ref=e521]
+            - list [ref=e522]:
+              - listitem [ref=e523]: Kigali, Rwanda
+              - listitem [ref=e524]: support@bigcompany.rw
+              - listitem [ref=e525]: +250 788 000 000
+        - generic [ref=e526]:
+          - paragraph [ref=e527]: © 2024 BIG Company Rwanda Ltd. All rights reserved.
+          - paragraph [ref=e528]: Digital Wallet • NFC Cards • POS System • B2B Distribution
+  - generic [ref=e529]: "150"
+```

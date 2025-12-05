@@ -235,6 +235,11 @@ export const GasPage: React.FC = () => {
       return;
     }
 
+    if (selectedAmount < 300) {
+      message.error('Minimum top-up amount is 300 RWF');
+      return;
+    }
+
     if (paymentMethod === 'wallet' && balance < selectedAmount) {
       message.error('Insufficient dashboard balance. Please top up your wallet first.');
       return;
@@ -758,11 +763,11 @@ export const GasPage: React.FC = () => {
               </Row>
             </Form.Item>
 
-            <Form.Item label="Or Enter Custom Amount">
+            <Form.Item label="Or Enter Custom Amount" help="Minimum: 300 RWF">
               <Input
                 type="number"
                 size="large"
-                placeholder="Enter amount in RWF"
+                placeholder="Enter amount in RWF (min: 300)"
                 value={customAmount || ''}
                 onChange={(e) => {
                   const val = parseInt(e.target.value);
@@ -772,6 +777,7 @@ export const GasPage: React.FC = () => {
                   }
                 }}
                 suffix="RWF"
+                status={customAmount && customAmount < 300 ? 'error' : ''}
               />
             </Form.Item>
 

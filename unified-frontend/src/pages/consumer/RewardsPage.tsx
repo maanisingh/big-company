@@ -365,15 +365,12 @@ export const RewardsPage: React.FC = () => {
     );
   }
 
-  const currentTier = balance?.tier || 'BRONZE';
-  const tierInfo = tierConfig[currentTier];
-
   return (
     <div>
       {/* Header Card */}
       <div
         style={{
-          background: tierInfo.gradient,
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
           padding: 24,
           marginBottom: 16,
           borderRadius: 8,
@@ -384,19 +381,16 @@ export const RewardsPage: React.FC = () => {
           <Col flex={1}>
             <Space direction="vertical" size={4}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 32 }}>{tierInfo.icon}</span>
+                <GiftOutlined style={{ fontSize: 32 }} />
                 <div>
-                  <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12 }}>
-                    Current Tier
-                  </Text>
                   <Title level={4} style={{ color: 'white', margin: 0 }}>
-                    {currentTier}
+                    Rewards Points
                   </Title>
+                  <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12 }}>
+                    Earn gas rewards with every purchase
+                  </Text>
                 </div>
               </div>
-              <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12 }}>
-                Multiplier: {balance?.multiplier}x
-              </Text>
             </Space>
           </Col>
           <Col>
@@ -413,37 +407,6 @@ export const RewardsPage: React.FC = () => {
             </div>
           </Col>
         </Row>
-
-        {/* Tier Progress */}
-        {balance?.next_tier && (
-          <div style={{ marginTop: 20 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-              <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12 }}>
-                {currentTier}
-              </Text>
-              <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12 }}>
-                {balance.next_tier}
-              </Text>
-            </div>
-            <Progress
-              percent={balance.tier_progress}
-              strokeColor="white"
-              trailColor="rgba(255,255,255,0.3)"
-              showInfo={false}
-            />
-            <Text
-              style={{
-                color: 'rgba(255,255,255,0.85)',
-                fontSize: 12,
-                display: 'block',
-                textAlign: 'center',
-                marginTop: 8,
-              }}
-            >
-              {balance.points_to_next_tier?.toLocaleString()} points to {balance.next_tier}
-            </Text>
-          </div>
-        )}
 
         <Text
           style={{
