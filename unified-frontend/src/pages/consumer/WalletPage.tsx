@@ -40,18 +40,21 @@ import {
   QrcodeOutlined,
   MobileOutlined,
   FileTextOutlined,
+  DollarOutlined,
+  ArrowUpOutlined,
+  ArrowDownOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { nfcApi, walletApi } from '../../services/apiService';
 
 const { Title, Text, Paragraph } = Typography;
 
-// Types
+// Updated Types for 3-balance structure
 interface WalletBalance {
-  balance: number;
+  dashboardBalance: number;
+  creditBalance: number;
+  availableBalance: number; // dashboardBalance + creditBalance
   currency: string;
-  food_loan_credit: number;
-  total_available: number;
 }
 
 interface NFCCard {
@@ -67,8 +70,9 @@ interface NFCCard {
 
 interface Transaction {
   id: string;
-  type: 'payment' | 'topup' | 'transfer' | 'refund';
+  type: 'top_up' | 'gas_payment' | 'order_payment' | 'refund' | 'credit_payment' | 'loan_disbursement';
   amount: number;
+  balance_type: 'dashboard' | 'credit';
   description: string;
   status: 'completed' | 'pending' | 'failed';
   created_at: string;
@@ -81,23 +85,25 @@ const ConsumerWalletPage: React.FC = () => {
   const [cards, setCards] = useState<NFCCard[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [topUpModalVisible, setTopUpModalVisible] = useState(false);
+  const [refundModalVisible, setRefundModalVisible] = useState(false);
+  const [loanModalVisible, setLoanModalVisible] = useState(false);
   const [linkCardModalVisible, setLinkCardModalVisible] = useState(false);
-  const [transferModalVisible, setTransferModalVisible] = useState(false);
   const [changePinModalVisible, setChangePinModalVisible] = useState(false);
   const [selectedCard, setSelectedCard] = useState<NFCCard | null>(null);
-  const [activeTab, setActiveTab] = useState('wallet');
+  const [activeTab, setActiveTab] = useState('transactions');
 
   const [topUpForm] = Form.useForm();
+  const [refundForm] = Form.useForm();
+  const [loanForm] = Form.useForm();
   const [linkCardForm] = Form.useForm();
-  const [transferForm] = Form.useForm();
   const [changePinForm] = Form.useForm();
 
-  // Mock data
+  // Mock data with 3-balance structure
   const mockBalance: WalletBalance = {
-    balance: 25000,
+    dashboardBalance: 25000,
+    creditBalance: 5000,
+    availableBalance: 30000, // 25000 + 5000
     currency: 'RWF',
-    food_loan_credit: 5000,
-    total_available: 30000,
   };
 
   const mockCards: NFCCard[] = [
@@ -124,31 +130,12 @@ const ConsumerWalletPage: React.FC = () => {
   ];
 
   const mockTransactions: Transaction[] = [
-    { id: '1', type: 'payment', amount: -2500, description: 'Purchase at Kigali Shop', status: 'completed', created_at: '2024-11-30T09:15:00Z', merchant_name: 'Kigali Shop' },
-    { id: '2', type: 'topup', amount: 10000, description: 'MTN MoMo Top-up', status: 'completed', created_at: '2024-11-29T14:30:00Z' },
-    { id: '3', type: 'payment', amount: -1500, description: 'Purchase at Downtown Store', status: 'completed', created_at: '2024-11-28T11:00:00Z', merchant_name: 'Downtown Store' },
-    { id: '4', type: 'transfer', amount: -5000, description: 'Transfer to +250788******', status: 'completed', created_at: '2024-11-27T16:45:00Z' },
-    { id: '5', type: 'refund', amount: 500, description: 'Refund from Kigali Shop', status: 'completed', created_at: '2024-11-26T10:20:00Z' },
-    { id: '6', type: 'topup', amount: 20000, description: 'Airtel Money Top-up', status: 'completed', created_at: '2024-11-25T09:00:00Z' },
-  ];
-
-  interface CreditTransaction {
-    id: string;
-    type: 'approval' | 'purchase' | 'repayment';
-    amount: number;
-    description: string;
-    status: 'completed' | 'pending';
-    created_at: string;
-    merchant_name?: string;
-    balance_after: number;
-  }
-
-  const mockCreditTransactions: CreditTransaction[] = [
-    { id: 'c1', type: 'approval', amount: 5000, description: 'Food Credit Approval', status: 'completed', created_at: '2024-11-20T10:00:00Z', balance_after: 5000 },
-    { id: 'c2', type: 'purchase', amount: -1500, description: 'Purchase at Kigali Shop (Food)', status: 'completed', created_at: '2024-11-22T14:30:00Z', merchant_name: 'Kigali Shop', balance_after: 3500 },
-    { id: 'c3', type: 'purchase', amount: -800, description: 'Purchase at Nyamirambo Market (Food)', status: 'completed', created_at: '2024-11-25T09:15:00Z', merchant_name: 'Nyamirambo Market', balance_after: 2700 },
-    { id: 'c4', type: 'repayment', amount: -2700, description: 'Credit Repayment via Wallet', status: 'completed', created_at: '2024-11-28T16:00:00Z', balance_after: 0 },
-    { id: 'c5', type: 'approval', amount: 5000, description: 'Food Credit Approval', status: 'completed', created_at: '2024-11-29T11:00:00Z', balance_after: 5000 },
+    { id: '1', type: 'order_payment', balance_type: 'dashboard', amount: -2500, description: 'Purchase at Kigali Shop', status: 'completed', created_at: '2024-11-30T09:15:00Z', merchant_name: 'Kigali Shop' },
+    { id: '2', type: 'top_up', balance_type: 'dashboard', amount: 10000, description: 'MTN MoMo Top-up', status: 'completed', created_at: '2024-11-29T14:30:00Z' },
+    { id: '3', type: 'order_payment', balance_type: 'credit', amount: -1500, description: 'Purchase at Downtown Store (Credit)', status: 'completed', created_at: '2024-11-28T11:00:00Z', merchant_name: 'Downtown Store' },
+    { id: '4', type: 'gas_payment', balance_type: 'dashboard', amount: -3000, description: 'Gas Top-up', status: 'completed', created_at: '2024-11-27T16:45:00Z' },
+    { id: '5', type: 'refund', balance_type: 'dashboard', amount: 500, description: 'Refund from Kigali Shop', status: 'completed', created_at: '2024-11-26T10:20:00Z' },
+    { id: '6', type: 'loan_disbursement', balance_type: 'credit', amount: 5000, description: 'Credit Loan Approved', status: 'completed', created_at: '2024-11-25T09:00:00Z' },
   ];
 
   const loadData = useCallback(async () => {
@@ -175,8 +162,7 @@ const ConsumerWalletPage: React.FC = () => {
   const handleTopUp = async (values: any) => {
     try {
       setLoading(true);
-      // await walletApi.topUpMobileMoney(values.amount, values.phone, values.provider);
-      message.success(`Top-up request of ${values.amount.toLocaleString()} RWF submitted! Check your ${values.provider.toUpperCase()} for confirmation.`);
+      message.success(`Top-up request of ${values.amount.toLocaleString()} RWF submitted!`);
       setTopUpModalVisible(false);
       topUpForm.resetFields();
       loadData();
@@ -187,10 +173,39 @@ const ConsumerWalletPage: React.FC = () => {
     }
   };
 
-  const handleLinkCard = async (values: any) => {
+  const handleRefundRequest = async (values: any) => {
     try {
       setLoading(true);
-      // await nfcApi.linkCard(values.uid, values.pin, values.nickname);
+      message.success('Refund request submitted successfully! We will review and process it.');
+      setRefundModalVisible(false);
+      refundForm.resetFields();
+    } catch (error: any) {
+      message.error(error.response?.data?.message || 'Failed to submit refund request');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLoanRequest = async (values: any) => {
+    try {
+      setLoading(true);
+      message.success('Loan request submitted successfully! We will review your application.');
+      setLoanModalVisible(false);
+      loanForm.resetFields();
+    } catch (error: any) {
+      message.error(error.response?.data?.message || 'Failed to submit loan request');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLinkCard = async (values: any) => {
+    if (cards.length >= 3) {
+      message.error('You can only link a maximum of 3 cards. Please remove a card first.');
+      return;
+    }
+    try {
+      setLoading(true);
       message.success('NFC card linked successfully!');
       setLinkCardModalVisible(false);
       linkCardForm.resetFields();
@@ -202,26 +217,10 @@ const ConsumerWalletPage: React.FC = () => {
     }
   };
 
-  const handleTransfer = async (values: any) => {
-    try {
-      setLoading(true);
-      // await walletApi.transfer(values.recipient_phone, values.amount, values.pin, values.description);
-      message.success(`${values.amount.toLocaleString()} RWF sent to ${values.recipient_phone}`);
-      setTransferModalVisible(false);
-      transferForm.resetFields();
-      loadData();
-    } catch (error: any) {
-      message.error(error.response?.data?.message || 'Transfer failed');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleChangePin = async (values: any) => {
     if (!selectedCard) return;
     try {
       setLoading(true);
-      // await nfcApi.setCardPin(selectedCard.id, values.old_pin, values.new_pin);
       message.success('Card PIN changed successfully!');
       setChangePinModalVisible(false);
       changePinForm.resetFields();
@@ -235,7 +234,6 @@ const ConsumerWalletPage: React.FC = () => {
 
   const handleSetPrimary = async (card: NFCCard) => {
     try {
-      // await nfcApi.setPrimaryCard(card.id);
       message.success(`${card.nickname || card.card_number} set as primary card`);
       loadData();
     } catch (error: any) {
@@ -246,12 +244,11 @@ const ConsumerWalletPage: React.FC = () => {
   const handleUnlinkCard = async (card: NFCCard) => {
     Modal.confirm({
       title: 'Unlink Card',
-      content: `Are you sure you want to unlink ${card.nickname || card.card_number}? You will need to re-link it if you want to use it again.`,
+      content: `Are you sure you want to unlink ${card.nickname || card.card_number}?`,
       okText: 'Unlink',
       okType: 'danger',
       onOk: async () => {
         try {
-          // await nfcApi.unlinkCard(card.id);
           message.success('Card unlinked successfully');
           loadData();
         } catch (error: any) {
@@ -260,75 +257,6 @@ const ConsumerWalletPage: React.FC = () => {
       },
     });
   };
-
-  const creditTransactionColumns: ColumnsType<CreditTransaction> = [
-    {
-      title: 'Date',
-      dataIndex: 'created_at',
-      key: 'created_at',
-      render: (date) => new Date(date).toLocaleDateString(),
-      width: 100,
-    },
-    {
-      title: 'Description',
-      key: 'description',
-      render: (_, record) => (
-        <Space direction="vertical" size={0}>
-          <Text>{record.description}</Text>
-          {record.merchant_name && (
-            <Text type="secondary" style={{ fontSize: 12 }}>{record.merchant_name}</Text>
-          )}
-        </Space>
-      ),
-    },
-    {
-      title: 'Type',
-      dataIndex: 'type',
-      key: 'type',
-      render: (type) => {
-        const config: Record<string, { color: string; label: string }> = {
-          approval: { color: 'green', label: 'Credit Approved' },
-          purchase: { color: 'orange', label: 'Purchase' },
-          repayment: { color: 'blue', label: 'Repayment' },
-        };
-        const { color, label } = config[type] || { color: 'default', label: type };
-        return <Tag color={color}>{label}</Tag>;
-      },
-      width: 130,
-    },
-    {
-      title: 'Amount',
-      dataIndex: 'amount',
-      key: 'amount',
-      render: (amount) => (
-        <Text strong style={{ color: amount > 0 ? '#52c41a' : '#ff4d4f' }}>
-          {amount > 0 ? '+' : ''}{amount.toLocaleString()} RWF
-        </Text>
-      ),
-      align: 'right',
-      width: 120,
-    },
-    {
-      title: 'Balance',
-      dataIndex: 'balance_after',
-      key: 'balance_after',
-      render: (balance) => (
-        <Text>{balance.toLocaleString()} RWF</Text>
-      ),
-      align: 'right',
-      width: 120,
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status) => {
-        const color = status === 'completed' ? 'success' : 'warning';
-        return <Tag color={color}>{status}</Tag>;
-      },
-      width: 100,
-    },
-  ];
 
   const transactionColumns: ColumnsType<Transaction> = [
     {
@@ -347,6 +275,9 @@ const ConsumerWalletPage: React.FC = () => {
           {record.merchant_name && (
             <Text type="secondary" style={{ fontSize: 12 }}>{record.merchant_name}</Text>
           )}
+          <Text type="secondary" style={{ fontSize: 11 }}>
+            {record.balance_type === 'dashboard' ? 'Dashboard' : 'Credit'}
+          </Text>
         </Space>
       ),
     },
@@ -356,10 +287,12 @@ const ConsumerWalletPage: React.FC = () => {
       key: 'type',
       render: (type) => {
         const config: Record<string, { color: string; label: string }> = {
-          payment: { color: 'red', label: 'Payment' },
-          topup: { color: 'green', label: 'Top-up' },
-          transfer: { color: 'blue', label: 'Transfer' },
-          refund: { color: 'orange', label: 'Refund' },
+          order_payment: { color: 'red', label: 'Purchase' },
+          gas_payment: { color: 'orange', label: 'Gas' },
+          top_up: { color: 'green', label: 'Top-up' },
+          refund: { color: 'cyan', label: 'Refund' },
+          loan_disbursement: { color: 'purple', label: 'Loan' },
+          credit_payment: { color: 'blue', label: 'Credit' },
         };
         const { color, label } = config[type] || { color: 'default', label: type };
         return <Tag color={color}>{label}</Tag>;
@@ -396,15 +329,16 @@ const ConsumerWalletPage: React.FC = () => {
         <Col flex="auto">
           <Title level={3} style={{ margin: 0 }}>
             <WalletOutlined style={{ marginRight: 12 }} />
-            My Wallet
+            Wallet & Cards
           </Title>
-          <Text type="secondary">Manage your digital wallet and NFC payment cards</Text>
+          <Text type="secondary">Manage your balances and NFC payment cards</Text>
         </Col>
       </Row>
 
-      {/* Balance Card */}
+      {/* 3 Balance Cards Row */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} md={12} lg={8}>
+        {/* Available Balance - NO TOP-UP BUTTON */}
+        <Col xs={24} md={8}>
           <Card
             style={{
               background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -412,65 +346,99 @@ const ConsumerWalletPage: React.FC = () => {
               borderRadius: 16,
             }}
           >
-            <Space direction="vertical" size={16} style={{ width: '100%' }}>
-              <div>
-                <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 14 }}>
-                  Available Balance
-                </Text>
-                <Title level={2} style={{ color: 'white', margin: 0 }}>
-                  {balance?.total_available?.toLocaleString() || 0} RWF
-                </Title>
-              </div>
-              {balance?.food_loan_credit && balance.food_loan_credit > 0 && (
-                <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12 }}>
-                  Includes {balance.food_loan_credit.toLocaleString()} RWF Food Credit
-                </Text>
-              )}
-              <Button
-                type="primary"
-                ghost
-                icon={<PlusOutlined />}
-                onClick={() => setTopUpModalVisible(true)}
-                style={{ borderColor: 'white', color: 'white' }}
-              >
-                Top Up
-              </Button>
+            <Space direction="vertical" size={4} style={{ width: '100%' }}>
+              <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13 }}>
+                Available Balance
+              </Text>
+              <Title level={2} style={{ color: 'white', margin: 0 }}>
+                {balance?.availableBalance?.toLocaleString() || 0} RWF
+              </Title>
+              <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>
+                Dashboard + Credit Balance
+              </Text>
             </Space>
           </Card>
         </Col>
 
-        <Col xs={24} md={12} lg={8}>
-          <Card>
-            <Statistic
-              title="Linked NFC Cards"
-              value={cards.filter(c => c.status === 'active').length}
-              suffix={`/ ${cards.length}`}
-              prefix={<CreditCardOutlined />}
-              valueStyle={{ color: '#667eea' }}
-            />
-            <Button
-              type="link"
-              icon={<PlusOutlined />}
-              onClick={() => setLinkCardModalVisible(true)}
-              style={{ padding: 0, marginTop: 8 }}
-            >
-              Link New Card
-            </Button>
+        {/* Dashboard Balance - Replaces "Linked NFC Cards" */}
+        <Col xs={24} md={8}>
+          <Card style={{ borderRadius: 12 }}>
+            <Space direction="vertical" size={8} style={{ width: '100%' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Space>
+                  <WalletOutlined style={{ fontSize: 20, color: '#1890ff' }} />
+                  <div>
+                    <Text type="secondary" style={{ fontSize: 12 }}>Dashboard Balance</Text>
+                    <div>
+                      <Text strong style={{ fontSize: 18 }}>
+                        {balance?.dashboardBalance?.toLocaleString() || 0} RWF
+                      </Text>
+                    </div>
+                  </div>
+                </Space>
+              </div>
+              <Text type="secondary" style={{ fontSize: 11 }}>Main wallet</Text>
+              <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={() => setTopUpModalVisible(true)}
+                  block
+                  size="small"
+                >
+                  Top Up
+                </Button>
+                <Button
+                  icon={<ArrowUpOutlined />}
+                  onClick={() => setRefundModalVisible(true)}
+                  block
+                  size="small"
+                >
+                  Request Refund
+                </Button>
+              </Space>
+            </Space>
           </Card>
         </Col>
 
-        <Col xs={24} md={12} lg={8}>
-          <Card>
-            <Statistic
-              title="This Month's Spending"
-              value={12500}
-              suffix="RWF"
-              prefix={<HistoryOutlined />}
-              valueStyle={{ color: '#ff4d4f' }}
-            />
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              15 transactions
-            </Text>
+        {/* Credit Balance - Replaces "This Month's Spending" */}
+        <Col xs={24} md={8}>
+          <Card style={{ borderRadius: 12 }}>
+            <Space direction="vertical" size={8} style={{ width: '100%' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Space>
+                  <CreditCardOutlined style={{ fontSize: 20, color: '#52c41a' }} />
+                  <div>
+                    <Text type="secondary" style={{ fontSize: 12 }}>Credit Balance</Text>
+                    <div>
+                      <Text strong style={{ fontSize: 18 }}>
+                        {balance?.creditBalance?.toLocaleString() || 0} RWF
+                      </Text>
+                    </div>
+                  </div>
+                </Space>
+              </div>
+              <Text type="secondary" style={{ fontSize: 11 }}>Available credit</Text>
+              <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={() => setLoanModalVisible(true)}
+                  block
+                  size="small"
+                  style={{ background: '#52c41a', borderColor: '#52c41a' }}
+                >
+                  Request Loan
+                </Button>
+                <Button
+                  icon={<FileTextOutlined />}
+                  block
+                  size="small"
+                >
+                  View Details
+                </Button>
+              </Space>
+            </Space>
           </Card>
         </Col>
       </Row>
@@ -480,8 +448,7 @@ const ConsumerWalletPage: React.FC = () => {
         message="Access your wallet via USSD"
         description={
           <span>
-            Dial <Text strong code>*939#</Text> from your registered phone to check balance,
-            transfer money, or manage your cards without internet.
+            Dial <Text strong code>*939#</Text> from your registered phone to check balance without internet.
           </span>
         }
         type="info"
@@ -490,187 +457,163 @@ const ConsumerWalletPage: React.FC = () => {
         style={{ marginBottom: 24 }}
       />
 
-      {/* Tabs for Cards and Transactions */}
+      {/* Tabs for Transactions and Cards */}
       <Card>
         <Tabs
           activeKey={activeTab}
           onChange={setActiveTab}
           items={[
             {
-              key: 'wallet',
+              key: 'transactions',
               label: (
                 <span>
                   <HistoryOutlined /> Transactions
                 </span>
               ),
               children: (
-                <Table
-                  columns={transactionColumns}
-                  dataSource={transactions}
-                  rowKey="id"
-                  loading={loading}
-                  scroll={{ x: 600 }}
-                  size="small"
-                  pagination={{
-                    showSizeChanger: true,
-                    showTotal: (total) => `${total} transactions`,
-                    size: 'small',
-                  }}
-                />
-              ),
-            },
-            {
-              key: 'cards',
-              label: (
-                <span>
-                  <CreditCardOutlined /> My NFC Cards
-                </span>
-              ),
-              children: cards.length > 0 ? (
-                <Row gutter={[16, 16]}>
-                  {cards.map((card) => (
-                    <Col xs={24} sm={12} lg={8} key={card.id}>
-                      <Card
-                        style={{
-                          background: card.is_primary
-                            ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                            : 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
-                          color: 'white',
-                          borderRadius: 12,
-                        }}
-                        actions={[
-                          <Tooltip title={card.is_primary ? 'Primary Card' : 'Set as Primary'}>
-                            <Button
-                              type="text"
-                              icon={card.is_primary ? <StarFilled style={{ color: '#fadb14' }} /> : <StarOutlined />}
-                              onClick={() => !card.is_primary && handleSetPrimary(card)}
-                              style={{ color: 'white' }}
-                            />
-                          </Tooltip>,
-                          <Tooltip title="Change PIN">
-                            <Button
-                              type="text"
-                              icon={<LockOutlined />}
-                              onClick={() => {
-                                setSelectedCard(card);
-                                setChangePinModalVisible(true);
-                              }}
-                              style={{ color: 'white' }}
-                            />
-                          </Tooltip>,
-                          <Tooltip title="Unlink Card">
-                            <Button
-                              type="text"
-                              danger
-                              icon={<DeleteOutlined />}
-                              onClick={() => handleUnlinkCard(card)}
-                              style={{ color: '#ff7875' }}
-                            />
-                          </Tooltip>,
-                        ]}
-                      >
-                        <Space direction="vertical" size={8} style={{ width: '100%' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <CreditCardOutlined style={{ fontSize: 32 }} />
-                            {card.is_primary && (
-                              <Tag color="gold">Primary</Tag>
-                            )}
-                          </div>
-                          <div style={{ marginTop: 16 }}>
-                            <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>
-                              {card.nickname || 'NFC Card'}
-                            </Text>
-                            <Title level={4} style={{ color: 'white', margin: 0, letterSpacing: 2 }}>
-                              {card.card_number}
-                            </Title>
-                          </div>
-                          <div>
-                            <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11 }}>
-                              UID: {card.uid}
-                            </Text>
-                          </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11 }}>
-                              Status: <Badge status={card.status === 'active' ? 'success' : 'error'} text={<span style={{ color: 'white' }}>{card.status}</span>} />
-                            </Text>
-                            <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11 }}>
-                              Linked: {new Date(card.linked_at).toLocaleDateString()}
-                            </Text>
-                          </div>
-                        </Space>
-                      </Card>
-                    </Col>
-                  ))}
-                  <Col xs={24} sm={12} lg={8}>
-                    <Card
-                      style={{
-                        height: '100%',
-                        minHeight: 200,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        border: '2px dashed #d9d9d9',
-                        cursor: 'pointer',
-                      }}
-                      onClick={() => setLinkCardModalVisible(true)}
-                    >
-                      <Space direction="vertical" align="center">
-                        <PlusOutlined style={{ fontSize: 32, color: '#999' }} />
-                        <Text type="secondary">Link New Card</Text>
-                      </Space>
-                    </Card>
-                  </Col>
-                </Row>
-              ) : (
-                <Empty
-                  image={<CreditCardOutlined style={{ fontSize: 64, color: '#ccc' }} />}
-                  description="No NFC cards linked yet"
-                >
-                  <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={() => setLinkCardModalVisible(true)}
-                  >
-                    Link Your First Card
-                  </Button>
-                </Empty>
-              ),
-            },
-            {
-              key: 'credit',
-              label: (
-                <span>
-                  <FileTextOutlined /> Credit Ledger
-                </span>
-              ),
-              children: (
                 <>
                   <Alert
-                    message="Food Credit Usage"
-                    description={
-                      <span>
-                        Current Credit: <Text strong>{balance?.food_loan_credit?.toLocaleString() || 0} RWF</Text>
-                        <br />
-                        This credit can only be used for food purchases at approved retailers.
-                      </span>
-                    }
+                    message="Dashboard & Credit Transactions"
+                    description="All transactions from both Dashboard and Credit balances are shown below."
                     type="info"
                     showIcon
                     style={{ marginBottom: 16 }}
                   />
                   <Table
-                    columns={creditTransactionColumns}
-                    dataSource={mockCreditTransactions}
+                    columns={transactionColumns}
+                    dataSource={transactions}
                     rowKey="id"
                     loading={loading}
                     scroll={{ x: 700 }}
                     size="small"
                     pagination={{
                       showSizeChanger: true,
-                      showTotal: (total) => `${total} credit transactions`,
+                      showTotal: (total) => `${total} transactions`,
                       size: 'small',
                     }}
                   />
+                </>
+              ),
+            },
+            {
+              key: 'cards',
+              label: (
+                <span>
+                  <CreditCardOutlined /> My NFC Cards ({cards.length}/3)
+                </span>
+              ),
+              children: (
+                <>
+                  {cards.length >= 3 && (
+                    <Alert
+                      message="Maximum cards reached"
+                      description="You've linked the maximum of 3 cards. Remove a card to add a new one."
+                      type="warning"
+                      showIcon
+                      style={{ marginBottom: 16 }}
+                    />
+                  )}
+                  {cards.length > 0 ? (
+                    <Row gutter={[16, 16]}>
+                      {cards.map((card) => (
+                        <Col xs={24} sm={12} lg={8} key={card.id}>
+                          <Card
+                            style={{
+                              background: card.is_primary
+                                ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                                : 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
+                              color: 'white',
+                              borderRadius: 12,
+                            }}
+                            actions={[
+                              <Tooltip title={card.is_primary ? 'Primary Card' : 'Set as Primary'}>
+                                <Button
+                                  type="text"
+                                  icon={card.is_primary ? <StarFilled style={{ color: '#fadb14' }} /> : <StarOutlined />}
+                                  onClick={() => !card.is_primary && handleSetPrimary(card)}
+                                  style={{ color: 'white' }}
+                                />
+                              </Tooltip>,
+                              <Tooltip title="Change PIN">
+                                <Button
+                                  type="text"
+                                  icon={<LockOutlined />}
+                                  onClick={() => {
+                                    setSelectedCard(card);
+                                    setChangePinModalVisible(true);
+                                  }}
+                                  style={{ color: 'white' }}
+                                />
+                              </Tooltip>,
+                              <Tooltip title="Unlink Card">
+                                <Button
+                                  type="text"
+                                  danger
+                                  icon={<DeleteOutlined />}
+                                  onClick={() => handleUnlinkCard(card)}
+                                  style={{ color: '#ff7875' }}
+                                />
+                              </Tooltip>,
+                            ]}
+                          >
+                            <Space direction="vertical" size={8} style={{ width: '100%' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <CreditCardOutlined style={{ fontSize: 32 }} />
+                                {card.is_primary && (
+                                  <Tag color="gold">Primary</Tag>
+                                )}
+                              </div>
+                              <div style={{ marginTop: 16 }}>
+                                <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>
+                                  {card.nickname || 'NFC Card'}
+                                </Text>
+                                <Title level={4} style={{ color: 'white', margin: 0, letterSpacing: 2 }}>
+                                  {card.card_number}
+                                </Title>
+                              </div>
+                              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11 }}>
+                                UID: {card.uid}
+                              </Text>
+                            </Space>
+                          </Card>
+                        </Col>
+                      ))}
+                      {cards.length < 3 && (
+                        <Col xs={24} sm={12} lg={8}>
+                          <Card
+                            style={{
+                              height: '100%',
+                              minHeight: 200,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              border: '2px dashed #d9d9d9',
+                              cursor: 'pointer',
+                            }}
+                            onClick={() => setLinkCardModalVisible(true)}
+                          >
+                            <Space direction="vertical" align="center">
+                              <PlusOutlined style={{ fontSize: 32, color: '#999' }} />
+                              <Text type="secondary">Link New Card</Text>
+                            </Space>
+                          </Card>
+                        </Col>
+                      )}
+                    </Row>
+                  ) : (
+                    <Empty
+                      image={<CreditCardOutlined style={{ fontSize: 64, color: '#ccc' }} />}
+                      description="No NFC cards linked yet"
+                    >
+                      <Button
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        onClick={() => setLinkCardModalVisible(true)}
+                      >
+                        Link Your First Card
+                      </Button>
+                    </Empty>
+                  )}
                 </>
               ),
             },
@@ -680,12 +623,7 @@ const ConsumerWalletPage: React.FC = () => {
 
       {/* Top Up Modal */}
       <Modal
-        title={
-          <Space>
-            <PlusOutlined style={{ color: '#52c41a' }} />
-            Top Up Wallet
-          </Space>
-        }
+        title="Top Up Dashboard Balance"
         open={topUpModalVisible}
         onCancel={() => {
           setTopUpModalVisible(false);
@@ -702,13 +640,13 @@ const ConsumerWalletPage: React.FC = () => {
           <Form.Item
             name="provider"
             label="Payment Method"
-            rules={[{ required: true, message: 'Please select payment method' }]}
+            rules={[{ required: true }]}
           >
             <Select
               placeholder="Select payment method"
               options={[
-                { value: 'mtn', label: <><PhoneOutlined /> MTN Mobile Money (078)</> },
-                { value: 'airtel', label: <><PhoneOutlined /> Airtel Money (073)</> },
+                { value: 'mtn', label: 'MTN Mobile Money (078)' },
+                { value: 'airtel', label: 'Airtel Money (073)' },
               ]}
             />
           </Form.Item>
@@ -716,8 +654,8 @@ const ConsumerWalletPage: React.FC = () => {
             name="phone"
             label="Phone Number"
             rules={[
-              { required: true, message: 'Please enter phone number' },
-              { pattern: /^(\+?250)?(78|73|72)\d{7}$/, message: 'Please enter valid Rwandan phone number' },
+              { required: true },
+              { pattern: /^(\+?250)?(78|73|72)\d{7}$/, message: 'Invalid phone number' },
             ]}
           >
             <Input prefix={<PhoneOutlined />} placeholder="+250788123456" />
@@ -726,8 +664,8 @@ const ConsumerWalletPage: React.FC = () => {
             name="amount"
             label="Amount (RWF)"
             rules={[
-              { required: true, message: 'Please enter amount' },
-              { type: 'number', min: 100, message: 'Minimum amount is 100 RWF' },
+              { required: true },
+              { type: 'number', min: 100 },
             ]}
           >
             <InputNumber
@@ -737,24 +675,6 @@ const ConsumerWalletPage: React.FC = () => {
               parser={(value) => value!.replace(/\$\s?|(,*)/g, '') as any}
             />
           </Form.Item>
-          <Alert
-            message="Quick amounts"
-            description={
-              <Space wrap>
-                {[500, 1000, 2000, 5000, 10000, 20000].map((amount) => (
-                  <Button
-                    key={amount}
-                    size="small"
-                    onClick={() => topUpForm.setFieldValue('amount', amount)}
-                  >
-                    {amount.toLocaleString()}
-                  </Button>
-                ))}
-              </Space>
-            }
-            type="info"
-            style={{ marginBottom: 16 }}
-          />
           <Form.Item>
             <Button type="primary" htmlType="submit" loading={loading} block icon={<PlusOutlined />}>
               Top Up Now
@@ -763,14 +683,104 @@ const ConsumerWalletPage: React.FC = () => {
         </Form>
       </Modal>
 
+      {/* Refund Request Modal */}
+      <Modal
+        title="Request Refund"
+        open={refundModalVisible}
+        onCancel={() => {
+          setRefundModalVisible(false);
+          refundForm.resetFields();
+        }}
+        footer={null}
+        width={480}
+      >
+        <Alert
+          message="Refund from Dashboard Balance"
+          description="Submit a refund request. Our team will review and process it."
+          type="info"
+          style={{ marginBottom: 16 }}
+        />
+        <Form
+          form={refundForm}
+          layout="vertical"
+          onFinish={handleRefundRequest}
+        >
+          <Form.Item
+            name="amount"
+            label="Amount (RWF)"
+            rules={[{ required: true }]}
+          >
+            <InputNumber
+              style={{ width: '100%' }}
+              max={balance?.dashboardBalance || 0}
+              formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+            />
+          </Form.Item>
+          <Form.Item
+            name="phoneNumber"
+            label="Phone Number (linked to account)"
+            rules={[{ required: true }]}
+          >
+            <Input prefix={<PhoneOutlined />} placeholder="+250788123456" />
+          </Form.Item>
+          <Form.Item
+            name="reason"
+            label="Reason for Refund"
+            rules={[{ required: true }]}
+          >
+            <Input.TextArea rows={3} placeholder="Explain why you need a refund..." />
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit" loading={loading} block>
+              Submit Request
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Loan Request Modal */}
+      <Modal
+        title="Request Loan"
+        open={loanModalVisible}
+        onCancel={() => {
+          setLoanModalVisible(false);
+          loanForm.resetFields();
+        }}
+        footer={null}
+        width={480}
+      >
+        <Alert
+          message="Apply for Credit Loan"
+          description="Your application will be reviewed by our team."
+          type="info"
+          style={{ marginBottom: 16 }}
+        />
+        <Form
+          form={loanForm}
+          layout="vertical"
+          onFinish={handleLoanRequest}
+        >
+          <Form.Item
+            name="amount"
+            label="Loan Amount (RWF)"
+            rules={[{ required: true }]}
+          >
+            <InputNumber
+              style={{ width: '100%' }}
+              formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+            />
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit" loading={loading} block>
+              Submit Request
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
+
       {/* Link Card Modal */}
       <Modal
-        title={
-          <Space>
-            <CreditCardOutlined style={{ color: '#667eea' }} />
-            Link NFC Card
-          </Space>
-        }
+        title="Link NFC Card"
         open={linkCardModalVisible}
         onCancel={() => {
           setLinkCardModalVisible(false);
@@ -779,14 +789,6 @@ const ConsumerWalletPage: React.FC = () => {
         footer={null}
         width={480}
       >
-        <Alert
-          message="How to link your NFC card"
-          description="Open the BigCompany Wallet app on your phone and tap 'Scan Card'. Hold the NFC tag/sticker near your phone to read its UID, then enter it below."
-          type="info"
-          showIcon
-          icon={<QrcodeOutlined />}
-          style={{ marginBottom: 24 }}
-        />
         <Form
           form={linkCardForm}
           layout="vertical"
@@ -795,38 +797,19 @@ const ConsumerWalletPage: React.FC = () => {
           <Form.Item
             name="uid"
             label="NFC Card UID"
-            rules={[{ required: true, message: 'Please enter card UID' }]}
-            extra="The unique ID from your NFC tag (e.g., 04:A1:B2:C3:D4:E5:F6)"
+            rules={[{ required: true }]}
           >
             <Input prefix={<CreditCardOutlined />} placeholder="04:A1:B2:C3:D4:E5:F6" />
           </Form.Item>
           <Form.Item
             name="pin"
-            label="Set Card PIN"
+            label="Set 4-Digit PIN"
             rules={[
-              { required: true, message: 'Please set a 4-digit PIN' },
-              { pattern: /^\d{4}$/, message: 'PIN must be exactly 4 digits' },
+              { required: true },
+              { pattern: /^\d{4}$/, message: 'PIN must be 4 digits' },
             ]}
           >
-            <Input.Password prefix={<LockOutlined />} maxLength={4} placeholder="4-digit PIN" />
-          </Form.Item>
-          <Form.Item
-            name="confirm_pin"
-            label="Confirm PIN"
-            dependencies={['pin']}
-            rules={[
-              { required: true, message: 'Please confirm PIN' },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue('pin') === value) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject(new Error('PINs do not match'));
-                },
-              }),
-            ]}
-          >
-            <Input.Password prefix={<LockOutlined />} maxLength={4} placeholder="Confirm PIN" />
+            <Input.Password prefix={<LockOutlined />} maxLength={4} />
           </Form.Item>
           <Form.Item
             name="nickname"
@@ -835,76 +818,8 @@ const ConsumerWalletPage: React.FC = () => {
             <Input placeholder="e.g., My Main Card" />
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit" loading={loading} block icon={<CreditCardOutlined />}>
+            <Button type="primary" htmlType="submit" loading={loading} block>
               Link Card
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
-
-      {/* Transfer Modal */}
-      <Modal
-        title={
-          <Space>
-            <SendOutlined style={{ color: '#1890ff' }} />
-            Transfer Money
-          </Space>
-        }
-        open={transferModalVisible}
-        onCancel={() => {
-          setTransferModalVisible(false);
-          transferForm.resetFields();
-        }}
-        footer={null}
-        width={480}
-      >
-        <Form
-          form={transferForm}
-          layout="vertical"
-          onFinish={handleTransfer}
-        >
-          <Form.Item
-            name="recipient_phone"
-            label="Recipient Phone"
-            rules={[
-              { required: true, message: 'Please enter recipient phone' },
-              { pattern: /^(\+?250)?(78|73|72)\d{7}$/, message: 'Please enter valid phone number' },
-            ]}
-          >
-            <Input prefix={<PhoneOutlined />} placeholder="+250788123456" />
-          </Form.Item>
-          <Form.Item
-            name="amount"
-            label="Amount (RWF)"
-            rules={[
-              { required: true, message: 'Please enter amount' },
-              { type: 'number', min: 100, message: 'Minimum amount is 100 RWF' },
-            ]}
-          >
-            <InputNumber
-              style={{ width: '100%' }}
-              placeholder="0"
-              max={balance?.total_available || 0}
-              formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-              parser={(value) => value!.replace(/\$\s?|(,*)/g, '') as any}
-            />
-          </Form.Item>
-          <Form.Item
-            name="pin"
-            label="Your PIN"
-            rules={[
-              { required: true, message: 'Please enter your PIN' },
-              { pattern: /^\d{4}$/, message: 'PIN must be 4 digits' },
-            ]}
-          >
-            <Input.Password prefix={<LockOutlined />} maxLength={4} placeholder="4-digit PIN" />
-          </Form.Item>
-          <Form.Item name="description" label="Note (Optional)">
-            <Input placeholder="What's this for?" />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" loading={loading} block icon={<SendOutlined />}>
-              Send Money
             </Button>
           </Form.Item>
         </Form>
@@ -912,12 +827,7 @@ const ConsumerWalletPage: React.FC = () => {
 
       {/* Change PIN Modal */}
       <Modal
-        title={
-          <Space>
-            <LockOutlined style={{ color: '#faad14' }} />
-            Change Card PIN
-          </Space>
-        }
+        title="Change Card PIN"
         open={changePinModalVisible}
         onCancel={() => {
           setChangePinModalVisible(false);
@@ -933,48 +843,19 @@ const ConsumerWalletPage: React.FC = () => {
             layout="vertical"
             onFinish={handleChangePin}
           >
-            <Alert
-              message={`Changing PIN for: ${selectedCard.nickname || selectedCard.card_number}`}
-              type="info"
-              style={{ marginBottom: 16 }}
-            />
             <Form.Item
               name="old_pin"
               label="Current PIN"
-              rules={[
-                { required: true, message: 'Please enter current PIN' },
-                { pattern: /^\d{4}$/, message: 'PIN must be 4 digits' },
-              ]}
+              rules={[{ required: true }]}
             >
-              <Input.Password prefix={<LockOutlined />} maxLength={4} placeholder="Current 4-digit PIN" />
+              <Input.Password prefix={<LockOutlined />} maxLength={4} />
             </Form.Item>
             <Form.Item
               name="new_pin"
               label="New PIN"
-              rules={[
-                { required: true, message: 'Please enter new PIN' },
-                { pattern: /^\d{4}$/, message: 'PIN must be 4 digits' },
-              ]}
+              rules={[{ required: true }, { pattern: /^\d{4}$/ }]}
             >
-              <Input.Password prefix={<LockOutlined />} maxLength={4} placeholder="New 4-digit PIN" />
-            </Form.Item>
-            <Form.Item
-              name="confirm_new_pin"
-              label="Confirm New PIN"
-              dependencies={['new_pin']}
-              rules={[
-                { required: true, message: 'Please confirm new PIN' },
-                ({ getFieldValue }) => ({
-                  validator(_, value) {
-                    if (!value || getFieldValue('new_pin') === value) {
-                      return Promise.resolve();
-                    }
-                    return Promise.reject(new Error('PINs do not match'));
-                  },
-                }),
-              ]}
-            >
-              <Input.Password prefix={<LockOutlined />} maxLength={4} placeholder="Confirm new PIN" />
+              <Input.Password prefix={<LockOutlined />} maxLength={4} />
             </Form.Item>
             <Form.Item>
               <Button type="primary" htmlType="submit" loading={loading} block>
