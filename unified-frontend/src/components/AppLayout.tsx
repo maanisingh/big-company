@@ -38,7 +38,7 @@ const { Text } = Typography;
 const menuItems: Record<UserRole, { key: string; icon: React.ReactNode; label: string; path: string; mobileLabel?: string }[]> = {
   consumer: [
     { key: 'shop', icon: <ShoppingCartOutlined />, label: 'Shop', path: '/consumer/shop', mobileLabel: 'Shop' },
-    { key: 'orders', icon: <InboxOutlined />, label: 'My Orders', path: '/consumer/orders', mobileLabel: 'Orders' },
+    { key: 'orders', icon: <InboxOutlined />, label: 'My Orders', path: '/consumer/orders', mobileLabel: 'My Orders' },
     { key: 'wallet', icon: <CreditCardOutlined />, label: 'Wallet & Cards', path: '/consumer/wallet', mobileLabel: 'Wallet' },
     { key: 'gas', icon: <FireOutlined />, label: 'Gas Top-up', path: '/consumer/gas', mobileLabel: 'Gas' },
     { key: 'rewards', icon: <GiftOutlined />, label: 'Rewards', path: '/consumer/rewards', mobileLabel: 'Rewards' },
