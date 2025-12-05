@@ -77,6 +77,36 @@ interface Transaction {
   status: 'completed' | 'pending' | 'failed';
   created_at: string;
   merchant_name?: string;
+  meter_id?: string;
+  order_id?: string;
+  reference_number?: string;
+}
+
+interface CreditInfo {
+  credit_limit: number;
+  available_credit: number;
+  used_credit: number;
+  outstanding_balance: number;
+  payment_status: 'current' | 'overdue' | 'pending';
+  next_payment_date?: string;
+  next_payment_amount?: number;
+}
+
+interface CreditOrder {
+  id: string;
+  order_number: string;
+  amount: number;
+  date: string;
+  status: string;
+}
+
+interface CreditApproval {
+  id: string;
+  amount_requested: number;
+  status: 'submitted' | 'reviewing' | 'approved' | 'rejected';
+  submitted_at: string;
+  reviewed_at?: string;
+  reason?: string;
 }
 
 const ConsumerWalletPage: React.FC = () => {
@@ -84,6 +114,9 @@ const ConsumerWalletPage: React.FC = () => {
   const [balance, setBalance] = useState<WalletBalance | null>(null);
   const [cards, setCards] = useState<NFCCard[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [creditInfo, setCreditInfo] = useState<CreditInfo | null>(null);
+  const [creditOrders, setCreditOrders] = useState<CreditOrder[]>([]);
+  const [creditApprovals, setCreditApprovals] = useState<CreditApproval[]>([]);
   const [topUpModalVisible, setTopUpModalVisible] = useState(false);
   const [refundModalVisible, setRefundModalVisible] = useState(false);
   const [loanModalVisible, setLoanModalVisible] = useState(false);
@@ -130,12 +163,49 @@ const ConsumerWalletPage: React.FC = () => {
   ];
 
   const mockTransactions: Transaction[] = [
-    { id: '1', type: 'order_payment', balance_type: 'dashboard', amount: -2500, description: 'Purchase at Kigali Shop', status: 'completed', created_at: '2024-11-30T09:15:00Z', merchant_name: 'Kigali Shop' },
-    { id: '2', type: 'top_up', balance_type: 'dashboard', amount: 10000, description: 'MTN MoMo Top-up', status: 'completed', created_at: '2024-11-29T14:30:00Z' },
-    { id: '3', type: 'order_payment', balance_type: 'credit', amount: -1500, description: 'Purchase at Downtown Store (Credit)', status: 'completed', created_at: '2024-11-28T11:00:00Z', merchant_name: 'Downtown Store' },
-    { id: '4', type: 'gas_payment', balance_type: 'dashboard', amount: -3000, description: 'Gas Top-up', status: 'completed', created_at: '2024-11-27T16:45:00Z' },
-    { id: '5', type: 'refund', balance_type: 'dashboard', amount: 500, description: 'Refund from Kigali Shop', status: 'completed', created_at: '2024-11-26T10:20:00Z' },
-    { id: '6', type: 'loan_disbursement', balance_type: 'credit', amount: 5000, description: 'Credit Loan Approved', status: 'completed', created_at: '2024-11-25T09:00:00Z' },
+    { id: '1', type: 'order_payment', balance_type: 'dashboard', amount: -2500, description: 'Purchase at Kigali Shop', status: 'completed', created_at: '2024-11-30T09:15:00Z', merchant_name: 'Kigali Shop', order_id: 'ORD-2024-001', meter_id: 'MTR-001234' },
+    { id: '2', type: 'top_up', balance_type: 'dashboard', amount: 10000, description: 'MTN MoMo Top-up', status: 'completed', created_at: '2024-11-29T14:30:00Z', reference_number: 'MTN-20241129-01' },
+    { id: '3', type: 'order_payment', balance_type: 'credit', amount: -1500, description: 'Purchase at Downtown Store (Credit)', status: 'completed', created_at: '2024-11-28T11:00:00Z', merchant_name: 'Downtown Store', order_id: 'ORD-2024-002' },
+    { id: '4', type: 'gas_payment', balance_type: 'dashboard', amount: -3000, description: 'Gas Top-up', status: 'completed', created_at: '2024-11-27T16:45:00Z', meter_id: 'MTR-001234', reference_number: 'GAS-20241127-01' },
+    { id: '5', type: 'refund', balance_type: 'dashboard', amount: 500, description: 'Refund from Kigali Shop', status: 'completed', created_at: '2024-11-26T10:20:00Z', reference_number: 'REF-20241126-01' },
+    { id: '6', type: 'loan_disbursement', balance_type: 'credit', amount: 5000, description: 'Credit Loan Approved', status: 'completed', created_at: '2024-11-25T09:00:00Z', reference_number: 'LOAN-20241125-01' },
+    { id: '7', type: 'top_up', balance_type: 'dashboard', amount: 15000, description: 'Airtel Money Top-up', status: 'completed', created_at: '2024-11-24T08:00:00Z', reference_number: 'ATL-20241124-01' },
+    { id: '8', type: 'order_payment', balance_type: 'dashboard', amount: -4200, description: 'Purchase at Kimironko Fresh', status: 'completed', created_at: '2024-11-23T13:30:00Z', merchant_name: 'Kimironko Fresh', order_id: 'ORD-2024-003', meter_id: 'MTR-001234' },
+  ];
+
+  const mockCreditInfo: CreditInfo = {
+    credit_limit: 10000,
+    available_credit: 5000,
+    used_credit: 5000,
+    outstanding_balance: 5000,
+    payment_status: 'current',
+    next_payment_date: '2024-12-15',
+    next_payment_amount: 1500,
+  };
+
+  const mockCreditOrders: CreditOrder[] = [
+    { id: '1', order_number: 'ORD-2024-002', amount: 1500, date: '2024-11-28', status: 'delivered' },
+    { id: '2', order_number: 'ORD-2024-006', amount: 2000, date: '2024-11-20', status: 'delivered' },
+    { id: '3', order_number: 'ORD-2024-010', amount: 1500, date: '2024-11-15', status: 'delivered' },
+  ];
+
+  const mockCreditApprovals: CreditApproval[] = [
+    {
+      id: '1',
+      amount_requested: 10000,
+      status: 'approved',
+      submitted_at: '2024-11-20T10:00:00Z',
+      reviewed_at: '2024-11-21T14:30:00Z',
+      reason: 'Approved based on transaction history and credit score',
+    },
+    {
+      id: '2',
+      amount_requested: 5000,
+      status: 'approved',
+      submitted_at: '2024-10-15T09:00:00Z',
+      reviewed_at: '2024-10-16T11:00:00Z',
+      reason: 'Initial credit approval',
+    },
   ];
 
   const loadData = useCallback(async () => {
@@ -145,11 +215,17 @@ const ConsumerWalletPage: React.FC = () => {
       setBalance(mockBalance);
       setCards(mockCards);
       setTransactions(mockTransactions);
+      setCreditInfo(mockCreditInfo);
+      setCreditOrders(mockCreditOrders);
+      setCreditApprovals(mockCreditApprovals);
     } catch (error) {
       console.error('Failed to load wallet data:', error);
       setBalance(mockBalance);
       setCards(mockCards);
       setTransactions(mockTransactions);
+      setCreditInfo(mockCreditInfo);
+      setCreditOrders(mockCreditOrders);
+      setCreditApprovals(mockCreditApprovals);
     } finally {
       setLoading(false);
     }
@@ -614,6 +690,350 @@ const ConsumerWalletPage: React.FC = () => {
                       </Button>
                     </Empty>
                   )}
+                </>
+              ),
+            },
+            {
+              key: 'dashboard_ledger',
+              label: (
+                <span>
+                  <WalletOutlined /> Dashboard Ledger
+                </span>
+              ),
+              children: (
+                <>
+                  <Alert
+                    message="Dashboard Balance Transactions"
+                    description="Detailed view of all Dashboard balance transactions including top-ups, gas payments, and order payments."
+                    type="info"
+                    showIcon
+                    style={{ marginBottom: 16 }}
+                  />
+                  <Table
+                    columns={[
+                      {
+                        title: 'Date',
+                        dataIndex: 'created_at',
+                        key: 'created_at',
+                        render: (date) => new Date(date).toLocaleString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        }),
+                        width: 150,
+                      },
+                      {
+                        title: 'Type',
+                        dataIndex: 'type',
+                        key: 'type',
+                        render: (type) => {
+                          const config: Record<string, { color: string; label: string }> = {
+                            order_payment: { color: 'red', label: 'Order Payment' },
+                            gas_payment: { color: 'orange', label: 'Gas Payment' },
+                            top_up: { color: 'green', label: 'Top-up' },
+                            refund: { color: 'cyan', label: 'Refund' },
+                          };
+                          const { color, label } = config[type] || { color: 'default', label: type };
+                          return <Tag color={color}>{label}</Tag>;
+                        },
+                        width: 120,
+                      },
+                      {
+                        title: 'Description',
+                        key: 'description',
+                        render: (_, record) => (
+                          <Space direction="vertical" size={0}>
+                            <Text>{record.description}</Text>
+                            {record.merchant_name && (
+                              <Text type="secondary" style={{ fontSize: 12 }}>Merchant: {record.merchant_name}</Text>
+                            )}
+                            {record.order_id && (
+                              <Text type="secondary" style={{ fontSize: 12 }}>Order: {record.order_id}</Text>
+                            )}
+                            {record.meter_id && (
+                              <Text type="secondary" style={{ fontSize: 12 }}>Meter: {record.meter_id}</Text>
+                            )}
+                            {record.reference_number && (
+                              <Text type="secondary" style={{ fontSize: 12 }}>Ref: {record.reference_number}</Text>
+                            )}
+                          </Space>
+                        ),
+                      },
+                      {
+                        title: 'Amount',
+                        dataIndex: 'amount',
+                        key: 'amount',
+                        render: (amount) => (
+                          <Text strong style={{ color: amount > 0 ? '#52c41a' : '#ff4d4f' }}>
+                            {amount > 0 ? '+' : ''}{amount.toLocaleString()} RWF
+                          </Text>
+                        ),
+                        align: 'right',
+                        width: 120,
+                      },
+                      {
+                        title: 'Status',
+                        dataIndex: 'status',
+                        key: 'status',
+                        render: (status) => {
+                          const color = status === 'completed' ? 'success' : status === 'pending' ? 'warning' : 'error';
+                          return <Tag color={color}>{status.toUpperCase()}</Tag>;
+                        },
+                        width: 100,
+                      },
+                    ]}
+                    dataSource={transactions.filter(t => t.balance_type === 'dashboard')}
+                    rowKey="id"
+                    loading={loading}
+                    scroll={{ x: 800 }}
+                    size="small"
+                    pagination={{
+                      showSizeChanger: true,
+                      showTotal: (total) => `${total} dashboard transactions`,
+                      size: 'small',
+                    }}
+                  />
+                </>
+              ),
+            },
+            {
+              key: 'credit_ledger',
+              label: (
+                <span>
+                  <DollarOutlined /> Credit Ledger
+                </span>
+              ),
+              children: (
+                <>
+                  {/* Credit Overview */}
+                  {creditInfo && (
+                    <Card style={{ marginBottom: 16 }}>
+                      <Row gutter={16}>
+                        <Col span={6}>
+                          <Statistic
+                            title="Credit Limit"
+                            value={creditInfo.credit_limit}
+                            suffix="RWF"
+                            valueStyle={{ color: '#1890ff', fontSize: 20 }}
+                          />
+                        </Col>
+                        <Col span={6}>
+                          <Statistic
+                            title="Available Credit"
+                            value={creditInfo.available_credit}
+                            suffix="RWF"
+                            valueStyle={{ color: '#52c41a', fontSize: 20 }}
+                          />
+                        </Col>
+                        <Col span={6}>
+                          <Statistic
+                            title="Used Credit"
+                            value={creditInfo.used_credit}
+                            suffix="RWF"
+                            valueStyle={{ color: '#fa8c16', fontSize: 20 }}
+                          />
+                        </Col>
+                        <Col span={6}>
+                          <Statistic
+                            title="Outstanding Balance"
+                            value={creditInfo.outstanding_balance}
+                            suffix="RWF"
+                            valueStyle={{ color: '#ff4d4f', fontSize: 20 }}
+                          />
+                        </Col>
+                      </Row>
+                      <Divider />
+                      <Row gutter={16}>
+                        <Col span={12}>
+                          <Text type="secondary">Payment Status: </Text>
+                          <Tag color={creditInfo.payment_status === 'current' ? 'success' : creditInfo.payment_status === 'overdue' ? 'error' : 'warning'}>
+                            {creditInfo.payment_status.toUpperCase()}
+                          </Tag>
+                        </Col>
+                        {creditInfo.next_payment_date && (
+                          <Col span={12}>
+                            <Text type="secondary">Next Payment: </Text>
+                            <Text strong>{new Date(creditInfo.next_payment_date).toLocaleDateString()}</Text>
+                            <Text type="secondary"> - </Text>
+                            <Text strong style={{ color: '#ff4d4f' }}>
+                              {creditInfo.next_payment_amount?.toLocaleString()} RWF
+                            </Text>
+                          </Col>
+                        )}
+                      </Row>
+                    </Card>
+                  )}
+
+                  {/* Credit Transactions */}
+                  <Card title="Credit Transactions" size="small" style={{ marginBottom: 16 }}>
+                    <Table
+                      columns={[
+                        {
+                          title: 'Date',
+                          dataIndex: 'created_at',
+                          key: 'created_at',
+                          render: (date) => new Date(date).toLocaleDateString(),
+                          width: 100,
+                        },
+                        {
+                          title: 'Type',
+                          dataIndex: 'type',
+                          key: 'type',
+                          render: (type) => {
+                            const config: Record<string, { color: string; label: string }> = {
+                              order_payment: { color: 'red', label: 'Purchase' },
+                              loan_disbursement: { color: 'purple', label: 'Loan' },
+                              credit_payment: { color: 'blue', label: 'Payment' },
+                            };
+                            const { color, label } = config[type] || { color: 'default', label: type };
+                            return <Tag color={color}>{label}</Tag>;
+                          },
+                          width: 100,
+                        },
+                        {
+                          title: 'Description',
+                          dataIndex: 'description',
+                          key: 'description',
+                        },
+                        {
+                          title: 'Amount',
+                          dataIndex: 'amount',
+                          key: 'amount',
+                          render: (amount) => (
+                            <Text strong style={{ color: amount > 0 ? '#52c41a' : '#ff4d4f' }}>
+                              {amount > 0 ? '+' : ''}{amount.toLocaleString()} RWF
+                            </Text>
+                          ),
+                          align: 'right',
+                          width: 120,
+                        },
+                        {
+                          title: 'Status',
+                          dataIndex: 'status',
+                          key: 'status',
+                          render: (status) => {
+                            const color = status === 'completed' ? 'success' : status === 'pending' ? 'warning' : 'error';
+                            return <Tag color={color}>{status}</Tag>;
+                          },
+                          width: 100,
+                        },
+                      ]}
+                      dataSource={transactions.filter(t => t.balance_type === 'credit')}
+                      rowKey="id"
+                      loading={loading}
+                      size="small"
+                      pagination={false}
+                    />
+                  </Card>
+
+                  {/* Orders Paid by Credit */}
+                  <Card title="Orders Paid by Credit" size="small" style={{ marginBottom: 16 }}>
+                    <Table
+                      columns={[
+                        {
+                          title: 'Order Number',
+                          dataIndex: 'order_number',
+                          key: 'order_number',
+                          render: (order_number) => (
+                            <Button type="link" size="small" onClick={() => message.info(`View order ${order_number}`)}>
+                              {order_number}
+                            </Button>
+                          ),
+                        },
+                        {
+                          title: 'Amount',
+                          dataIndex: 'amount',
+                          key: 'amount',
+                          render: (amount) => `${amount.toLocaleString()} RWF`,
+                          align: 'right',
+                        },
+                        {
+                          title: 'Date',
+                          dataIndex: 'date',
+                          key: 'date',
+                          render: (date) => new Date(date).toLocaleDateString(),
+                        },
+                        {
+                          title: 'Status',
+                          dataIndex: 'status',
+                          key: 'status',
+                          render: (status) => <Tag color="success">{status}</Tag>,
+                        },
+                        {
+                          title: 'Invoice',
+                          key: 'invoice',
+                          render: (_, record) => (
+                            <Button
+                              type="link"
+                              size="small"
+                              icon={<FileTextOutlined />}
+                              onClick={() => message.info(`View invoice for ${record.order_number}`)}
+                            >
+                              View
+                            </Button>
+                          ),
+                        },
+                      ]}
+                      dataSource={creditOrders}
+                      rowKey="id"
+                      loading={loading}
+                      size="small"
+                      pagination={false}
+                    />
+                  </Card>
+
+                  {/* Credit Approval History */}
+                  <Card title="Credit Approval History" size="small">
+                    <Table
+                      columns={[
+                        {
+                          title: 'Amount Requested',
+                          dataIndex: 'amount_requested',
+                          key: 'amount_requested',
+                          render: (amount) => `${amount.toLocaleString()} RWF`,
+                        },
+                        {
+                          title: 'Status',
+                          dataIndex: 'status',
+                          key: 'status',
+                          render: (status) => {
+                            const colors: Record<string, string> = {
+                              submitted: 'default',
+                              reviewing: 'processing',
+                              approved: 'success',
+                              rejected: 'error',
+                            };
+                            return <Tag color={colors[status]}>{status.toUpperCase()}</Tag>;
+                          },
+                        },
+                        {
+                          title: 'Submitted',
+                          dataIndex: 'submitted_at',
+                          key: 'submitted_at',
+                          render: (date) => new Date(date).toLocaleDateString(),
+                        },
+                        {
+                          title: 'Reviewed',
+                          dataIndex: 'reviewed_at',
+                          key: 'reviewed_at',
+                          render: (date) => date ? new Date(date).toLocaleDateString() : '-',
+                        },
+                        {
+                          title: 'Reason',
+                          dataIndex: 'reason',
+                          key: 'reason',
+                          render: (reason) => reason || '-',
+                        },
+                      ]}
+                      dataSource={creditApprovals}
+                      rowKey="id"
+                      loading={loading}
+                      size="small"
+                      pagination={false}
+                    />
+                  </Card>
                 </>
               ),
             },
