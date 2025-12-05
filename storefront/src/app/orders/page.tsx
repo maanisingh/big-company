@@ -31,6 +31,7 @@ interface Order {
   display_id: string;
   status: 'pending' | 'packaged' | 'shipped' | 'delivered' | 'cancelled';
   payment_status: 'awaiting' | 'captured' | 'refunded';
+  payment_method?: 'wallet' | 'cash_on_delivery' | 'food_loan' | 'card_credit' | 'mobile_money';
   fulfillment_status: 'not_fulfilled' | 'partially_fulfilled' | 'fulfilled' | 'shipped' | 'delivered';
   total: number;
   items: OrderItem[];
@@ -62,7 +63,7 @@ const statusConfig = {
   cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-700', icon: XCircle },
 };
 
-type FilterStatus = 'all' | 'active' | 'completed';
+type FilterStatus = 'all' | 'active' | 'completed' | 'credit';
 
 export default function OrdersPage() {
   const router = useRouter();
@@ -110,6 +111,10 @@ export default function OrdersPage() {
     }
     if (filterStatus === 'completed') {
       return ['delivered', 'cancelled'].includes(order.status);
+    }
+    if (filterStatus === 'credit') {
+      // Show orders paid on credit (via card or loan)
+      return order.payment_method === 'food_loan' || order.payment_method === 'card_credit';
     }
     return true;
   });
@@ -172,16 +177,17 @@ export default function OrdersPage() {
           </div>
 
           {/* Filter Tabs */}
-          <div className="flex gap-2 mt-3">
+          <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
             {[
               { key: 'all', label: 'All Orders' },
               { key: 'active', label: 'Active' },
               { key: 'completed', label: 'Completed' },
+              { key: 'credit', label: 'Credit Orders' },
             ].map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setFilterStatus(tab.key as FilterStatus)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
                   filterStatus === tab.key
                     ? 'bg-primary-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -225,7 +231,7 @@ export default function OrdersPage() {
               >
                 {/* Order Header */}
                 <div className="p-4 border-b border-gray-100">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mb-2">
                     <div>
                       <p className="font-semibold">Order #{order.display_id || order.id.slice(0, 8)}</p>
                       <p className="text-sm text-gray-500">{getRelativeTime(order.created_at)}</p>
@@ -235,6 +241,16 @@ export default function OrdersPage() {
                       {config.label}
                     </span>
                   </div>
+
+                  {/* Payment Method Badge */}
+                  {(order.payment_method === 'food_loan' || order.payment_method === 'card_credit') && (
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700 flex items-center gap-1">
+                        <CreditCard className="w-3 h-3" />
+                        {order.payment_method === 'food_loan' ? 'Paid on Credit (Loan)' : 'Paid on Credit (Card)'}
+                      </span>
+                    </div>
+                  )}
 
                   {/* Cancellation Notice */}
                   {order.status === 'cancelled' && order.cancellation_reason && (

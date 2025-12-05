@@ -12,7 +12,10 @@ import {
   AlertCircle,
   FileText,
   Loader2,
-  ExternalLink
+  ExternalLink,
+  ShoppingBag,
+  Store,
+  Calendar
 } from 'lucide-react';
 import { nfcApi } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
@@ -26,6 +29,18 @@ interface CardTransaction {
   created_at: string;
 }
 
+interface CardOrder {
+  id: string;
+  order_id: string;
+  shop_name: string;
+  shop_location?: string;
+  amount: number;
+  items_count?: number;
+  date: string;
+  invoice_url?: string;
+  status: string;
+}
+
 interface NFCCard {
   id: string;
   card_uid: string;
@@ -35,6 +50,7 @@ interface NFCCard {
   linked_at: string;
   last_used_at?: string;
   transactions: CardTransaction[];
+  orders?: CardOrder[];
 }
 
 export default function CardsPage() {
@@ -45,6 +61,8 @@ export default function CardsPage() {
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [showTransactions, setShowTransactions] = useState<string | null>(null);
+  const [showOrders, setShowOrders] = useState<string | null>(null);
+  const [loadingOrders, setLoadingOrders] = useState<string | null>(null);
   const [cardUid, setCardUid] = useState('');
   const [cardAlias, setCardAlias] = useState('');
   const [pin, setPin] = useState('');
@@ -79,6 +97,40 @@ export default function CardsPage() {
       console.error('Failed to fetch cards:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCardOrders = async (cardId: string) => {
+    setLoadingOrders(cardId);
+    try {
+      const data = await nfcApi.getCardOrders(cardId);
+      // Update the card with orders
+      setCards(prevCards =>
+        prevCards.map(card =>
+          card.id === cardId
+            ? { ...card, orders: data.orders || [] }
+            : card
+        )
+      );
+      setShowOrders(cardId);
+    } catch (error) {
+      console.error('Failed to fetch card orders:', error);
+      alert('Failed to load order history');
+    } finally {
+      setLoadingOrders(null);
+    }
+  };
+
+  const toggleOrders = (cardId: string) => {
+    if (showOrders === cardId) {
+      setShowOrders(null);
+    } else {
+      const card = cards.find(c => c.id === cardId);
+      if (!card?.orders) {
+        fetchCardOrders(cardId);
+      } else {
+        setShowOrders(cardId);
+      }
     }
   };
 
@@ -294,17 +346,125 @@ export default function CardsPage() {
                       </p>
                     )}
 
-                    {/* View Transactions Button */}
-                    {card.transactions && card.transactions.length > 0 && (
+                    {/* Action Buttons */}
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                      {/* View Order History Button */}
                       <button
-                        onClick={() => setShowTransactions(card.id === showTransactions ? null : card.id)}
-                        className="mt-3 w-full flex items-center justify-center gap-2 text-sm text-primary-600 hover:text-primary-700 font-medium py-2 border border-primary-200 rounded-lg hover:bg-primary-50 transition-colors"
+                        onClick={() => toggleOrders(card.id)}
+                        disabled={loadingOrders === card.id}
+                        className="flex items-center justify-center gap-2 text-sm text-purple-600 hover:text-purple-700 font-medium py-2 border border-purple-200 rounded-lg hover:bg-purple-50 transition-colors disabled:opacity-50"
                       >
-                        <FileText className="w-4 h-4" />
-                        {showTransactions === card.id ? 'Hide' : 'View'} Transactions ({card.transactions.length})
+                        {loadingOrders === card.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <ShoppingBag className="w-4 h-4" />
+                        )}
+                        {showOrders === card.id ? 'Hide' : 'View'} Orders
                       </button>
-                    )}
+
+                      {/* View Transactions Button */}
+                      {card.transactions && card.transactions.length > 0 && (
+                        <button
+                          onClick={() => setShowTransactions(card.id === showTransactions ? null : card.id)}
+                          className="flex items-center justify-center gap-2 text-sm text-primary-600 hover:text-primary-700 font-medium py-2 border border-primary-200 rounded-lg hover:bg-primary-50 transition-colors"
+                        >
+                          <FileText className="w-4 h-4" />
+                          {showTransactions === card.id ? 'Hide' : 'View'} Transactions
+                        </button>
+                      )}
+                    </div>
                   </div>
+
+                  {/* Order History */}
+                  {showOrders === card.id && (
+                    <div className="border-t border-gray-100">
+                      <div className="p-3 bg-purple-50">
+                        <h4 className="text-sm font-semibold text-purple-900">Order History</h4>
+                        <p className="text-xs text-purple-700">All purchases made with this card</p>
+                      </div>
+                      {card.orders && card.orders.length > 0 ? (
+                        <div className="divide-y divide-gray-100">
+                          {card.orders.map((order) => (
+                            <div key={order.id} className="p-4 hover:bg-gray-50 transition-colors">
+                              <div className="flex items-start gap-3">
+                                {/* Icon */}
+                                <div className="bg-purple-100 p-2 rounded-lg flex-shrink-0">
+                                  <Store className="w-5 h-5 text-purple-600" />
+                                </div>
+
+                                {/* Content */}
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-start justify-between mb-2">
+                                    <div>
+                                      <p className="font-medium text-sm">{order.shop_name}</p>
+                                      {order.shop_location && (
+                                        <p className="text-xs text-gray-500">{order.shop_location}</p>
+                                      )}
+                                      <p className="text-xs text-gray-500 font-mono mt-1">
+                                        Order: {order.order_id}
+                                      </p>
+                                    </div>
+                                    <span className="text-lg font-bold text-purple-600 whitespace-nowrap ml-2">
+                                      {order.amount.toLocaleString()} RWF
+                                    </span>
+                                  </div>
+
+                                  {/* Details */}
+                                  <div className="flex items-center gap-3 text-xs text-gray-500 mb-2">
+                                    <div className="flex items-center gap-1">
+                                      <Calendar className="w-3 h-3" />
+                                      <span>{formatDate(order.date)}</span>
+                                    </div>
+                                    {order.items_count && (
+                                      <span>{order.items_count} {order.items_count === 1 ? 'item' : 'items'}</span>
+                                    )}
+                                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                      order.status === 'completed' ? 'bg-green-100 text-green-700' :
+                                      order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                                      'bg-gray-100 text-gray-700'
+                                    }`}>
+                                      {order.status}
+                                    </span>
+                                  </div>
+
+                                  {/* Invoice Button */}
+                                  {order.invoice_url ? (
+                                    <a
+                                      href={order.invoice_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1 text-xs text-purple-600 hover:text-purple-700 font-medium mt-1"
+                                    >
+                                      <FileText className="w-3 h-3" />
+                                      View Invoice
+                                      <ExternalLink className="w-3 h-3" />
+                                    </a>
+                                  ) : (
+                                    <Link
+                                      href={`/orders/${order.order_id}`}
+                                      className="inline-flex items-center gap-1 text-xs text-purple-600 hover:text-purple-700 font-medium mt-1"
+                                    >
+                                      <FileText className="w-3 h-3" />
+                                      View Order Details
+                                      <ExternalLink className="w-3 h-3" />
+                                    </Link>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="p-8 text-center">
+                          <ShoppingBag className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                          <p className="text-gray-500 text-sm">No orders found for this card</p>
+                          <p className="text-gray-400 text-xs mt-1">
+                            Use this card at any BIG retailer to make purchases
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Transactions List */}
                   {showTransactions === card.id && card.transactions && card.transactions.length > 0 && (

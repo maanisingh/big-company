@@ -411,6 +411,16 @@ export default function LoginPage() {
               <strong>No data?</strong> Dial <span className="font-mono">*939#</span> to access your account
             </p>
           </div>
+
+          {/* Registration Link */}
+          <div className="mt-8 text-center">
+            <p className="text-gray-600">
+              First time using BIG Company?{' '}
+              <Link href="/auth/register" className="text-primary-600 font-medium hover:underline">
+                Create Account
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>
