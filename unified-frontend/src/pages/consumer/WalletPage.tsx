@@ -22,6 +22,7 @@ import {
   Divider,
   Badge,
   Tooltip,
+  Radio,
 } from 'antd';
 import {
   WalletOutlined,
@@ -1287,6 +1288,21 @@ const ConsumerWalletPage: React.FC = () => {
               style={{ width: '100%' }}
               formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
             />
+          </Form.Item>
+          <Form.Item
+            name="repayment_frequency"
+            label="Repayment Frequency"
+            rules={[{ required: true, message: 'Please select repayment frequency' }]}
+            initialValue="weekly"
+          >
+            <Radio.Group buttonStyle="solid" style={{ width: '100%' }}>
+              <Radio.Button value="daily" style={{ width: '50%', textAlign: 'center' }}>
+                Daily
+              </Radio.Button>
+              <Radio.Button value="weekly" style={{ width: '50%', textAlign: 'center' }}>
+                Weekly
+              </Radio.Button>
+            </Radio.Group>
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit" loading={loading} block>
