@@ -43,6 +43,9 @@ import {
   DollarOutlined,
   ArrowUpOutlined,
   ArrowDownOutlined,
+  ShoppingOutlined,
+  EyeOutlined,
+  EnvironmentOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { nfcApi, walletApi } from '../../services/apiService';
@@ -66,6 +69,17 @@ interface NFCCard {
   linked_at: string;
   last_used?: string;
   nickname?: string;
+}
+
+interface CardOrder {
+  id: string;
+  order_number: string;
+  shop_name: string;
+  shop_location: string;
+  amount: number;
+  items_count: number;
+  date: string;
+  status: string;
 }
 
 interface Transaction {
@@ -124,6 +138,8 @@ const ConsumerWalletPage: React.FC = () => {
   const [changePinModalVisible, setChangePinModalVisible] = useState(false);
   const [selectedCard, setSelectedCard] = useState<NFCCard | null>(null);
   const [activeTab, setActiveTab] = useState('transactions');
+  const [cardOrdersModalVisible, setCardOrdersModalVisible] = useState(false);
+  const [cardOrders, setCardOrders] = useState<{[key: string]: CardOrder[]}>({});
 
   const [topUpForm] = Form.useForm();
   const [refundForm] = Form.useForm();
@@ -161,6 +177,73 @@ const ConsumerWalletPage: React.FC = () => {
       nickname: 'Backup Card',
     },
   ];
+
+  const mockCardOrders: {[key: string]: CardOrder[]} = {
+    '1': [ // Orders for card 1
+      {
+        id: '1',
+        order_number: 'ORD-2024-789',
+        shop_name: 'Kigali Fresh Market',
+        shop_location: 'Kimironko, Kigali',
+        amount: 25000,
+        items_count: 8,
+        date: '2024-12-05T14:30:00Z',
+        status: 'completed'
+      },
+      {
+        id: '2',
+        order_number: 'ORD-2024-756',
+        shop_name: 'City Pharmacy',
+        shop_location: 'City Center, Kigali',
+        amount: 15000,
+        items_count: 5,
+        date: '2024-12-03T11:20:00Z',
+        status: 'completed'
+      },
+      {
+        id: '3',
+        order_number: 'ORD-2024-698',
+        shop_name: 'Nyamirambo Superstore',
+        shop_location: 'Nyamirambo, Kigali',
+        amount: 42500,
+        items_count: 12,
+        date: '2024-11-28T09:45:00Z',
+        status: 'completed'
+      },
+      {
+        id: '4',
+        order_number: 'ORD-2024-623',
+        shop_name: 'Kigali Fresh Market',
+        shop_location: 'Kimironko, Kigali',
+        amount: 18000,
+        items_count: 6,
+        date: '2024-11-22T16:15:00Z',
+        status: 'completed'
+      }
+    ],
+    '2': [ // Orders for card 2
+      {
+        id: '5',
+        order_number: 'ORD-2024-812',
+        shop_name: 'Heaven Restaurant',
+        shop_location: 'Remera, Kigali',
+        amount: 35000,
+        items_count: 1,
+        date: '2024-12-01T13:00:00Z',
+        status: 'completed'
+      },
+      {
+        id: '6',
+        order_number: 'ORD-2024-745',
+        shop_name: 'MTN Service Center',
+        shop_location: 'City Center, Kigali',
+        amount: 50000,
+        items_count: 1,
+        date: '2024-11-25T10:30:00Z',
+        status: 'completed'
+      }
+    ]
+  };
 
   const mockTransactions: Transaction[] = [
     { id: '1', type: 'order_payment', balance_type: 'dashboard', amount: -2500, description: 'Purchase at Kigali Shop', status: 'completed', created_at: '2024-11-30T09:15:00Z', merchant_name: 'Kigali Shop', order_id: 'ORD-2024-001', meter_id: 'MTR-001234' },
@@ -218,6 +301,7 @@ const ConsumerWalletPage: React.FC = () => {
       setCreditInfo(mockCreditInfo);
       setCreditOrders(mockCreditOrders);
       setCreditApprovals(mockCreditApprovals);
+      setCardOrders(mockCardOrders);
     } catch (error) {
       console.error('Failed to load wallet data:', error);
       setBalance(mockBalance);
@@ -226,6 +310,7 @@ const ConsumerWalletPage: React.FC = () => {
       setCreditInfo(mockCreditInfo);
       setCreditOrders(mockCreditOrders);
       setCreditApprovals(mockCreditApprovals);
+      setCardOrders(mockCardOrders);
     } finally {
       setLoading(false);
     }
@@ -315,6 +400,11 @@ const ConsumerWalletPage: React.FC = () => {
     } catch (error: any) {
       message.error(error.response?.data?.message || 'Failed to set primary card');
     }
+  };
+
+  const handleViewCardOrders = (card: NFCCard) => {
+    setSelectedCard(card);
+    setCardOrdersModalVisible(true);
   };
 
   const handleUnlinkCard = async (card: NFCCard) => {
@@ -618,6 +708,14 @@ const ConsumerWalletPage: React.FC = () => {
                                     setSelectedCard(card);
                                     setChangePinModalVisible(true);
                                   }}
+                                  style={{ color: 'white' }}
+                                />
+                              </Tooltip>,
+                              <Tooltip title="View Order History">
+                                <Button
+                                  type="text"
+                                  icon={<ShoppingOutlined />}
+                                  onClick={() => handleViewCardOrders(card)}
                                   style={{ color: 'white' }}
                                 />
                               </Tooltip>,
@@ -1283,6 +1381,99 @@ const ConsumerWalletPage: React.FC = () => {
               </Button>
             </Form.Item>
           </Form>
+        )}
+      </Modal>
+
+      {/* Card Orders Modal */}
+      <Modal
+        title={
+          <Space>
+            <ShoppingOutlined style={{ color: '#722ed1' }} />
+            <span>Order History - {selectedCard?.nickname || selectedCard?.card_number}</span>
+          </Space>
+        }
+        open={cardOrdersModalVisible}
+        onCancel={() => {
+          setCardOrdersModalVisible(false);
+          setSelectedCard(null);
+        }}
+        footer={null}
+        width={800}
+      >
+        {selectedCard && cardOrders[selectedCard.id] && cardOrders[selectedCard.id].length > 0 ? (
+          <div>
+            <Alert
+              message={`${cardOrders[selectedCard.id].length} order${cardOrders[selectedCard.id].length > 1 ? 's' : ''} found`}
+              type="info"
+              showIcon
+              style={{ marginBottom: 16 }}
+            />
+            <Space direction="vertical" style={{ width: '100%' }} size={12}>
+              {cardOrders[selectedCard.id].map((order) => (
+                <Card
+                  key={order.id}
+                  size="small"
+                  style={{ background: '#f9f0ff', borderColor: '#d3adf7' }}
+                >
+                  <Row gutter={[16, 8]}>
+                    <Col span={12}>
+                      <Space direction="vertical" size={4}>
+                        <Text type="secondary" style={{ fontSize: 12 }}>Order Number</Text>
+                        <Text strong style={{ color: '#722ed1' }}>{order.order_number}</Text>
+                      </Space>
+                    </Col>
+                    <Col span={12} style={{ textAlign: 'right' }}>
+                      <Space direction="vertical" size={4} style={{ alignItems: 'flex-end' }}>
+                        <Text type="secondary" style={{ fontSize: 12 }}>Amount</Text>
+                        <Text strong style={{ fontSize: 16, color: '#52c41a' }}>
+                          {order.amount.toLocaleString()} RWF
+                        </Text>
+                      </Space>
+                    </Col>
+                  </Row>
+                  <Divider style={{ margin: '8px 0' }} />
+                  <Row gutter={[16, 8]}>
+                    <Col span={24}>
+                      <Space>
+                        <ShoppingOutlined style={{ color: '#722ed1' }} />
+                        <div>
+                          <Text strong>{order.shop_name}</Text>
+                          <br />
+                          <Text type="secondary" style={{ fontSize: 12 }}>
+                            <EnvironmentOutlined /> {order.shop_location}
+                          </Text>
+                        </div>
+                      </Space>
+                    </Col>
+                  </Row>
+                  <Divider style={{ margin: '8px 0' }} />
+                  <Row gutter={[16, 8]} align="middle">
+                    <Col span={12}>
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        {order.items_count} item{order.items_count > 1 ? 's' : ''}
+                      </Text>
+                    </Col>
+                    <Col span={12} style={{ textAlign: 'right' }}>
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        {new Date(order.date).toLocaleDateString('en-RW', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </Text>
+                    </Col>
+                  </Row>
+                </Card>
+              ))}
+            </Space>
+          </div>
+        ) : (
+          <Empty
+            image={<ShoppingOutlined style={{ fontSize: 64, color: '#ccc' }} />}
+            description="No orders found for this card"
+          />
         )}
       </Modal>
     </div>
