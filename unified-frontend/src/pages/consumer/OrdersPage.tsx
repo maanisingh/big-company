@@ -130,7 +130,17 @@ export const OrdersPage: React.FC = () => {
     setLoading(true);
     try {
       const response = await consumerApi.getOrders();
-      setOrders(response.data.orders || getMockOrders());
+      // Filter out null/invalid orders and ensure all required fields exist
+      const validOrders = (response.data.orders || []).filter((order: Order | null) =>
+        order &&
+        order.id &&
+        order.order_number &&
+        order.status &&
+        order.retailer &&
+        order.items &&
+        Array.isArray(order.items)
+      );
+      setOrders(validOrders.length > 0 ? validOrders : getMockOrders());
     } catch (error) {
       console.error('Error fetching orders:', error);
       setOrders(getMockOrders());
@@ -306,7 +316,8 @@ export const OrdersPage: React.FC = () => {
     return statusSteps.indexOf(status);
   };
 
-  const canCancelOrder = (order: Order) => {
+  const canCancelOrder = (order: Order | null) => {
+    if (!order || !order.status) return false;
     return order.status === 'pending' || order.status === 'confirmed' || order.status === 'processing';
   };
 
@@ -423,7 +434,7 @@ export const OrdersPage: React.FC = () => {
         </Empty>
       ) : (
         <Space direction="vertical" style={{ width: '100%' }} size={16}>
-          {orders.map((order) => (
+          {orders.filter(order => order && order.status).map((order) => (
             <Card
               key={order.id}
               hoverable
@@ -444,18 +455,18 @@ export const OrdersPage: React.FC = () => {
                   <Space direction="vertical" size={4}>
                     <Space>
                       <ShopOutlined style={{ color: '#722ed1' }} />
-                      <Text strong>{order.retailer.name}</Text>
+                      <Text strong>{order.retailer?.name || 'Unknown Retailer'}</Text>
                     </Space>
                     <Text type="secondary" style={{ fontSize: 12 }}>
-                      {order.items.length} item(s)
+                      {order.items?.length || 0} item(s)
                     </Text>
                   </Space>
                 </Col>
 
                 <Col xs={24} md={6}>
                   <Space direction="vertical" size={4}>
-                    <Tag color={statusColors[order.status]} style={{ marginRight: 0 }}>
-                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                    <Tag color={statusColors[order.status] || 'default'} style={{ marginRight: 0 }}>
+                      {order.status?.charAt(0).toUpperCase() + order.status?.slice(1) || 'Unknown'}
                     </Tag>
                     {order.status === 'shipped' && order.estimated_delivery && (
                       <Text type="secondary" style={{ fontSize: 12 }}>
