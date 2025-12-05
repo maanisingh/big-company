@@ -305,7 +305,7 @@ export const GasPage: React.FC = () => {
           <Col>
             <div style={{ textAlign: 'right' }}>
               <Text style={{ color: 'rgba(255,255,255,0.85)', display: 'block', fontSize: 12 }}>
-                Wallet Balance
+                Dashboard Balance
               </Text>
               <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>
                 {formatPrice(balance)}

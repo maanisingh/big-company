@@ -19,7 +19,6 @@ import {
   Alert,
   Form,
   Select,
-  Steps,
 } from 'antd';
 import {
   ShoppingCartOutlined,
@@ -42,7 +41,6 @@ import { useCart, Retailer } from '../../contexts/CartContext';
 const { Title, Text, Paragraph } = Typography;
 const { Search } = Input;
 const { Option } = Select;
-const { Step } = Steps;
 
 interface Product {
   id: string;
