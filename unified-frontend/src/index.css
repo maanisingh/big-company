@@ -332,6 +332,7 @@ body {
     transparent 60%
   );
   animation: shimmer 3s infinite;
+  pointer-events: none; /* Fix: Allow clicks to pass through shimmer effect */
 }
 
 @keyframes shimmer {
