@@ -1,0 +1,64 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e6]:
+  - button "Back to Home" [ref=e7] [cursor=pointer]:
+    - img [ref=e8]
+    - generic [ref=e10]: Back to Home
+  - generic [ref=e11]:
+    - generic [ref=e12]:
+      - img [ref=e14]
+      - heading "Consumer Store" [level=1] [ref=e16]
+      - paragraph [ref=e17]: Shop amazing products from local retailers
+    - generic [ref=e18]:
+      - button "Consumer" [ref=e19] [cursor=pointer]: Consumer
+      - button "Employee" [ref=e21] [cursor=pointer]
+      - button "Retailer" [ref=e22] [cursor=pointer]
+      - button "Wholesaler" [ref=e23] [cursor=pointer]
+    - generic [ref=e24]:
+      - generic [ref=e25]:
+        - generic [ref=e26]:
+          - img [ref=e27]
+          - generic [ref=e29]: Demo Login Credentials
+        - generic [ref=e30]:
+          - generic [ref=e31]:
+            - generic [ref=e32]:
+              - generic [ref=e33]: Phone Number
+              - code [ref=e34]: "250788100001"
+            - button "Copy phone" [ref=e35] [cursor=pointer]:
+              - img [ref=e36]
+          - generic [ref=e38]:
+            - generic [ref=e39]:
+              - generic [ref=e40]: PIN
+              - code [ref=e41]: "1234"
+            - button "Copy PIN" [ref=e42] [cursor=pointer]:
+              - img [ref=e43]
+        - button "Auto-fill Demo Credentials" [ref=e45] [cursor=pointer]:
+          - img [ref=e46]
+          - text: Auto-fill Demo Credentials
+      - generic [ref=e48]:
+        - generic [ref=e49]:
+          - generic [ref=e50]: Phone Number
+          - generic [ref=e51]:
+            - generic:
+              - img
+            - textbox "250788xxxxxx" [ref=e52]: "250788100001"
+        - generic [ref=e53]:
+          - generic [ref=e54]: PIN Code
+          - generic [ref=e55]:
+            - generic:
+              - img
+            - textbox "Enter your 4-6 digit PIN" [ref=e56]: "1234"
+            - button [ref=e57] [cursor=pointer]:
+              - img [ref=e58]
+        - generic [ref=e61]:
+          - generic [ref=e62] [cursor=pointer]:
+            - checkbox "Remember me" [checked] [ref=e63]
+            - generic [ref=e64]: Remember me
+          - link "Forgot password?" [ref=e65] [cursor=pointer]:
+            - /url: "#"
+        - button "Sign in as Consumer" [ref=e66] [cursor=pointer]:
+          - generic [ref=e67]: Sign in as Consumer
+          - img [ref=e68]
+  - paragraph [ref=e70]: © 2024 BIG Company Rwanda Ltd. All rights reserved.
+```

@@ -55,6 +55,7 @@ export default function WalletPage() {
     reason: ''
   });
   const [loanAmount, setLoanAmount] = useState('');
+  const [repaymentFrequency, setRepaymentFrequency] = useState<'daily' | 'weekly'>('weekly');
   const [submitting, setSubmitting] = useState(false);
 
   // Redirect if not authenticated
@@ -145,9 +146,10 @@ export default function WalletPage() {
 
     setSubmitting(true);
     try {
-      await loansApi.requestLoan(amount);
+      await loansApi.requestLoan(amount, repaymentFrequency);
       setShowRequestLoanModal(false);
       setLoanAmount('');
+      setRepaymentFrequency('weekly');
       alert('Loan request submitted successfully');
       router.push('/loans');
     } catch (error: any) {
@@ -442,6 +444,36 @@ export default function WalletPage() {
                   placeholder="Enter loan amount"
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Repayment Frequency</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setRepaymentFrequency('daily')}
+                    className={`p-3 border-2 rounded-lg font-medium transition-all ${
+                      repaymentFrequency === 'daily'
+                        ? 'border-primary-600 bg-primary-50 text-primary-700'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                  >
+                    Daily
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRepaymentFrequency('weekly')}
+                    className={`p-3 border-2 rounded-lg font-medium transition-all ${
+                      repaymentFrequency === 'weekly'
+                        ? 'border-primary-600 bg-primary-50 text-primary-700'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                  >
+                    Weekly
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Choose how often you want to make loan payments
+                </p>
               </div>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <p className="text-sm text-blue-700">
