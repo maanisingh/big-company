@@ -19,6 +19,7 @@ import {
   Alert,
   Form,
   Select,
+  Radio,
 } from 'antd';
 import {
   ShoppingCartOutlined,
@@ -34,6 +35,13 @@ import {
   FilterOutlined,
   RightOutlined,
   AimOutlined,
+  WalletOutlined,
+  MobileOutlined,
+  CreditCardOutlined,
+  FireOutlined,
+  PhoneOutlined,
+  CheckCircleOutlined,
+  LockOutlined,
 } from '@ant-design/icons';
 import { consumerApi } from '../../services/apiService';
 import { useCart, Retailer } from '../../contexts/CartContext';
@@ -100,6 +108,14 @@ export const ShopPage: React.FC = () => {
   const [showLocationModal, setShowLocationModal] = useState(true); // Show on first load
   const [customerLocation, setCustomerLocation] = useState<CustomerLocation | null>(null);
   const [locationForm] = Form.useForm();
+
+  // NEW: Checkout payment modal state
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'wallet' | 'mobile_money'>('wallet');
+  const [walletType, setWalletType] = useState<'dashboard' | 'credit'>('dashboard');
+  const [checkoutForm] = Form.useForm();
+  const [processingPayment, setProcessingPayment] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   // NEW: Mock location data
   const rwandaDistricts = [
@@ -303,9 +319,35 @@ export const ShopPage: React.FC = () => {
       );
       return;
     }
-    message.info('Checkout functionality - redirecting to payment...');
-    // In production: navigate to checkout page
-    // window.location.href = '/consumer/checkout';
+    setShowCartDrawer(false);
+    setShowCheckoutModal(true);
+  };
+
+  // Handle payment processing
+  const handlePaymentSubmit = async (values: any) => {
+    setProcessingPayment(true);
+    try {
+      // Simulate payment processing
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Mock successful payment
+      setPaymentSuccess(true);
+      message.success('Payment successful! Your order has been placed.');
+
+      // Clear cart and close modal after 2 seconds
+      setTimeout(() => {
+        clearCart();
+        setShowCheckoutModal(false);
+        setPaymentSuccess(false);
+        checkoutForm.resetFields();
+        setPaymentMethod('wallet');
+        setWalletType('dashboard');
+      }, 2000);
+    } catch (error) {
+      message.error('Payment failed. Please try again.');
+    } finally {
+      setProcessingPayment(false);
+    }
   };
 
   // Mock data for demo
@@ -969,6 +1011,302 @@ export const ShopPage: React.FC = () => {
           </Button>
         </div>
       )}
+
+      {/* Checkout Payment Modal */}
+      <Modal
+        open={showCheckoutModal}
+        title={
+          <Space>
+            <ShoppingCartOutlined />
+            <span>Checkout - Select Payment Method</span>
+          </Space>
+        }
+        onCancel={() => {
+          if (!processingPayment) {
+            setShowCheckoutModal(false);
+            checkoutForm.resetFields();
+          }
+        }}
+        footer={null}
+        width={600}
+        closable={!processingPayment}
+      >
+        {paymentSuccess ? (
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            <CheckCircleOutlined style={{ fontSize: 64, color: '#52c41a', marginBottom: 16 }} />
+            <Title level={3} style={{ color: '#52c41a', marginBottom: 8 }}>
+              Payment Successful!
+            </Title>
+            <Text type="secondary">Your order has been placed successfully.</Text>
+          </div>
+        ) : (
+          <>
+            {/* Order Summary */}
+            <Card style={{ marginBottom: 16, background: '#f6ffed', borderColor: '#b7eb8f' }}>
+              <Row justify="space-between" align="middle">
+                <Col>
+                  <Space direction="vertical" size={0}>
+                    <Text type="secondary">Order Total</Text>
+                    <Title level={2} style={{ margin: 0, color: '#52c41a' }}>
+                      {formatPrice(cartTotal)}
+                    </Title>
+                  </Space>
+                </Col>
+                <Col>
+                  <Space direction="vertical" size={0} align="end">
+                    <Text type="secondary">{cartItemCount} items</Text>
+                    <Text strong>{selectedRetailer?.name}</Text>
+                  </Space>
+                </Col>
+              </Row>
+            </Card>
+
+            <Form form={checkoutForm} layout="vertical" onFinish={handlePaymentSubmit}>
+              {/* Payment Method Selection */}
+              <Form.Item label={<Text strong>Choose Payment Method</Text>} required>
+                <Radio.Group
+                  value={paymentMethod}
+                  onChange={(e) => {
+                    setPaymentMethod(e.target.value);
+                    checkoutForm.resetFields();
+                  }}
+                  size="large"
+                  style={{ width: '100%' }}
+                >
+                  <Space direction="vertical" style={{ width: '100%' }} size={12}>
+                    <Radio value="wallet" style={{ width: '100%' }}>
+                      <Card
+                        size="small"
+                        style={{
+                          border: paymentMethod === 'wallet' ? '2px solid #1890ff' : '1px solid #d9d9d9',
+                          background: paymentMethod === 'wallet' ? '#e6f7ff' : 'white',
+                        }}
+                      >
+                        <Space>
+                          <WalletOutlined style={{ fontSize: 24, color: '#1890ff' }} />
+                          <div>
+                            <Text strong>Pay with Wallet</Text>
+                            <br />
+                            <Text type="secondary" style={{ fontSize: 12 }}>
+                              Dashboard Balance or Credit Balance
+                            </Text>
+                          </div>
+                        </Space>
+                      </Card>
+                    </Radio>
+
+                    <Radio value="mobile_money" style={{ width: '100%' }}>
+                      <Card
+                        size="small"
+                        style={{
+                          border: paymentMethod === 'mobile_money' ? '2px solid #52c41a' : '1px solid #d9d9d9',
+                          background: paymentMethod === 'mobile_money' ? '#f6ffed' : 'white',
+                        }}
+                      >
+                        <Space>
+                          <MobileOutlined style={{ fontSize: 24, color: '#52c41a' }} />
+                          <div>
+                            <Text strong>Mobile Money</Text>
+                            <br />
+                            <Text type="secondary" style={{ fontSize: 12 }}>
+                              MTN or Airtel Money
+                            </Text>
+                          </div>
+                        </Space>
+                      </Card>
+                    </Radio>
+                  </Space>
+                </Radio.Group>
+              </Form.Item>
+
+              <Divider style={{ margin: '16px 0' }} />
+
+              {/* Wallet Payment Options */}
+              {paymentMethod === 'wallet' && (
+                <>
+                  <Form.Item label={<Text strong>Select Wallet Type</Text>} required>
+                    <Radio.Group
+                      value={walletType}
+                      onChange={(e) => {
+                        setWalletType(e.target.value);
+                        checkoutForm.resetFields(['meter_id', 'pin']);
+                      }}
+                      size="large"
+                      style={{ width: '100%' }}
+                    >
+                      <Space direction="vertical" style={{ width: '100%' }} size={12}>
+                        <Radio value="dashboard" style={{ width: '100%' }}>
+                          <Card
+                            size="small"
+                            style={{
+                              border: walletType === 'dashboard' ? '2px solid #1890ff' : '1px solid #d9d9d9',
+                              background: walletType === 'dashboard' ? '#e6f7ff' : 'white',
+                            }}
+                          >
+                            <Space>
+                              <WalletOutlined style={{ fontSize: 20, color: '#1890ff' }} />
+                              <div>
+                                <Text strong>Dashboard Balance</Text>
+                                <br />
+                                <Text type="secondary" style={{ fontSize: 12 }}>
+                                  Earn gas rewards • Enter meter ID + PIN
+                                </Text>
+                              </div>
+                            </Space>
+                          </Card>
+                        </Radio>
+
+                        <Radio value="credit" style={{ width: '100%' }}>
+                          <Card
+                            size="small"
+                            style={{
+                              border: walletType === 'credit' ? '2px solid #fa8c16' : '1px solid #d9d9d9',
+                              background: walletType === 'credit' ? '#fff7e6' : 'white',
+                            }}
+                          >
+                            <Space>
+                              <CreditCardOutlined style={{ fontSize: 20, color: '#fa8c16' }} />
+                              <div>
+                                <Text strong>Credit Balance</Text>
+                                <br />
+                                <Text type="secondary" style={{ fontSize: 12 }}>
+                                  No rewards • PIN only
+                                </Text>
+                              </div>
+                            </Space>
+                          </Card>
+                        </Radio>
+                      </Space>
+                    </Radio.Group>
+                  </Form.Item>
+
+                  {walletType === 'dashboard' && (
+                    <>
+                      <Alert
+                        message="Earn Gas Rewards!"
+                        description="Enter your meter ID to earn gas rewards from this purchase."
+                        type="info"
+                        showIcon
+                        style={{ marginBottom: 16 }}
+                      />
+                      <Form.Item
+                        name="meter_id"
+                        label="Meter ID for Gas Rewards"
+                        rules={[{ required: true, message: 'Please enter your meter ID' }]}
+                      >
+                        <Input
+                          size="large"
+                          prefix={<FireOutlined />}
+                          placeholder="Enter your meter number"
+                        />
+                      </Form.Item>
+                    </>
+                  )}
+
+                  <Form.Item
+                    name="pin"
+                    label="Enter Your 4-Digit PIN"
+                    rules={[
+                      { required: true, message: 'Please enter your PIN' },
+                      { len: 4, message: 'PIN must be exactly 4 digits' },
+                      { pattern: /^\d{4}$/, message: 'PIN must be numeric' },
+                    ]}
+                  >
+                    <Input.Password
+                      size="large"
+                      maxLength={4}
+                      prefix={<LockOutlined />}
+                      placeholder="Enter 4-digit PIN"
+                    />
+                  </Form.Item>
+                </>
+              )}
+
+              {/* Mobile Money Payment Options */}
+              {paymentMethod === 'mobile_money' && (
+                <>
+                  <Alert
+                    message="Mobile Money Payment"
+                    description="You will receive a notification on your phone to confirm the payment. Enter your meter ID to earn gas rewards from this purchase."
+                    type="info"
+                    showIcon
+                    style={{ marginBottom: 16 }}
+                  />
+
+                  <Form.Item
+                    name="mobile_provider"
+                    label="Mobile Money Provider"
+                    rules={[{ required: true, message: 'Please select a provider' }]}
+                  >
+                    <Select size="large" placeholder="Select your mobile money provider">
+                      <Select.Option value="mtn">
+                        <Space>
+                          <MobileOutlined style={{ color: '#ffcc00' }} />
+                          <span>MTN Mobile Money</span>
+                        </Space>
+                      </Select.Option>
+                      <Select.Option value="airtel">
+                        <Space>
+                          <MobileOutlined style={{ color: '#ff0000' }} />
+                          <span>Airtel Money</span>
+                        </Space>
+                      </Select.Option>
+                    </Select>
+                  </Form.Item>
+
+                  <Form.Item
+                    name="mobile_number"
+                    label="Mobile Number"
+                    rules={[
+                      { required: true, message: 'Please enter your phone number' },
+                      { pattern: /^\+250\d{9}$/, message: 'Enter valid Rwanda phone number (+250...)' },
+                    ]}
+                  >
+                    <Input
+                      size="large"
+                      prefix={<PhoneOutlined />}
+                      placeholder="+250788123456"
+                      maxLength={13}
+                    />
+                  </Form.Item>
+
+                  <Form.Item
+                    name="meter_id_rewards"
+                    label="Meter ID for Gas Rewards"
+                    rules={[{ required: true, message: 'Please enter your meter ID' }]}
+                  >
+                    <Input
+                      size="large"
+                      prefix={<FireOutlined />}
+                      placeholder="Enter your meter number"
+                    />
+                  </Form.Item>
+                </>
+              )}
+
+              <Divider style={{ margin: '16px 0' }} />
+
+              <Form.Item style={{ marginBottom: 0 }}>
+                <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                  <Button size="large" onClick={() => setShowCheckoutModal(false)} disabled={processingPayment}>
+                    Cancel
+                  </Button>
+                  <Button
+                    type="primary"
+                    size="large"
+                    htmlType="submit"
+                    loading={processingPayment}
+                    icon={<CheckCircleOutlined />}
+                    style={{ minWidth: 200 }}
+                  >
+                    {processingPayment ? 'Processing...' : `Pay ${formatPrice(cartTotal)}`}
+                  </Button>
+                </Space>
+              </Form.Item>
+            </Form>
+          </>
+        )}
+      </Modal>
 
       {/* Cart Drawer */}
       <Drawer
