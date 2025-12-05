@@ -19,6 +19,8 @@ import ConsumerWalletPage from './pages/consumer/WalletPage';
 import ConsumerProfilePage from './pages/consumer/ProfilePage';
 import GasPage from './pages/consumer/GasPage';
 import RewardsPage from './pages/consumer/RewardsPage';
+import CreditLedgerPage from './pages/consumer/CreditLedgerPage';
+import CreditTransactionsPage from './pages/consumer/CreditTransactionsPage';
 
 // Employee Pages
 import EmployeeDashboardPage from './pages/employee/DashboardPage';
@@ -119,6 +121,8 @@ function App() {
               <Route path="wallet" element={<ConsumerWalletPage />} />
               <Route path="gas" element={<GasPage />} />
               <Route path="rewards" element={<RewardsPage />} />
+              <Route path="loans/ledger" element={<CreditLedgerPage />} />
+              <Route path="loans/transactions" element={<CreditTransactionsPage />} />
               <Route path="profile" element={<ConsumerProfilePage />} />
             </Route>
 
