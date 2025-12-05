@@ -19,6 +19,7 @@ import {
   Alert,
   Descriptions,
   Timeline,
+  Tabs,
 } from 'antd';
 import {
   ShoppingOutlined,
@@ -112,6 +113,8 @@ const cancelReasons = [
   'Other',
 ];
 
+type OrderFilter = 'all' | 'active' | 'completed' | 'credit';
+
 export const OrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -121,6 +124,7 @@ export const OrdersPage: React.FC = () => {
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [cancelForm] = Form.useForm();
   const [cancelling, setCancelling] = useState(false);
+  const [filter, setFilter] = useState<OrderFilter>('all');
 
   useEffect(() => {
     fetchOrders();
@@ -218,7 +222,7 @@ export const OrdersPage: React.FC = () => {
         vehicle: 'RAD 456B (Van)',
         shipped_at: '2024-11-29T15:00:00Z',
       },
-      payment_method: 'Credit Balance',
+      payment_method: 'card_credit',
       meter_id: 'N/A',
     },
     {
@@ -295,6 +299,68 @@ export const OrdersPage: React.FC = () => {
       cancelled_by: 'retailer',
       payment_method: 'Dashboard Balance',
       meter_id: 'MTR-001234',
+    },
+    {
+      id: '6',
+      order_number: 'ORD-2024-006',
+      status: 'delivered',
+      retailer: {
+        id: 'ret_004',
+        name: 'Kigali Fresh Market',
+        location: 'Kimironko, Kigali',
+        phone: '+250 788 456 789',
+      },
+      items: [
+        { id: 'i11', product_id: '12', product_name: 'Beans 2kg', quantity: 2, unit_price: 3000, total: 6000 },
+        { id: 'i12', product_id: '13', product_name: 'Maize Flour 5kg', quantity: 1, unit_price: 7000, total: 7000 },
+      ],
+      subtotal: 13000,
+      delivery_fee: 500,
+      total: 13500,
+      delivery_address: 'Kigali, Remera, KG 7 Ave',
+      created_at: '2024-12-02T11:00:00Z',
+      updated_at: '2024-12-02T16:00:00Z',
+      payment_method: 'food_loan',
+      meter_id: 'N/A',
+      packager: {
+        name: 'Alice Uwera',
+        phone: '+250 788 222 333',
+        packed_at: '2024-12-02T12:00:00Z',
+      },
+      shipper: {
+        name: 'James Mugisha',
+        phone: '+250 788 444 555',
+        vehicle: 'RAC 789C (Motorcycle)',
+        shipped_at: '2024-12-02T14:00:00Z',
+      },
+    },
+    {
+      id: '7',
+      order_number: 'ORD-2024-007',
+      status: 'processing',
+      retailer: {
+        id: 'ret_003',
+        name: 'City Supermarket',
+        location: 'City Center, Kigali',
+        phone: '+250 788 567 890',
+      },
+      items: [
+        { id: 'i13', product_id: '14', product_name: 'Cooking Oil 2L', quantity: 3, unit_price: 5000, total: 15000 },
+        { id: 'i14', product_id: '15', product_name: 'Salt 1kg', quantity: 2, unit_price: 800, total: 1600 },
+      ],
+      subtotal: 16600,
+      delivery_fee: 800,
+      total: 17400,
+      delivery_address: 'Kigali, Kacyiru, KG 9 Ave',
+      created_at: '2024-12-03T09:00:00Z',
+      updated_at: '2024-12-03T10:00:00Z',
+      payment_method: 'food_loan',
+      meter_id: 'N/A',
+      packager: {
+        name: 'Emmanuel Nsengiyumva',
+        phone: '+250 788 666 777',
+        packed_at: '2024-12-03T10:30:00Z',
+      },
     },
   ];
 
@@ -379,6 +445,39 @@ export const OrdersPage: React.FC = () => {
     // TODO: Implement actual PDF download
   };
 
+  const getPaymentMethodBadge = (paymentMethod: string | undefined) => {
+    if (!paymentMethod) return null;
+
+    if (paymentMethod === 'card_credit') {
+      return <Tag color="purple">Paid on Credit (Card)</Tag>;
+    } else if (paymentMethod === 'food_loan') {
+      return <Tag color="purple">Paid on Credit (Loan)</Tag>;
+    }
+    return <Tag color="blue">{paymentMethod}</Tag>;
+  };
+
+  const getFilteredOrders = () => {
+    let filtered = orders;
+
+    switch (filter) {
+      case 'active':
+        filtered = orders.filter(o => ['pending', 'confirmed', 'processing', 'shipped'].includes(o.status));
+        break;
+      case 'completed':
+        filtered = orders.filter(o => o.status === 'delivered');
+        break;
+      case 'credit':
+        filtered = orders.filter(o => o.payment_method === 'card_credit' || o.payment_method === 'food_loan');
+        break;
+      default:
+        filtered = orders;
+    }
+
+    return filtered;
+  };
+
+  const filteredOrders = getFilteredOrders();
+
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: 100 }}>
@@ -421,8 +520,33 @@ export const OrdersPage: React.FC = () => {
         </Row>
       </div>
 
+      {/* Filter Tabs */}
+      <Tabs
+        activeKey={filter}
+        onChange={(key) => setFilter(key as OrderFilter)}
+        style={{ marginBottom: 16 }}
+        items={[
+          {
+            key: 'all',
+            label: `All Orders (${orders.length})`,
+          },
+          {
+            key: 'active',
+            label: `Active (${orders.filter(o => ['pending', 'confirmed', 'processing', 'shipped'].includes(o.status)).length})`,
+          },
+          {
+            key: 'completed',
+            label: `Completed (${orders.filter(o => o.status === 'delivered').length})`,
+          },
+          {
+            key: 'credit',
+            label: `Credit Orders (${orders.filter(o => o.payment_method === 'card_credit' || o.payment_method === 'food_loan').length})`,
+          },
+        ]}
+      />
+
       {/* Orders List */}
-      {orders.length === 0 ? (
+      {filteredOrders.length === 0 ? (
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
           description="No orders yet"
@@ -434,7 +558,7 @@ export const OrdersPage: React.FC = () => {
         </Empty>
       ) : (
         <Space direction="vertical" style={{ width: '100%' }} size={16}>
-          {orders.filter(order => order && order.status).map((order) => (
+          {filteredOrders.filter(order => order && order.status).map((order) => (
             <Card
               key={order.id}
               hoverable
@@ -465,9 +589,12 @@ export const OrdersPage: React.FC = () => {
 
                 <Col xs={24} md={6}>
                   <Space direction="vertical" size={4}>
-                    <Tag color={statusColors[order.status] || 'default'} style={{ marginRight: 0 }}>
-                      {order.status?.charAt(0).toUpperCase() + order.status?.slice(1) || 'Unknown'}
-                    </Tag>
+                    <Space>
+                      <Tag color={statusColors[order.status] || 'default'} style={{ marginRight: 0 }}>
+                        {order.status?.charAt(0).toUpperCase() + order.status?.slice(1) || 'Unknown'}
+                      </Tag>
+                      {getPaymentMethodBadge(order.payment_method)}
+                    </Space>
                     {order.status === 'shipped' && order.estimated_delivery && (
                       <Text type="secondary" style={{ fontSize: 12 }}>
                         Est. delivery: {formatDate(order.estimated_delivery)}
