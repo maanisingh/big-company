@@ -58,6 +58,9 @@ interface RewardTransaction {
   points: number;
   description: string;
   created_at: string;
+  meter_id?: string;
+  order_amount?: number;
+  order_id?: string;
   metadata?: {
     gas_amount?: number;
     order_id?: string;
@@ -150,15 +153,31 @@ export const RewardsPage: React.FC = () => {
           id: '1',
           type: 'earned',
           points: 50,
-          description: 'Gas top-up - 5,000 RWF',
+          description: 'Shopping rewards',
           created_at: new Date(Date.now() - 3600000).toISOString(),
+          meter_id: 'MTR-001234',
+          order_amount: 15000,
+          order_id: 'ORD-2024-001',
         },
         {
           id: '2',
-          type: 'bonus',
-          points: 100,
-          description: 'Weekly shopping bonus',
+          type: 'earned',
+          points: 120,
+          description: 'Shopping rewards',
           created_at: new Date(Date.now() - 86400000).toISOString(),
+          meter_id: 'MTR-001234',
+          order_amount: 35000,
+          order_id: 'ORD-2024-002',
+        },
+        {
+          id: '3',
+          type: 'earned',
+          points: 80,
+          description: 'Shopping rewards',
+          created_at: new Date(Date.now() - 172800000).toISOString(),
+          meter_id: 'MTR-005678',
+          order_amount: 22000,
+          order_id: 'ORD-2024-003',
         },
       ];
 
@@ -288,26 +307,32 @@ export const RewardsPage: React.FC = () => {
 
   const transactionColumns = [
     {
-      title: 'Type',
-      dataIndex: 'type',
-      key: 'type',
-      render: (type: string) => {
-        const config = transactionTypeConfig[type as keyof typeof transactionTypeConfig] || transactionTypeConfig.earned;
-        return <Tag color={config.color}>{config.label}</Tag>;
-      },
+      title: 'Date',
+      dataIndex: 'created_at',
+      key: 'created_at',
+      render: (date: string) => formatDate(date),
+      width: 150,
     },
     {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
+      title: 'Meter ID',
+      dataIndex: 'meter_id',
+      key: 'meter_id',
+      render: (meterId: string) => meterId || 'N/A',
+      width: 120,
     },
     {
-      title: 'Gas Amount',
+      title: 'Order Amount',
+      dataIndex: 'order_amount',
+      key: 'order_amount',
+      render: (amount: number) => amount ? `${amount.toLocaleString()} RWF` : 'N/A',
+      width: 120,
+    },
+    {
+      title: 'Gas Amount (M³)',
       dataIndex: 'points',
       key: 'points',
       render: (points: number, record: RewardTransaction) => {
         const isPositive = ['earned', 'bonus', 'referral'].includes(record.type);
-        // Convert points to M³ (1 point = 0.01 M³)
         const gasAmount = (points * 0.01).toFixed(2);
         return (
           <Text strong style={{ color: isPositive ? '#52c41a' : '#ff4d4f' }}>
@@ -316,12 +341,18 @@ export const RewardsPage: React.FC = () => {
           </Text>
         );
       },
+      width: 130,
     },
     {
-      title: 'Date',
-      dataIndex: 'created_at',
-      key: 'created_at',
-      render: (date: string) => formatDate(date),
+      title: 'Order ID',
+      dataIndex: 'order_id',
+      key: 'order_id',
+      render: (orderId: string) => orderId ? (
+        <Button type="link" size="small" onClick={() => message.info(`View invoice for ${orderId}`)}>
+          {orderId}
+        </Button>
+      ) : 'N/A',
+      width: 130,
     },
   ];
 
