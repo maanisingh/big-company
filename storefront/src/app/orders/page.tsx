@@ -12,8 +12,8 @@ import {
   ChevronRight,
   Loader2,
   ShoppingBag,
-  Filter,
-  RefreshCw
+  RefreshCw,
+  AlertCircle
 } from 'lucide-react';
 import { ordersApi } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
@@ -29,7 +29,7 @@ interface OrderItem {
 interface Order {
   id: string;
   display_id: string;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  status: 'pending' | 'packaged' | 'shipped' | 'delivered' | 'cancelled';
   payment_status: 'awaiting' | 'captured' | 'refunded';
   fulfillment_status: 'not_fulfilled' | 'partially_fulfilled' | 'fulfilled' | 'shipped' | 'delivered';
   total: number;
@@ -38,11 +38,25 @@ interface Order {
   updated_at: string;
   retailer?: { name: string };
   shipping_address?: { address_1: string };
+  packager?: {
+    name: string;
+    contact: string;
+    packed_at: string;
+  };
+  shipper?: {
+    name: string;
+    contact: string;
+    shipped_at: string;
+    expected_delivery: string;
+  };
+  cancellation_reason?: string;
+  cancelled_by?: 'customer' | 'retailer';
+  can_cancel: boolean;
 }
 
 const statusConfig = {
   pending: { label: 'Pending', color: 'bg-yellow-100 text-yellow-700', icon: Clock },
-  processing: { label: 'Processing', color: 'bg-blue-100 text-blue-700', icon: Package },
+  packaged: { label: 'Packaged', color: 'bg-blue-100 text-blue-700', icon: Package },
   shipped: { label: 'Shipped', color: 'bg-purple-100 text-purple-700', icon: Truck },
   delivered: { label: 'Delivered', color: 'bg-green-100 text-green-700', icon: CheckCircle },
   cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-700', icon: XCircle },
@@ -92,7 +106,7 @@ export default function OrdersPage() {
   const filteredOrders = orders.filter((order) => {
     if (filterStatus === 'all') return true;
     if (filterStatus === 'active') {
-      return ['pending', 'processing', 'shipped'].includes(order.status);
+      return ['pending', 'packaged', 'shipped'].includes(order.status);
     }
     if (filterStatus === 'completed') {
       return ['delivered', 'cancelled'].includes(order.status);
@@ -216,10 +230,26 @@ export default function OrdersPage() {
                       <p className="font-semibold">Order #{order.display_id || order.id.slice(0, 8)}</p>
                       <p className="text-sm text-gray-500">{getRelativeTime(order.created_at)}</p>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${config.color}`}>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 ${config.color}`}>
+                      <StatusIcon className="w-4 h-4" />
                       {config.label}
                     </span>
                   </div>
+
+                  {/* Cancellation Notice */}
+                  {order.status === 'cancelled' && order.cancellation_reason && (
+                    <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-xs font-medium text-red-700">
+                            Cancelled by {order.cancelled_by === 'retailer' ? 'Retailer' : 'You'}
+                          </p>
+                          <p className="text-xs text-red-600">{order.cancellation_reason}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Order Items Preview */}
@@ -267,13 +297,12 @@ export default function OrdersPage() {
                 </div>
 
                 {/* Order Progress for active orders */}
-                {['pending', 'processing', 'shipped'].includes(order.status) && (
+                {['pending', 'packaged', 'shipped'].includes(order.status) && (
                   <div className="px-4 pb-4">
                     <div className="flex items-center gap-1">
-                      {['pending', 'processing', 'shipped', 'delivered'].map((step, index) => {
-                        const stepIndex = ['pending', 'processing', 'shipped', 'delivered'].indexOf(order.status);
+                      {['pending', 'packaged', 'shipped', 'delivered'].map((step, index) => {
+                        const stepIndex = ['pending', 'packaged', 'shipped', 'delivered'].indexOf(order.status);
                         const isCompleted = index <= stepIndex;
-                        const isCurrent = index === stepIndex;
 
                         return (
                           <div
@@ -287,7 +316,7 @@ export default function OrdersPage() {
                     </div>
                     <div className="flex justify-between mt-2 text-xs text-gray-500">
                       <span>Placed</span>
-                      <span>Processing</span>
+                      <span>Packaged</span>
                       <span>Shipped</span>
                       <span>Delivered</span>
                     </div>

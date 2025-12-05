@@ -1,13 +1,50 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CreditCard, Plus, Trash2, Check, Nfc } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import {
+  CreditCard,
+  Plus,
+  Trash2,
+  Check,
+  Nfc,
+  AlertCircle,
+  FileText,
+  Loader2,
+  ExternalLink
+} from 'lucide-react';
 import { nfcApi } from '@/lib/api';
+import { useAuthStore } from '@/lib/store';
+
+interface CardTransaction {
+  id: string;
+  amount: number;
+  type: 'payment' | 'refund';
+  description: string;
+  order_id?: string;
+  created_at: string;
+}
+
+interface NFCCard {
+  id: string;
+  card_uid: string;
+  card_alias?: string;
+  dashboard_id: string;
+  is_active: boolean;
+  linked_at: string;
+  last_used_at?: string;
+  transactions: CardTransaction[];
+}
 
 export default function CardsPage() {
-  const [cards, setCards] = useState<any[]>([]);
+  const router = useRouter();
+  const { isAuthenticated } = useAuthStore();
+
+  const [cards, setCards] = useState<NFCCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
+  const [showTransactions, setShowTransactions] = useState<string | null>(null);
   const [cardUid, setCardUid] = useState('');
   const [cardAlias, setCardAlias] = useState('');
   const [pin, setPin] = useState('');
@@ -16,15 +53,25 @@ export default function CardsPage() {
   const [nfcSupported, setNfcSupported] = useState(false);
   const [scanning, setScanning] = useState(false);
 
+  // Redirect if not authenticated
   useEffect(() => {
-    fetchCards();
+    if (!isAuthenticated) {
+      router.push('/auth/login?redirect=/cards');
+    }
+  }, [isAuthenticated, router]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchCards();
+    }
     // Check if Web NFC is supported
     if ('NDEFReader' in window) {
       setNfcSupported(true);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   const fetchCards = async () => {
+    setLoading(true);
     try {
       const data = await nfcApi.getCards();
       setCards(data.cards || []);
@@ -59,6 +106,11 @@ export default function CardsPage() {
   };
 
   const handleAddCard = async () => {
+    if (cards.length >= 3) {
+      alert('You can link a maximum of 3 cards. Please remove a card before adding a new one.');
+      return;
+    }
+
     if (!cardUid || !pin || pin.length !== 4) {
       alert('Please enter card UID and a 4-digit PIN');
       return;
@@ -77,6 +129,10 @@ export default function CardsPage() {
   };
 
   const handleRemoveCard = async (cardUid: string) => {
+    if (!confirm('Are you sure you want to remove this card from your account?')) {
+      return;
+    }
+
     const cardPin = prompt('Enter your 4-digit card PIN to confirm removal:');
     if (!cardPin || cardPin.length !== 4) {
       alert('Please enter a valid 4-digit PIN');
@@ -101,114 +157,217 @@ export default function CardsPage() {
     fetchCards();
   };
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-RW', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-lg mx-auto p-4 space-y-6">
+    <div className="min-h-screen bg-gray-50 pb-24">
       {/* Header */}
-      <div className="card bg-gradient-to-br from-gray-800 to-gray-900 text-white">
-        <div className="flex items-center gap-4">
-          <CreditCard className="w-12 h-12" />
-          <div>
-            <h1 className="text-xl font-semibold">BIG Shop Cards</h1>
-            <p className="text-sm opacity-80">Link your NFC card for tap-to-pay</p>
-          </div>
+      <div className="bg-white sticky top-14 z-40 border-b border-gray-200">
+        <div className="max-w-lg mx-auto px-4 py-3">
+          <h1 className="text-xl font-semibold">NFC Cards</h1>
+          <p className="text-sm text-gray-600">Tap to pay at BIG stores</p>
         </div>
-        <button
-          onClick={() => setShowAdd(true)}
-          className="mt-4 w-full bg-white text-gray-800 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
-        >
-          <Plus className="w-5 h-5" />
-          Link New Card
-        </button>
       </div>
 
-      {/* How It Works */}
-      <section className="card bg-blue-50 border border-blue-200">
-        <h3 className="font-semibold text-blue-800 mb-2">How It Works</h3>
-        <ol className="text-sm text-blue-700 space-y-2">
-          <li>1. Get a BIG Company NFC card from any retailer</li>
-          <li>2. Link the card to your account here</li>
-          <li>3. Set a 4-digit PIN for security</li>
-          <li>4. Tap your card at any BIG retailer POS to pay</li>
-        </ol>
-      </section>
-
-      {/* My Cards */}
-      <section>
-        <h2 className="text-lg font-semibold mb-3">My Cards</h2>
-        {loading ? (
-          <div className="card text-center py-8 text-gray-500">Loading...</div>
-        ) : cards.length === 0 ? (
-          <div className="card text-center py-8">
-            <CreditCard className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500">No cards linked yet</p>
-            <button onClick={() => setShowAdd(true)} className="btn-primary mt-4">
-              Link Your First Card
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {cards.map((card) => (
-              <div key={card.id} className="card">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-gray-800 p-3 rounded-lg">
-                      <CreditCard className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="font-semibold">{card.card_alias || 'My Card'}</p>
-                      <p className="text-sm text-gray-500">ID: {card.dashboard_id}</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handleRemoveCard(card.card_uid)}
-                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                </div>
-                <div className="mt-3 flex items-center justify-between text-sm">
-                  <span
-                    className={`px-2 py-1 rounded-full ${
-                      card.is_active
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-red-100 text-red-700'
-                    }`}
-                  >
-                    {card.is_active ? 'Active' : 'Inactive'}
-                  </span>
-                  <span className="text-gray-500">
-                    Linked: {new Date(card.linked_at).toLocaleDateString()}
-                  </span>
-                </div>
-                {card.last_used_at && (
-                  <p className="text-xs text-gray-400 mt-2">
-                    Last used: {new Date(card.last_used_at).toLocaleDateString()}
-                  </p>
-                )}
-              </div>
-            ))}
+      <div className="max-w-lg mx-auto p-4 space-y-4">
+        {/* Card Limit Notice */}
+        {cards.length >= 3 && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-yellow-800">Maximum cards reached</p>
+              <p className="text-xs text-yellow-700 mt-1">
+                You've linked the maximum of 3 cards. Remove a card to add a new one.
+              </p>
+            </div>
           </div>
         )}
-      </section>
+
+        {/* Header Card */}
+        <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 text-white shadow-lg">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="bg-white/20 p-3 rounded-xl">
+              <CreditCard className="w-8 h-8" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold">BIG Shop Cards</h2>
+              <p className="text-sm opacity-80">Link your NFC card for tap-to-pay</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setShowAdd(true)}
+            disabled={cards.length >= 3}
+            className="w-full bg-white text-gray-800 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Plus className="w-5 h-5" />
+            Link New Card {cards.length > 0 && `(${cards.length}/3)`}
+          </button>
+        </div>
+
+        {/* How It Works */}
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <h3 className="font-semibold text-blue-800 mb-2">How It Works</h3>
+          <ol className="text-sm text-blue-700 space-y-2">
+            <li>1. Get a BIG Company NFC card from any retailer</li>
+            <li>2. Link the card to your account here (max 3 cards)</li>
+            <li>3. Set a 4-digit PIN for security</li>
+            <li>4. Tap your card at any BIG retailer POS to pay</li>
+          </ol>
+        </div>
+
+        {/* My Cards */}
+        <div>
+          <h2 className="text-lg font-semibold mb-3">
+            My Cards {cards.length > 0 && `(${cards.length}/3)`}
+          </h2>
+          {cards.length === 0 ? (
+            <div className="bg-white rounded-xl p-8 text-center shadow-sm">
+              <CreditCard className="w-16 h-16 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500 mb-4">No cards linked yet</p>
+              <button
+                onClick={() => setShowAdd(true)}
+                className="bg-primary-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors"
+              >
+                Link Your First Card
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {cards.map((card) => (
+                <div key={card.id} className="bg-white rounded-xl shadow-sm overflow-hidden">
+                  {/* Card Info */}
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-gray-800 p-3 rounded-lg">
+                          <CreditCard className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-semibold">{card.card_alias || 'My Card'}</p>
+                          <p className="text-sm text-gray-500 font-mono">ID: {card.dashboard_id}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleRemoveCard(card.card_uid)}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Remove card"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between text-sm">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          card.is_active
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-red-100 text-red-700'
+                        }`}
+                      >
+                        {card.is_active ? 'Active' : 'Inactive'}
+                      </span>
+                      <span className="text-gray-500 text-xs">
+                        Linked: {new Date(card.linked_at).toLocaleDateString()}
+                      </span>
+                    </div>
+
+                    {card.last_used_at && (
+                      <p className="text-xs text-gray-400 mt-2">
+                        Last used: {formatDate(card.last_used_at)}
+                      </p>
+                    )}
+
+                    {/* View Transactions Button */}
+                    {card.transactions && card.transactions.length > 0 && (
+                      <button
+                        onClick={() => setShowTransactions(card.id === showTransactions ? null : card.id)}
+                        className="mt-3 w-full flex items-center justify-center gap-2 text-sm text-primary-600 hover:text-primary-700 font-medium py-2 border border-primary-200 rounded-lg hover:bg-primary-50 transition-colors"
+                      >
+                        <FileText className="w-4 h-4" />
+                        {showTransactions === card.id ? 'Hide' : 'View'} Transactions ({card.transactions.length})
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Transactions List */}
+                  {showTransactions === card.id && card.transactions && card.transactions.length > 0 && (
+                    <div className="border-t border-gray-100">
+                      <div className="p-3 bg-gray-50">
+                        <h4 className="text-sm font-semibold text-gray-700">Recent Transactions</h4>
+                      </div>
+                      <div className="divide-y divide-gray-100">
+                        {card.transactions.map((tx) => (
+                          <div key={tx.id} className="p-3 hover:bg-gray-50 transition-colors">
+                            <div className="flex items-center justify-between mb-2">
+                              <div>
+                                <p className="text-sm font-medium">{tx.description}</p>
+                                <p className="text-xs text-gray-500">{formatDate(tx.created_at)}</p>
+                              </div>
+                              <span className={`text-sm font-semibold ${
+                                tx.type === 'payment' ? 'text-red-600' : 'text-green-600'
+                              }`}>
+                                {tx.type === 'payment' ? '-' : '+'}{tx.amount.toLocaleString()} RWF
+                              </span>
+                            </div>
+                            {tx.order_id && (
+                              <Link
+                                href={`/orders/${tx.order_id}`}
+                                className="flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 font-medium"
+                              >
+                                <FileText className="w-3 h-3" />
+                                View Invoice
+                                <ExternalLink className="w-3 h-3" />
+                              </Link>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Add Card Modal */}
       {showAdd && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
-          <div className="bg-white w-full rounded-t-2xl p-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center sm:justify-center">
+          <div className="bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
             {result ? (
               <div className="text-center py-8">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Check className="w-8 h-8 text-green-600" />
                 </div>
-                <h2 className="text-xl font-semibold">Card Linked!</h2>
+                <h2 className="text-xl font-semibold mb-2">Card Linked!</h2>
+                <p className="text-sm text-gray-600 mb-4">Your NFC card has been successfully linked to your account</p>
                 <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600">Dashboard ID</p>
+                  <p className="text-sm text-gray-600 mb-1">Dashboard ID</p>
                   <p className="font-mono font-bold text-lg">{result.card.dashboard_id}</p>
+                  <p className="text-xs text-gray-500 mt-2">Write this ID on your card for reference</p>
                 </div>
-                <p className="text-sm text-gray-500 mt-4">
-                  Write this ID on your card for reference.
-                </p>
-                <button onClick={resetForm} className="btn-primary w-full mt-6 py-3">
+                <button
+                  onClick={resetForm}
+                  className="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors mt-6"
+                >
                   Done
                 </button>
               </div>
@@ -216,7 +375,10 @@ export default function CardsPage() {
               <>
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-xl font-semibold">Link NFC Card</h2>
-                  <button onClick={resetForm} className="text-gray-500">
+                  <button
+                    onClick={resetForm}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
                     Cancel
                   </button>
                 </div>
@@ -226,7 +388,7 @@ export default function CardsPage() {
                   <button
                     onClick={scanNfcCard}
                     disabled={scanning}
-                    className="w-full mb-6 p-6 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center gap-3 hover:border-primary-500 hover:bg-primary-50 transition-colors"
+                    className="w-full mb-6 p-6 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center gap-3 hover:border-primary-500 hover:bg-primary-50 transition-colors disabled:opacity-50"
                   >
                     <Nfc className={`w-10 h-10 ${scanning ? 'text-primary-500 animate-pulse' : 'text-gray-400'}`} />
                     <span className="font-medium">
@@ -246,7 +408,7 @@ export default function CardsPage() {
                       value={cardUid}
                       onChange={(e) => setCardUid(e.target.value)}
                       placeholder="Enter card UID"
-                      className="input"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   </div>
 
@@ -259,7 +421,7 @@ export default function CardsPage() {
                       value={cardAlias}
                       onChange={(e) => setCardAlias(e.target.value)}
                       placeholder="e.g., My Blue Card"
-                      className="input"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   </div>
 
@@ -273,7 +435,7 @@ export default function CardsPage() {
                       onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
                       placeholder="••••"
                       maxLength={4}
-                      className="input text-center text-2xl tracking-widest"
+                      className="w-full p-3 border border-gray-300 rounded-lg text-center text-2xl tracking-widest focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                     <p className="text-sm text-gray-500 mt-1">
                       You'll enter this PIN when paying at retailers
@@ -283,9 +445,16 @@ export default function CardsPage() {
                   <button
                     onClick={handleAddCard}
                     disabled={!cardUid || pin.length !== 4 || processing}
-                    className="btn-primary w-full py-3"
+                    className="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    {processing ? 'Linking...' : 'Link Card'}
+                    {processing ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Linking...
+                      </>
+                    ) : (
+                      'Link Card'
+                    )}
                   </button>
                 </div>
               </>

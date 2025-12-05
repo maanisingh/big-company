@@ -22,7 +22,9 @@ import {
 import { ordersApi, walletApi, loansApi } from '@/lib/api';
 import { useCartStore, useAuthStore, useWalletStore } from '@/lib/store';
 
-type PaymentMethod = 'wallet' | 'cash_on_delivery' | 'food_loan';
+type PaymentMethod = 'wallet' | 'mobile_money';
+type WalletType = 'dashboard' | 'credit';
+type MobileProvider = 'mtn' | 'airtel';
 
 interface LoanEligibility {
   eligible: boolean;
@@ -45,9 +47,15 @@ export default function CheckoutPage() {
 
   // Form state
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('wallet');
+  const [walletType, setWalletType] = useState<WalletType>('dashboard');
+  const [mobileProvider, setMobileProvider] = useState<MobileProvider>('mtn');
+  const [mobileNumber, setMobileNumber] = useState('');
+  const [meterId, setMeterId] = useState('');
+  const [pin, setPin] = useState('');
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [notes, setNotes] = useState('');
-  const [loanEligibility, setLoanEligibility] = useState<LoanEligibility | null>(null);
+  const [dashboardBalance, setDashboardBalance] = useState(0);
+  const [creditBalance, setCreditBalance] = useState(0);
 
   // Get selected retailer from localStorage
   const [retailerId, setRetailerId] = useState<string>('');
@@ -67,17 +75,15 @@ export default function CheckoutPage() {
     }
   }, [items, success, router]);
 
-  // Fetch wallet balance and loan eligibility
+  // Fetch wallet balances
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [walletData, loanData] = await Promise.all([
-          walletApi.getBalance(),
-          loansApi.getEligibility(),
-        ]);
-        setBalance(walletData.balance);
-        setLoanEligibility(loanData);
+        const walletData = await walletApi.getBalance();
+        setDashboardBalance(walletData.dashboardBalance || 0);
+        setCreditBalance(walletData.creditBalance || 0);
+        setBalance(walletData.dashboardBalance + walletData.creditBalance);
       } catch (error) {
         console.error('Failed to fetch checkout data:', error);
       } finally {
@@ -125,12 +131,16 @@ export default function CheckoutPage() {
   // Check if payment method is valid
   const isPaymentValid = () => {
     if (paymentMethod === 'wallet') {
-      return balance >= orderTotal;
+      if (walletType === 'dashboard') {
+        return dashboardBalance >= orderTotal && meterId && pin;
+      } else {
+        return creditBalance >= orderTotal && pin;
+      }
     }
-    if (paymentMethod === 'food_loan') {
-      return loanEligibility?.eligible && (loanEligibility?.available_credit || 0) >= orderTotal;
+    if (paymentMethod === 'mobile_money') {
+      return mobileNumber && meterId && pin;
     }
-    return true; // cash_on_delivery is always valid
+    return false;
   };
 
   // Handle order submission
@@ -147,6 +157,13 @@ export default function CheckoutPage() {
           quantity: item.quantity,
         })),
         paymentMethod,
+        paymentDetails: {
+          walletType: paymentMethod === 'wallet' ? walletType : undefined,
+          mobileProvider: paymentMethod === 'mobile_money' ? mobileProvider : undefined,
+          mobileNumber: paymentMethod === 'mobile_money' ? mobileNumber : undefined,
+          meterId,
+          pin,
+        },
         deliveryAddress: deliveryAddress || undefined,
         notes: notes || undefined,
       };
@@ -160,6 +177,11 @@ export default function CheckoutPage() {
 
         // Update wallet balance if paid with wallet
         if (paymentMethod === 'wallet') {
+          if (walletType === 'dashboard') {
+            setDashboardBalance(dashboardBalance - orderTotal);
+          } else {
+            setCreditBalance(creditBalance - orderTotal);
+          }
           setBalance(balance - orderTotal);
         }
       } else {
@@ -320,83 +342,181 @@ export default function CheckoutPage() {
         {/* Payment Method */}
         <div className="bg-white rounded-xl p-4 shadow-sm">
           <h2 className="font-semibold mb-3">Payment Method</h2>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {/* Wallet Payment */}
-            <button
-              type="button"
-              onClick={() => setPaymentMethod('wallet')}
-              className={`w-full p-4 rounded-lg border-2 transition-all ${
-                paymentMethod === 'wallet'
-                  ? 'border-primary-500 bg-primary-50'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${paymentMethod === 'wallet' ? 'bg-primary-100' : 'bg-gray-100'}`}>
-                  <Wallet className={`w-5 h-5 ${paymentMethod === 'wallet' ? 'text-primary-600' : 'text-gray-600'}`} />
-                </div>
-                <div className="flex-1 text-left">
-                  <p className="font-medium">BIG Wallet</p>
-                  <p className="text-sm text-gray-500">Balance: {formatPrice(balance)}</p>
-                </div>
-                {balance < orderTotal && (
-                  <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">
-                    Insufficient
-                  </span>
-                )}
-              </div>
-            </button>
-
-            {/* Food Loan */}
-            {loanEligibility?.eligible && (
+            <div className="border-2 border-primary-500 rounded-lg overflow-hidden">
               <button
                 type="button"
-                onClick={() => setPaymentMethod('food_loan')}
-                className={`w-full p-4 rounded-lg border-2 transition-all ${
-                  paymentMethod === 'food_loan'
-                    ? 'border-primary-500 bg-primary-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                onClick={() => setPaymentMethod('wallet')}
+                className={`w-full p-4 transition-all ${
+                  paymentMethod === 'wallet' ? 'bg-primary-50' : 'bg-white hover:bg-gray-50'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${paymentMethod === 'food_loan' ? 'bg-primary-100' : 'bg-gray-100'}`}>
-                    <FileText className={`w-5 h-5 ${paymentMethod === 'food_loan' ? 'text-primary-600' : 'text-gray-600'}`} />
+                  <div className={`p-2 rounded-lg ${paymentMethod === 'wallet' ? 'bg-primary-100' : 'bg-gray-100'}`}>
+                    <Wallet className={`w-5 h-5 ${paymentMethod === 'wallet' ? 'text-primary-600' : 'text-gray-600'}`} />
                   </div>
                   <div className="flex-1 text-left">
-                    <p className="font-medium">Food Loan</p>
+                    <p className="font-medium">BIG Wallet</p>
                     <p className="text-sm text-gray-500">
-                      Available: {formatPrice(loanEligibility.available_credit)}
+                      Dashboard: {formatPrice(dashboardBalance)} | Credit: {formatPrice(creditBalance)}
                     </p>
                   </div>
-                  {(loanEligibility.available_credit || 0) < orderTotal && (
-                    <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">
-                      Insufficient
-                    </span>
-                  )}
                 </div>
               </button>
-            )}
 
-            {/* Cash on Delivery */}
-            <button
-              type="button"
-              onClick={() => setPaymentMethod('cash_on_delivery')}
-              className={`w-full p-4 rounded-lg border-2 transition-all ${
-                paymentMethod === 'cash_on_delivery'
-                  ? 'border-primary-500 bg-primary-50'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${paymentMethod === 'cash_on_delivery' ? 'bg-primary-100' : 'bg-gray-100'}`}>
-                  <Banknote className={`w-5 h-5 ${paymentMethod === 'cash_on_delivery' ? 'text-primary-600' : 'text-gray-600'}`} />
+              {/* Wallet Sub-options */}
+              {paymentMethod === 'wallet' && (
+                <div className="p-4 bg-gray-50 border-t space-y-3">
+                  {/* Dashboard Balance */}
+                  <div
+                    onClick={() => setWalletType('dashboard')}
+                    className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                      walletType === 'dashboard'
+                        ? 'border-primary-500 bg-white'
+                        : 'border-gray-200 bg-white hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="font-medium text-sm">Dashboard Balance</p>
+                      <p className="text-sm font-semibold">{formatPrice(dashboardBalance)}</p>
+                    </div>
+                    {walletType === 'dashboard' && (
+                      <div className="space-y-2 mt-3">
+                        <input
+                          type="text"
+                          placeholder="Enter Meter ID"
+                          value={meterId}
+                          onChange={(e) => setMeterId(e.target.value)}
+                          className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
+                        <input
+                          type="password"
+                          placeholder="Enter PIN"
+                          value={pin}
+                          onChange={(e) => setPin(e.target.value)}
+                          maxLength={4}
+                          className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
+                        <p className="text-xs text-gray-500">Rewards will be added to your meter</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Credit Balance */}
+                  <div
+                    onClick={() => setWalletType('credit')}
+                    className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                      walletType === 'credit'
+                        ? 'border-primary-500 bg-white'
+                        : 'border-gray-200 bg-white hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="font-medium text-sm">Credit Balance</p>
+                      <p className="text-sm font-semibold">{formatPrice(creditBalance)}</p>
+                    </div>
+                    {walletType === 'credit' && (
+                      <div className="space-y-2 mt-3">
+                        <input
+                          type="password"
+                          placeholder="Enter PIN"
+                          value={pin}
+                          onChange={(e) => setPin(e.target.value)}
+                          maxLength={4}
+                          className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
+                        <p className="text-xs text-gray-500">No rewards on credit payments</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="flex-1 text-left">
-                  <p className="font-medium">Cash on Delivery</p>
-                  <p className="text-sm text-gray-500">Pay when you receive</p>
+              )}
+            </div>
+
+            {/* Mobile Money */}
+            <div className="border-2 border-gray-200 rounded-lg overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setPaymentMethod('mobile_money')}
+                className={`w-full p-4 transition-all ${
+                  paymentMethod === 'mobile_money' ? 'bg-primary-50 border-primary-500' : 'bg-white hover:bg-gray-50'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${paymentMethod === 'mobile_money' ? 'bg-primary-100' : 'bg-gray-100'}`}>
+                    <CreditCard className={`w-5 h-5 ${paymentMethod === 'mobile_money' ? 'text-primary-600' : 'text-gray-600'}`} />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="font-medium">Mobile Money</p>
+                    <p className="text-sm text-gray-500">MTN or Airtel</p>
+                  </div>
                 </div>
-              </div>
-            </button>
+              </button>
+
+              {/* Mobile Money Sub-options */}
+              {paymentMethod === 'mobile_money' && (
+                <div className="p-4 bg-gray-50 border-t space-y-3">
+                  {/* Provider Selection */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setMobileProvider('mtn')}
+                      className={`p-3 rounded-lg border-2 transition-all ${
+                        mobileProvider === 'mtn'
+                          ? 'border-yellow-500 bg-yellow-50 text-yellow-700'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      <p className="font-medium text-sm">MTN MoMo</p>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMobileProvider('airtel')}
+                      className={`p-3 rounded-lg border-2 transition-all ${
+                        mobileProvider === 'airtel'
+                          ? 'border-red-500 bg-red-50 text-red-700'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      <p className="font-medium text-sm">Airtel Money</p>
+                    </button>
+                  </div>
+
+                  {/* Mobile Number */}
+                  <input
+                    type="tel"
+                    placeholder="Mobile Number (07xxxxxxxx)"
+                    value={mobileNumber}
+                    onChange={(e) => setMobileNumber(e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+
+                  {/* Meter ID */}
+                  <input
+                    type="text"
+                    placeholder="Enter Meter ID for Gas Rewards"
+                    value={meterId}
+                    onChange={(e) => setMeterId(e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+
+                  {/* PIN */}
+                  <input
+                    type="password"
+                    placeholder="Enter PIN"
+                    value={pin}
+                    onChange={(e) => setPin(e.target.value)}
+                    maxLength={4}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+
+                  <p className="text-xs text-gray-500">
+                    You will receive a notification on your phone to confirm the payment
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

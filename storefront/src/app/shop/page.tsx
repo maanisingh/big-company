@@ -50,12 +50,21 @@ interface Retailer {
   id: string;
   name: string;
   location: string;
+  district?: string;
+  sector?: string;
+  cell?: string;
   rating: number;
   distance?: number;
   is_open: boolean;
   image?: string;
   delivery_time?: string;
   minimum_order?: number;
+}
+
+interface LocationInput {
+  district: string;
+  sector: string;
+  cell: string;
 }
 
 export default function ShopPage() {
@@ -73,46 +82,63 @@ export default function ShopPage() {
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showCart, setShowCart] = useState(false);
-  const [showRetailerModal, setShowRetailerModal] = useState(true);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [showRetailerModal, setShowRetailerModal] = useState(false);
+  const [showLocationModal, setShowLocationModal] = useState(true);
+  const [exploreMode, setExploreMode] = useState(false);
+  const [userLocation, setUserLocation] = useState<LocationInput | null>(null);
+  const [locationInput, setLocationInput] = useState<LocationInput>({
+    district: '',
+    sector: '',
+    cell: ''
+  });
 
-  // Get user location
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-        },
-        (error) => {
-          console.log('Location access denied, using default Kigali coordinates');
-          // Default to Kigali center
-          setUserLocation({ lat: -1.9403, lng: 29.8739 });
-        }
-      );
+  // Handle location submission
+  const handleLocationSubmit = () => {
+    if (locationInput.district && locationInput.sector && locationInput.cell) {
+      setUserLocation(locationInput);
+      setShowLocationModal(false);
+      setShowRetailerModal(true);
     }
-  }, []);
+  };
 
   // Fetch categories and retailers on mount
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        const [categoriesData, retailersData] = await Promise.all([
-          shopApi.getCategories(),
-          shopApi.getRetailers(userLocation || undefined),
-        ]);
+        const categoriesData = await shopApi.getCategories();
         setCategories(categoriesData.product_categories || []);
-        setRetailers(retailersData.retailers || []);
+
+        // Fetch retailers based on location or all if in explore mode
+        if (userLocation && !exploreMode) {
+          const retailersData = await shopApi.getRetailers({
+            ...userLocation,
+            exploreMode: false
+          });
+          // Sort by matching location (cell > sector > district)
+          const sorted = (retailersData.retailers || []).sort((a: Retailer, b: Retailer) => {
+            if (a.cell === userLocation.cell) return -1;
+            if (b.cell === userLocation.cell) return 1;
+            if (a.sector === userLocation.sector) return -1;
+            if (b.sector === userLocation.sector) return 1;
+            if (a.district === userLocation.district) return -1;
+            if (b.district === userLocation.district) return 1;
+            return 0;
+          });
+          setRetailers(sorted);
+        } else if (exploreMode) {
+          const retailersData = await shopApi.getRetailers({ exploreMode: true });
+          setRetailers(retailersData.retailers || []);
+        }
       } catch (error) {
         console.error('Failed to fetch initial data:', error);
       } finally {
         setLoading(false);
       }
     };
-    fetchInitialData();
-  }, [userLocation]);
+    if (userLocation || exploreMode) {
+      fetchInitialData();
+    }
+  }, [userLocation, exploreMode]);
 
   // Fetch products when retailer or category changes
   const fetchProducts = useCallback(async () => {
@@ -212,13 +238,66 @@ export default function ShopPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
+      {/* Location Selection Modal */}
+      {showLocationModal && !userLocation && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg overflow-hidden">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold mb-2">Enter Your Location</h2>
+              <p className="text-sm text-gray-600">We'll show you the nearest stores based on your location</p>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">District *</label>
+                <input
+                  type="text"
+                  value={locationInput.district}
+                  onChange={(e) => setLocationInput({...locationInput, district: e.target.value})}
+                  placeholder="Enter your district"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Sector *</label>
+                <input
+                  type="text"
+                  value={locationInput.sector}
+                  onChange={(e) => setLocationInput({...locationInput, sector: e.target.value})}
+                  placeholder="Enter your sector"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Cell *</label>
+                <input
+                  type="text"
+                  value={locationInput.cell}
+                  onChange={(e) => setLocationInput({...locationInput, cell: e.target.value})}
+                  placeholder="Enter your cell"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+              </div>
+              <button
+                onClick={handleLocationSubmit}
+                disabled={!locationInput.district || !locationInput.sector || !locationInput.cell}
+                className="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Find Nearest Stores
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Retailer Selection Modal */}
       {showRetailerModal && !selectedRetailer && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center">
           <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[80vh] overflow-hidden">
             <div className="p-4 border-b border-gray-200">
               <h2 className="text-xl font-semibold">Select a Store</h2>
-              <p className="text-sm text-gray-600">Choose a retailer near you to start shopping</p>
+              <p className="text-sm text-gray-600">
+                {exploreMode ? 'Explore all available stores' : 'Stores near your location'}
+              </p>
             </div>
             <div className="overflow-y-auto max-h-[60vh] p-4 space-y-3">
               {retailers.length === 0 ? (
@@ -296,6 +375,20 @@ export default function ShopPage() {
                 ))
               )}
             </div>
+            {!exploreMode && (
+              <div className="p-4 border-t border-gray-200">
+                <button
+                  onClick={() => {
+                    setExploreMode(true);
+                    setShowRetailerModal(false);
+                    setShowRetailerModal(true);
+                  }}
+                  className="w-full py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                >
+                  Explore Another Store
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -322,7 +415,7 @@ export default function ShopPage() {
                   {selectedRetailer.is_open ? 'Open' : 'Closed'}
                 </span>
               </div>
-              <span className="text-sm text-primary-600">Change</span>
+              <span className="text-sm text-primary-600">Change Store</span>
             </button>
           </div>
         )}
