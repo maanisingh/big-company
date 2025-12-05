@@ -32,6 +32,10 @@ import {
   CheckCircleOutlined,
   RiseOutlined,
   StarFilled,
+  ShoppingOutlined,
+  CommentOutlined,
+  UserAddOutlined,
+  LinkOutlined,
 } from '@ant-design/icons';
 import { consumerApi } from '../../services/apiService';
 
@@ -435,102 +439,131 @@ export const RewardsPage: React.FC = () => {
             key="overview"
           >
             <Space direction="vertical" style={{ width: '100%' }} size="large">
-              {/* How to Earn */}
-              <Card title="How to Earn Points" size="small">
+              {/* How to Earn Gas Rewards */}
+              <Card title="How to Earn Gas Rewards" size="small">
                 <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                  {/* Shop and get free gas */}
                   <Card
                     size="small"
                     style={{ background: '#fff7e6', border: '1px solid #ffd591' }}
                   >
                     <Row align="middle" gutter={16}>
                       <Col>
-                        <FireOutlined style={{ fontSize: 32, color: '#ff7300' }} />
+                        <ShoppingOutlined style={{ fontSize: 32, color: '#ff7300' }} />
                       </Col>
                       <Col flex={1}>
-                        <Text strong>Buy Gas</Text>
+                        <Text strong>Shop and get free gas</Text>
                         <br />
                         <Text type="secondary" style={{ fontSize: 12 }}>
-                          Earn 12% of gas profit as points (min. 1000 RWF profit)
+                          Earn gas rewards as you shop with BIG stores
                         </Text>
                       </Col>
                       <Col>
-                        <Tag color="orange">12%</Tag>
+                        <FireOutlined style={{ fontSize: 20, color: '#ff7300' }} />
                       </Col>
                     </Row>
                   </Card>
 
+                  {/* Share your gas rewards */}
                   <Card
                     size="small"
                     style={{ background: '#f9f0ff', border: '1px solid #d3adf7' }}
                   >
                     <Row align="middle" gutter={16}>
                       <Col>
-                        <TeamOutlined style={{ fontSize: 32, color: '#722ed1' }} />
+                        <GiftOutlined style={{ fontSize: 32, color: '#722ed1' }} />
                       </Col>
                       <Col flex={1}>
-                        <Text strong>Refer Friends</Text>
+                        <Text strong>Share your gas rewards with your friends</Text>
                         <br />
                         <Text type="secondary" style={{ fontSize: 12 }}>
-                          Get 500 points per successful referral
+                          While shopping share your gas rewards to your friend's meter ID
                         </Text>
                       </Col>
                       <Col>
-                        <Tag color="purple">500</Tag>
+                        <ShareAltOutlined style={{ fontSize: 20, color: '#722ed1' }} />
                       </Col>
                     </Row>
                   </Card>
 
+                  {/* Share your experience */}
                   <Card
                     size="small"
                     style={{ background: '#e6f7ff', border: '1px solid #91d5ff' }}
                   >
                     <Row align="middle" gutter={16}>
                       <Col>
-                        <CrownOutlined style={{ fontSize: 32, color: '#1890ff' }} />
+                        <CommentOutlined style={{ fontSize: 32, color: '#1890ff' }} />
                       </Col>
                       <Col flex={1}>
-                        <Text strong>Tier Bonuses</Text>
+                        <Text strong>Share your experience with friends</Text>
                         <br />
                         <Text type="secondary" style={{ fontSize: 12 }}>
-                          Higher tiers earn more points per transaction
+                          Inform friends and family, this information should be known by all
                         </Text>
                       </Col>
                       <Col>
-                        <Tag color="blue">Up to 2x</Tag>
+                        <TeamOutlined style={{ fontSize: 20, color: '#1890ff' }} />
+                      </Col>
+                    </Row>
+                  </Card>
+
+                  {/* Invite friends */}
+                  <Card
+                    size="small"
+                    style={{ background: '#f6ffed', border: '1px solid #b7eb8f' }}
+                  >
+                    <Row align="middle" gutter={16}>
+                      <Col>
+                        <UserAddOutlined style={{ fontSize: 32, color: '#52c41a' }} />
+                      </Col>
+                      <Col flex={1}>
+                        <Text strong>Invite friends</Text>
+                        <br />
+                        <Text type="secondary" style={{ fontSize: 12 }}>
+                          Copy the link and share with friends to sign up
+                        </Text>
+                      </Col>
+                      <Col>
+                        <LinkOutlined style={{ fontSize: 20, color: '#52c41a' }} />
                       </Col>
                     </Row>
                   </Card>
                 </Space>
               </Card>
 
-              {/* Referral Section */}
+              {/* Invite Friends - Share Link */}
               <Card
                 title={
                   <Space>
                     <ShareAltOutlined />
-                    Invite Friends
+                    Share BIG Company
                   </Space>
                 }
                 size="small"
               >
                 <Paragraph type="secondary">
-                  Share your referral code and earn 500 points for each friend who signs up!
+                  Copy the link and share with friends and family to sign up!
                 </Paragraph>
                 <Space.Compact style={{ width: '100%' }}>
                   <Input
                     size="large"
-                    value={referralCode}
+                    value="https://unified-frontend-production.up.railway.app/consumer"
                     readOnly
                     style={{
                       fontFamily: 'monospace',
-                      fontWeight: 'bold',
-                      textAlign: 'center',
+                      fontSize: 12,
                     }}
                   />
                   <Button
                     size="large"
                     icon={copied ? <CheckCircleOutlined /> : <CopyOutlined />}
-                    onClick={copyReferralCode}
+                    onClick={() => {
+                      navigator.clipboard.writeText('https://unified-frontend-production.up.railway.app/consumer');
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                      message.success('Link copied to clipboard!');
+                    }}
                   >
                     {copied ? 'Copied' : 'Copy'}
                   </Button>
@@ -538,51 +571,21 @@ export const RewardsPage: React.FC = () => {
                     size="large"
                     type="primary"
                     icon={<ShareAltOutlined />}
-                    onClick={shareReferralCode}
+                    onClick={() => {
+                      if (navigator.share) {
+                        navigator.share({
+                          title: 'Join BIG Company',
+                          text: 'Shop and earn free gas rewards!',
+                          url: 'https://unified-frontend-production.up.railway.app/consumer',
+                        });
+                      } else {
+                        message.info('Share link copied to clipboard!');
+                      }
+                    }}
                   >
                     Share
                   </Button>
                 </Space.Compact>
-              </Card>
-
-              {/* Tier Benefits */}
-              <Card title="Tier Benefits" size="small">
-                <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                  {Object.entries(tierConfig).map(([tier, config]) => {
-                    const isCurrentTier = tier === currentTier;
-                    return (
-                      <Card
-                        key={tier}
-                        size="small"
-                        style={{
-                          background: isCurrentTier ? config.bgColor : '#fafafa',
-                          border: isCurrentTier ? `2px solid ${config.color}` : '1px solid #d9d9d9',
-                        }}
-                      >
-                        <Row align="middle" gutter={16}>
-                          <Col>
-                            <span style={{ fontSize: 24 }}>{config.icon}</span>
-                          </Col>
-                          <Col flex={1}>
-                            <Space>
-                              <Text strong>{tier}</Text>
-                              {isCurrentTier && <Tag color="blue">Current</Tag>}
-                            </Space>
-                            <br />
-                            <Text type="secondary" style={{ fontSize: 12 }}>
-                              {config.min.toLocaleString()}+ lifetime points
-                            </Text>
-                          </Col>
-                          <Col>
-                            <Text strong style={{ color: config.color }}>
-                              {config.multiplier}x
-                            </Text>
-                          </Col>
-                        </Row>
-                      </Card>
-                    );
-                  })}
-                </Space>
               </Card>
             </Space>
           </TabPane>
