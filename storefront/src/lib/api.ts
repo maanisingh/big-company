@@ -167,30 +167,51 @@ export const gasApi = {
     return response.data;
   },
 
-  validateMeter: async (meterNumber: string) => {
-    const response = await api.post('/store/gas/validate', { meter_number: meterNumber });
+  // Get meter information from Gas Management API (auto-fill)
+  getMeterInfo: async (meterId: string) => {
+    const response = await api.get(`/store/gas/meter-info/${meterId}`);
     return response.data;
   },
 
-  registerMeter: async (meterNumber: string, alias?: string) => {
-    const response = await api.post('/store/gas/meters', {
-      meter_number: meterNumber,
-      alias,
-    });
+  // Add meter to customer account
+  addMeter: async (data: {
+    meter_id: string;
+    registered_name: string;
+    id_number: string;
+    phone_number: string;
+    alias?: string;
+  }) => {
+    const response = await api.post('/store/gas/meters', data);
     return response.data;
   },
 
-  topUp: async (meterNumber: string, amount: number, paymentSource: 'wallet' | 'mtn_momo' | 'airtel_money') => {
-    const response = await api.post('/store/gas/topup', {
-      meter_number: meterNumber,
-      amount,
-      payment_source: paymentSource,
-    });
+  // Top up gas (with 300 RWF minimum enforced)
+  topUp: async (data: {
+    meter_id: string;
+    amount: number;
+    payment_method: 'wallet' | 'mobile_money';
+    payment_details?: {
+      mobile_provider?: 'mtn' | 'airtel';
+      mobile_number?: string;
+      pin: string;
+    };
+  }) => {
+    const response = await api.post('/store/gas/topup', data);
     return response.data;
   },
 
   getHistory: async (limit?: number) => {
     const response = await api.get('/store/gas/history', { params: { limit } });
+    return response.data;
+  },
+
+  getMeterUsage: async (meterId: string) => {
+    const response = await api.get(`/store/gas/meters/${meterId}/usage`);
+    return response.data;
+  },
+
+  validateMeter: async (meterNumber: string) => {
+    const response = await api.post('/store/gas/validate', { meter_number: meterNumber });
     return response.data;
   },
 
@@ -223,10 +244,42 @@ export const loansApi = {
     return response.data;
   },
 
+  // Request loan with repayment frequency (daily or weekly)
+  requestLoan: async (amount: number, repaymentFrequency: 'daily' | 'weekly' = 'weekly') => {
+    const response = await api.post('/store/loans/request', {
+      amount,
+      repayment_frequency: repaymentFrequency,
+    });
+    return response.data;
+  },
+
   apply: async (productId: string, amount: number) => {
     const response = await api.post('/store/loans/apply', {
       product_id: productId,
       amount,
+    });
+    return response.data;
+  },
+
+  // Get active loan ledger (for credit ledger page)
+  getActiveLoanLedger: async () => {
+    const response = await api.get('/store/loans/active-ledger');
+    return response.data;
+  },
+
+  // Make loan payment (dashboard balance or mobile money)
+  makePayment: async (loanId: string, amount: number, paymentMethod: 'dashboard' | 'mobile_money') => {
+    const response = await api.post(`/store/loans/${loanId}/pay`, {
+      amount,
+      payment_method: paymentMethod,
+    });
+    return response.data;
+  },
+
+  // Get credit transactions (loan given, credit paid, card credit orders)
+  getCreditTransactions: async (filter: 'all' | 'loan_given' | 'credit_paid' | 'card_credit_order' = 'all') => {
+    const response = await api.get('/store/customers/credit/transactions', {
+      params: { type: filter },
     });
     return response.data;
   },
@@ -290,6 +343,12 @@ export const nfcApi = {
     const response = await api.get(`/store/nfc/cards/${cardUid}/transactions`, {
       params: { limit },
     });
+    return response.data;
+  },
+
+  // Get order history for a specific card
+  getCardOrders: async (cardId: string) => {
+    const response = await api.get(`/store/customers/cards/${cardId}/orders`);
     return response.data;
   },
 };

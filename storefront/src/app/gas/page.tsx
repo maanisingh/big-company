@@ -70,6 +70,8 @@ export default function GasPage() {
     phone_number: '',
     alias: ''
   });
+  const [fetchingMeterInfo, setFetchingMeterInfo] = useState(false);
+  const [customAmount, setCustomAmount] = useState('');
 
   // Top-up form
   const [selectedMeter, setSelectedMeter] = useState<GasMeter | null>(null);
@@ -116,6 +118,32 @@ export default function GasPage() {
     }
   };
 
+  // Auto-fill meter information from API
+  const handleMeterIdChange = async (meterId: string) => {
+    setNewMeter({...newMeter, meter_id: meterId});
+
+    // Only fetch if meter ID is at least 8 characters (typical meter ID length)
+    if (meterId.length >= 8) {
+      setFetchingMeterInfo(true);
+      try {
+        const info = await gasApi.getMeterInfo(meterId);
+        // Auto-fill the form fields with data from API
+        setNewMeter({
+          ...newMeter,
+          meter_id: meterId,
+          registered_name: info.owner_full_name || '',
+          id_number: info.owner_id_number || '',
+          phone_number: info.phone_number || ''
+        });
+      } catch (error) {
+        console.error('Failed to fetch meter info:', error);
+        // Keep manual entry if API fails
+      } finally {
+        setFetchingMeterInfo(false);
+      }
+    }
+  };
+
   const handleAddMeter = async () => {
     if (!newMeter.meter_id || !newMeter.registered_name || !newMeter.id_number || !newMeter.phone_number) {
       alert('Please fill all required fields');
@@ -138,6 +166,12 @@ export default function GasPage() {
   const handleTopup = async () => {
     if (!selectedMeter || !selectedAmount || !pin) {
       alert('Please fill all required fields');
+      return;
+    }
+
+    // Enforce 300 RWF minimum
+    if (selectedAmount < 300) {
+      alert('Minimum purchase amount is 300 RWF');
       return;
     }
 
@@ -392,42 +426,62 @@ export default function GasPage() {
             <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Meter ID *</label>
-                <input
-                  type="text"
-                  value={newMeter.meter_id}
-                  onChange={(e) => setNewMeter({...newMeter, meter_id: e.target.value})}
-                  placeholder="Enter meter ID"
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={newMeter.meter_id}
+                    onChange={(e) => handleMeterIdChange(e.target.value)}
+                    placeholder="Enter meter ID"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    disabled={fetchingMeterInfo}
+                  />
+                  {fetchingMeterInfo && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <Loader2 className="w-5 h-5 animate-spin text-primary-600" />
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Owner information will be auto-filled from gas management system
+                </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Registered Name *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Registered Name * {fetchingMeterInfo && <span className="text-xs text-blue-600">(auto-filling...)</span>}
+                </label>
                 <input
                   type="text"
                   value={newMeter.registered_name}
                   onChange={(e) => setNewMeter({...newMeter, registered_name: e.target.value})}
                   placeholder="Name on meter registration"
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50"
+                  readOnly={fetchingMeterInfo}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">ID Number *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  ID Number * {fetchingMeterInfo && <span className="text-xs text-blue-600">(auto-filling...)</span>}
+                </label>
                 <input
                   type="text"
                   value={newMeter.id_number}
                   onChange={(e) => setNewMeter({...newMeter, id_number: e.target.value})}
                   placeholder="National ID number"
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50"
+                  readOnly={fetchingMeterInfo}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Phone Number * {fetchingMeterInfo && <span className="text-xs text-blue-600">(auto-filling...)</span>}
+                </label>
                 <input
                   type="tel"
                   value={newMeter.phone_number}
                   onChange={(e) => setNewMeter({...newMeter, phone_number: e.target.value})}
                   placeholder="07xxxxxxxx"
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50"
+                  readOnly={fetchingMeterInfo}
                 />
               </div>
               <div>
@@ -541,9 +595,12 @@ export default function GasPage() {
                           {predefinedAmounts.map((amount) => (
                             <button
                               key={amount}
-                              onClick={() => setSelectedAmount(amount)}
+                              onClick={() => {
+                                setSelectedAmount(amount);
+                                setCustomAmount('');
+                              }}
                               className={`p-3 rounded-lg font-medium border-2 transition-colors ${
-                                selectedAmount === amount
+                                selectedAmount === amount && !customAmount
                                   ? 'border-orange-600 bg-orange-50 text-orange-700'
                                   : 'border-gray-200 hover:border-gray-300'
                               }`}
@@ -551,6 +608,26 @@ export default function GasPage() {
                               {formatPrice(amount)}
                             </button>
                           ))}
+                        </div>
+                        <div className="mt-3">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Or enter custom amount</label>
+                          <input
+                            type="number"
+                            value={customAmount}
+                            onChange={(e) => {
+                              setCustomAmount(e.target.value);
+                              const amount = parseFloat(e.target.value);
+                              if (amount >= 300) {
+                                setSelectedAmount(amount);
+                              }
+                            }}
+                            min={300}
+                            placeholder="Minimum 300 RWF"
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">
+                            Minimum purchase: 300 RWF
+                          </p>
                         </div>
                       </div>
 
