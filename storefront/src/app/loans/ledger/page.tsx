@@ -52,12 +52,40 @@ export default function LoanLedgerPage() {
   const fetchLedgerData = async () => {
     setLoading(true);
     try {
-      const [ledgerData, walletData] = await Promise.all([
-        loansApi.getActiveLoanLedger(),
-        walletApi.getBalance(),
-      ]);
-      setLoanLedger(ledgerData.loan);
-      setDashboardBalance(walletData.dashboardBalance || 0);
+      // TODO: Replace with real API call when backend is ready
+      // const [ledgerData, walletData] = await Promise.all([
+      //   loansApi.getActiveLoanLedger(),
+      //   walletApi.getBalance(),
+      // ]);
+
+      // MOCK DATA - Remove this when backend API is ready
+      await new Promise(resolve => setTimeout(resolve, 800)); // Simulate API delay
+
+      const mockLoanLedger: LoanLedger = {
+        id: 'loan-123',
+        loan_number: 'LN-2024-00123',
+        principal: 500000,
+        outstanding_balance: 320000,
+        status: 'active',
+        disbursement_date: '2024-11-15T10:00:00Z',
+        next_payment_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
+        next_payment_amount: 40000,
+        repayment_frequency: 'weekly',
+        payments: [
+          { payment_number: 1, due_date: '2024-11-22T00:00:00Z', amount: 40000, status: 'paid', paid_date: '2024-11-21T14:30:00Z' },
+          { payment_number: 2, due_date: '2024-11-29T00:00:00Z', amount: 40000, status: 'paid', paid_date: '2024-11-28T09:15:00Z' },
+          { payment_number: 3, due_date: '2024-12-06T00:00:00Z', amount: 40000, status: 'paid', paid_date: '2024-12-05T16:45:00Z' },
+          { payment_number: 4, due_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), amount: 40000, status: 'pending' },
+          { payment_number: 5, due_date: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), amount: 40000, status: 'pending' },
+          { payment_number: 6, due_date: new Date(Date.now() + 17 * 24 * 60 * 60 * 1000).toISOString(), amount: 40000, status: 'pending' },
+          { payment_number: 7, due_date: new Date(Date.now() + 24 * 24 * 60 * 60 * 1000).toISOString(), amount: 40000, status: 'pending' },
+          { payment_number: 8, due_date: new Date(Date.now() + 31 * 24 * 60 * 60 * 1000).toISOString(), amount: 40000, status: 'pending' },
+        ]
+      };
+
+      setLoanLedger(mockLoanLedger);
+      setDashboardBalance(150000); // Mock dashboard balance
+
     } catch (error) {
       console.error('Failed to fetch ledger data:', error);
     } finally {

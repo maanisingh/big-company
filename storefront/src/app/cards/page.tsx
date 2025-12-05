@@ -91,8 +91,42 @@ export default function CardsPage() {
   const fetchCards = async () => {
     setLoading(true);
     try {
-      const data = await nfcApi.getCards();
-      setCards(data.cards || []);
+      // TODO: Replace with real API call when backend is ready
+      // const data = await nfcApi.getCards();
+      // setCards(data.cards || []);
+
+      // MOCK DATA - Remove this when backend API is ready
+      await new Promise(resolve => setTimeout(resolve, 600));
+
+      const mockCards: NFCCard[] = [
+        {
+          id: 'card-1',
+          card_uid: '04:A3:2B:C1:4D:5E:80',
+          card_alias: 'Blue Card',
+          dashboard_id: 'BIG-CARD-001',
+          is_active: true,
+          linked_at: '2024-10-15T10:00:00Z',
+          last_used_at: '2024-12-05T14:30:00Z',
+          transactions: [
+            { id: 'tx1', amount: 25000, type: 'payment', description: 'Grocery Shopping', order_id: 'ord-123', created_at: '2024-12-05T14:30:00Z' },
+            { id: 'tx2', amount: 15000, type: 'payment', description: 'Pharmacy Purchase', order_id: 'ord-124', created_at: '2024-12-03T10:15:00Z' },
+          ]
+        },
+        {
+          id: 'card-2',
+          card_uid: '04:B7:8A:F2:1C:9D:42',
+          card_alias: 'Family Card',
+          dashboard_id: 'BIG-CARD-002',
+          is_active: true,
+          linked_at: '2024-11-20T14:00:00Z',
+          last_used_at: '2024-12-01T16:45:00Z',
+          transactions: [
+            { id: 'tx3', amount: 35000, type: 'payment', description: 'Restaurant', order_id: 'ord-125', created_at: '2024-12-01T16:45:00Z' },
+          ]
+        }
+      ];
+
+      setCards(mockCards);
     } catch (error) {
       console.error('Failed to fetch cards:', error);
     } finally {
@@ -103,12 +137,84 @@ export default function CardsPage() {
   const fetchCardOrders = async (cardId: string) => {
     setLoadingOrders(cardId);
     try {
-      const data = await nfcApi.getCardOrders(cardId);
+      // TODO: Replace with real API call when backend is ready
+      // const data = await nfcApi.getCardOrders(cardId);
+
+      // MOCK DATA - Remove this when backend API is ready
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const mockOrders: { [key: string]: CardOrder[] } = {
+        'card-1': [
+          {
+            id: 'ord-1',
+            order_id: 'ORD-2024-789',
+            shop_name: 'Kigali Fresh Market',
+            shop_location: 'Kimironko, Kigali',
+            amount: 25000,
+            items_count: 8,
+            date: '2024-12-05T14:30:00Z',
+            status: 'completed'
+          },
+          {
+            id: 'ord-2',
+            order_id: 'ORD-2024-812',
+            shop_name: 'City Pharmacy',
+            shop_location: 'Downtown, Kigali',
+            amount: 15000,
+            items_count: 3,
+            date: '2024-12-03T10:15:00Z',
+            status: 'completed'
+          },
+          {
+            id: 'ord-3',
+            order_id: 'ORD-2024-756',
+            shop_name: 'Nyamirambo Superstore',
+            shop_location: 'Nyamirambo, Kigali',
+            amount: 42500,
+            items_count: 12,
+            date: '2024-11-28T09:20:00Z',
+            status: 'completed'
+          },
+          {
+            id: 'ord-4',
+            order_id: 'ORD-2024-698',
+            shop_name: 'Kigali Fresh Market',
+            shop_location: 'Kimironko, Kigali',
+            amount: 18000,
+            items_count: 5,
+            date: '2024-11-22T16:45:00Z',
+            status: 'completed'
+          }
+        ],
+        'card-2': [
+          {
+            id: 'ord-5',
+            order_id: 'ORD-2024-845',
+            shop_name: 'Heaven Restaurant',
+            shop_location: 'Kacyiru, Kigali',
+            amount: 35000,
+            items_count: 4,
+            date: '2024-12-01T16:45:00Z',
+            status: 'completed'
+          },
+          {
+            id: 'ord-6',
+            order_id: 'ORD-2024-823',
+            shop_name: 'MTN Service Center',
+            shop_location: 'City Center, Kigali',
+            amount: 50000,
+            items_count: 1,
+            date: '2024-11-25T11:30:00Z',
+            status: 'completed'
+          }
+        ]
+      };
+
       // Update the card with orders
       setCards(prevCards =>
         prevCards.map(card =>
           card.id === cardId
-            ? { ...card, orders: data.orders || [] }
+            ? { ...card, orders: mockOrders[cardId] || [] }
             : card
         )
       );

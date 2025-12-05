@@ -87,8 +87,118 @@ export default function OrdersPage() {
     else setLoading(true);
 
     try {
-      const data = await ordersApi.getOrders(50, 0);
-      setOrders(data.orders || []);
+      // TODO: Replace with real API call when backend is ready
+      // const data = await ordersApi.getOrders(50, 0);
+      // setOrders(data.orders || []);
+
+      // MOCK DATA - Remove this when backend API is ready
+      await new Promise(resolve => setTimeout(resolve, 600));
+
+      const mockOrders: Order[] = [
+        {
+          id: 'ord-1',
+          display_id: 'ORD-2024-789',
+          status: 'delivered',
+          payment_status: 'captured',
+          payment_method: 'card_credit',
+          fulfillment_status: 'delivered',
+          total: 25000,
+          items: [
+            { id: 'item-1', title: 'Rice 5kg', quantity: 2, unit_price: 5000 },
+            { id: 'item-2', title: 'Cooking Oil 2L', quantity: 3, unit_price: 5000 }
+          ],
+          created_at: '2024-12-05T14:30:00Z',
+          updated_at: '2024-12-05T18:00:00Z',
+          retailer: { name: 'Kigali Fresh Market' },
+          can_cancel: false
+        },
+        {
+          id: 'ord-2',
+          display_id: 'ORD-2024-812',
+          status: 'shipped',
+          payment_status: 'captured',
+          payment_method: 'wallet',
+          fulfillment_status: 'shipped',
+          total: 45000,
+          items: [
+            { id: 'item-3', title: 'Sugar 2kg', quantity: 4, unit_price: 3000 },
+            { id: 'item-4', title: 'Flour 5kg', quantity: 3, unit_price: 11000 }
+          ],
+          created_at: '2024-12-04T10:15:00Z',
+          updated_at: '2024-12-04T16:30:00Z',
+          retailer: { name: 'City Supermarket' },
+          can_cancel: false
+        },
+        {
+          id: 'ord-3',
+          display_id: 'ORD-2024-845',
+          status: 'pending',
+          payment_status: 'captured',
+          payment_method: 'food_loan',
+          fulfillment_status: 'not_fulfilled',
+          total: 35000,
+          items: [
+            { id: 'item-5', title: 'Beans 2kg', quantity: 5, unit_price: 3000 },
+            { id: 'item-6', title: 'Maize Flour 5kg', quantity: 4, unit_price: 5000 }
+          ],
+          created_at: '2024-12-03T09:45:00Z',
+          updated_at: '2024-12-03T09:45:00Z',
+          retailer: { name: 'Nyamirambo Superstore' },
+          can_cancel: true
+        },
+        {
+          id: 'ord-4',
+          display_id: 'ORD-2024-756',
+          status: 'delivered',
+          payment_status: 'captured',
+          payment_method: 'mobile_money',
+          fulfillment_status: 'delivered',
+          total: 18000,
+          items: [
+            { id: 'item-7', title: 'Tomatoes 1kg', quantity: 6, unit_price: 3000 }
+          ],
+          created_at: '2024-12-01T16:20:00Z',
+          updated_at: '2024-12-02T10:00:00Z',
+          retailer: { name: 'Kigali Fresh Market' },
+          can_cancel: false
+        },
+        {
+          id: 'ord-5',
+          display_id: 'ORD-2024-698',
+          status: 'delivered',
+          payment_status: 'captured',
+          payment_method: 'card_credit',
+          fulfillment_status: 'delivered',
+          total: 52000,
+          items: [
+            { id: 'item-8', title: 'Chicken 2kg', quantity: 2, unit_price: 13000 },
+            { id: 'item-9', title: 'Fish 1.5kg', quantity: 2, unit_price: 13000 }
+          ],
+          created_at: '2024-11-28T11:30:00Z',
+          updated_at: '2024-11-28T19:00:00Z',
+          retailer: { name: 'City Supermarket' },
+          can_cancel: false
+        },
+        {
+          id: 'ord-6',
+          display_id: 'ORD-2024-623',
+          status: 'packaged',
+          payment_status: 'captured',
+          payment_method: 'food_loan',
+          fulfillment_status: 'fulfilled',
+          total: 28000,
+          items: [
+            { id: 'item-10', title: 'Milk 2L', quantity: 4, unit_price: 3500 },
+            { id: 'item-11', title: 'Bread', quantity: 6, unit_price: 2500 }
+          ],
+          created_at: '2024-11-25T14:00:00Z',
+          updated_at: '2024-11-25T15:30:00Z',
+          retailer: { name: 'Nyamirambo Superstore' },
+          can_cancel: false
+        }
+      ];
+
+      setOrders(mockOrders);
     } catch (error) {
       console.error('Failed to fetch orders:', error);
     } finally {

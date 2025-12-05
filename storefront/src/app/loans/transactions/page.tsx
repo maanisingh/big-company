@@ -49,8 +49,89 @@ export default function CreditTransactionsPage() {
   const fetchTransactions = async () => {
     setLoading(true);
     try {
-      const data = await loansApi.getCreditTransactions(filter);
-      setTransactions(data.transactions || []);
+      // TODO: Replace with real API call when backend is ready
+      // const data = await loansApi.getCreditTransactions(filter);
+      // setTransactions(data.transactions || []);
+
+      // MOCK DATA - Remove this when backend API is ready
+      await new Promise(resolve => setTimeout(resolve, 600)); // Simulate API delay
+
+      const mockTransactions: CreditTransaction[] = [
+        {
+          id: '1',
+          type: 'loan_given',
+          amount: 500000,
+          balance_after: 500000,
+          date: '2024-11-15T10:00:00Z',
+          description: 'Loan disbursed - Weekly repayment',
+          reference: 'LN-2024-00123'
+        },
+        {
+          id: '2',
+          type: 'credit_paid',
+          amount: 40000,
+          balance_after: 460000,
+          date: '2024-11-21T14:30:00Z',
+          description: 'Weekly payment #1',
+          reference: 'PAY-2024-00045'
+        },
+        {
+          id: '3',
+          type: 'card_credit_order',
+          amount: 25000,
+          balance_after: 485000,
+          date: '2024-11-25T09:15:00Z',
+          description: 'Purchase on credit via NFC card',
+          reference: 'ORD-2024-00789',
+          order_id: 'order_789',
+          shop_name: 'Kigali Fresh Market'
+        },
+        {
+          id: '4',
+          type: 'credit_paid',
+          amount: 40000,
+          balance_after: 445000,
+          date: '2024-11-28T09:15:00Z',
+          description: 'Weekly payment #2',
+          reference: 'PAY-2024-00056'
+        },
+        {
+          id: '5',
+          type: 'card_credit_order',
+          amount: 15500,
+          balance_after: 460500,
+          date: '2024-12-01T16:45:00Z',
+          description: 'Purchase on credit via NFC card',
+          reference: 'ORD-2024-00812',
+          order_id: 'order_812',
+          shop_name: 'Nyamirambo Superstore'
+        },
+        {
+          id: '6',
+          type: 'credit_paid',
+          amount: 40000,
+          balance_after: 420500,
+          date: '2024-12-05T16:45:00Z',
+          description: 'Weekly payment #3',
+          reference: 'PAY-2024-00067'
+        },
+        {
+          id: '7',
+          type: 'loan_given',
+          amount: 200000,
+          balance_after: 620500,
+          date: '2024-12-03T11:20:00Z',
+          description: 'Additional loan disbursed - Daily repayment',
+          reference: 'LN-2024-00156'
+        },
+      ];
+
+      // Filter transactions based on selected filter
+      const filtered = filter === 'all'
+        ? mockTransactions
+        : mockTransactions.filter(tx => tx.type === filter);
+
+      setTransactions(filtered);
     } catch (error) {
       console.error('Failed to fetch credit transactions:', error);
     } finally {
