@@ -125,13 +125,25 @@ export const ShopPage: React.FC = () => {
   };
 
   const cellsBySector: Record<string, string[]> = {
+    // Gasabo District
     Remera: ['Rukiri I', 'Rukiri II', 'Kabuga', 'Nyabisindu'],
     Kimironko: ['Kibagabaga', 'Biryogo', 'Nyarurama', 'Agatare'],
     Kacyiru: ['Kamatamu', 'Mpazi', 'Mpanzi', 'Karama'],
-    Nyamirambo: ['Nyamirambo', 'Rugenge', 'Rwezamenyo', 'Nyakabanda'],
+    Kimihurura: ['Ubumwe', 'Nyarutarama', 'Kibagabaga'],
+    Gisozi: ['Gisozi', 'Jabana', 'Kinyinya'],
+    Rusororo: ['Rusororo', 'Ndera', 'Bumbogo'],
+    // Kicukiro District
     Niboye: ['Kagarama', 'Niboye', 'Karembure'],
     Gikondo: ['Gikondo', 'Rebero', 'Ndera'],
-    // Add more cells as needed
+    Kicukiro: ['Kicukiro', 'Kagarama', 'Nyanza'],
+    Gahanga: ['Busanza', 'Karembure', 'Shyara'],
+    Kanombe: ['Kanombe', 'Aeroport', 'Busanza'],
+    // Nyarugenge District
+    Nyarugenge: ['Nyarugenge', 'Kigali', 'Nyakabanda'],
+    Nyamirambo: ['Nyamirambo', 'Rugenge', 'Rwezamenyo', 'Nyakabanda'],
+    Gitega: ['Gitega', 'Kiyovu', 'Nyabugogo'],
+    Kigali: ['Gikondo', 'Nyabugogo', 'Nyamirambo'],
+    Muhima: ['Muhima', 'Nyarugenge', 'Kigali'],
   };
 
   // Handle location submission
@@ -504,45 +516,51 @@ export const ShopPage: React.FC = () => {
             </Select>
           </Form.Item>
 
-          <Form.Item
-            label="Sector"
-            name="sector"
-            rules={[{ required: true, message: 'Please select your sector' }]}
-            dependencies={['district']}
-          >
-            <Select
-              size="large"
-              placeholder="Select your sector"
-              disabled={!locationForm.getFieldValue('district')}
-              onChange={() => {
-                locationForm.setFieldsValue({ cell: undefined });
-              }}
-            >
-              {(sectorsByDistrict[locationForm.getFieldValue('district')] || []).map((sector) => (
-                <Option key={sector} value={sector}>
-                  {sector}
-                </Option>
-              ))}
-            </Select>
+          <Form.Item noStyle shouldUpdate={(prevValues, currentValues) => prevValues.district !== currentValues.district}>
+            {({ getFieldValue }) => (
+              <Form.Item
+                label="Sector"
+                name="sector"
+                rules={[{ required: true, message: 'Please select your sector' }]}
+              >
+                <Select
+                  size="large"
+                  placeholder="Select your sector"
+                  disabled={!getFieldValue('district')}
+                  onChange={() => {
+                    locationForm.setFieldsValue({ cell: undefined });
+                  }}
+                >
+                  {(sectorsByDistrict[getFieldValue('district')] || []).map((sector) => (
+                    <Option key={sector} value={sector}>
+                      {sector}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            )}
           </Form.Item>
 
-          <Form.Item
-            label="Cell"
-            name="cell"
-            rules={[{ required: true, message: 'Please select your cell' }]}
-            dependencies={['sector']}
-          >
-            <Select
-              size="large"
-              placeholder="Select your cell"
-              disabled={!locationForm.getFieldValue('sector')}
-            >
-              {(cellsBySector[locationForm.getFieldValue('sector')] || []).map((cell) => (
-                <Option key={cell} value={cell}>
-                  {cell}
-                </Option>
-              ))}
-            </Select>
+          <Form.Item noStyle shouldUpdate={(prevValues, currentValues) => prevValues.sector !== currentValues.sector}>
+            {({ getFieldValue }) => (
+              <Form.Item
+                label="Cell"
+                name="cell"
+                rules={[{ required: true, message: 'Please select your cell' }]}
+              >
+                <Select
+                  size="large"
+                  placeholder="Select your cell"
+                  disabled={!getFieldValue('sector')}
+                >
+                  {(cellsBySector[getFieldValue('sector')] || []).map((cell) => (
+                    <Option key={cell} value={cell}>
+                      {cell}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            )}
           </Form.Item>
 
           <Form.Item style={{ marginBottom: 0 }}>
