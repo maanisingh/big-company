@@ -302,15 +302,17 @@ export const RewardsPage: React.FC = () => {
       key: 'description',
     },
     {
-      title: 'Points',
+      title: 'Gas Amount',
       dataIndex: 'points',
       key: 'points',
       render: (points: number, record: RewardTransaction) => {
         const isPositive = ['earned', 'bonus', 'referral'].includes(record.type);
+        // Convert points to M³ (1 point = 0.01 M³)
+        const gasAmount = (points * 0.01).toFixed(2);
         return (
           <Text strong style={{ color: isPositive ? '#52c41a' : '#ff4d4f' }}>
             {isPositive ? '+' : '-'}
-            {points.toLocaleString()}
+            {gasAmount} M³
           </Text>
         );
       },

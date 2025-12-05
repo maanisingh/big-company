@@ -223,28 +223,25 @@ export const ProfilePage: React.FC = () => {
               <Col span={12}>
                 <div style={{ textAlign: 'center', padding: '16px 0' }}>
                   <Text type="secondary">Total Orders</Text>
-                  <Title level={2} style={{ margin: '8px 0 0', color: '#667eea' }}>24</Title>
+                  <Title level={2} style={{ margin: '8px 0 0', color: '#667eea' }}>42</Title>
+                  <Text type="secondary" style={{ fontSize: 12 }}>Online + Shop Orders</Text>
                 </div>
               </Col>
               <Col span={12}>
                 <div style={{ textAlign: 'center', padding: '16px 0' }}>
-                  <Text type="secondary">Total Spent</Text>
-                  <Title level={4} style={{ margin: '8px 0 0', color: '#52c41a' }}>125,000 RWF</Title>
+                  <Text type="secondary">Available Balance</Text>
+                  <Title level={4} style={{ margin: '8px 0 0', color: '#52c41a' }}>30,000 RWF</Title>
+                  <Text type="secondary" style={{ fontSize: 12 }}>Dashboard + Credit</Text>
                 </div>
               </Col>
             </Row>
             <Divider />
             <Row gutter={16}>
-              <Col span={12}>
+              <Col span={24}>
                 <div style={{ textAlign: 'center', padding: '16px 0' }}>
-                  <Text type="secondary">Wallet Balance</Text>
-                  <Title level={4} style={{ margin: '8px 0 0', color: '#fa8c16' }}>15,000 RWF</Title>
-                </div>
-              </Col>
-              <Col span={12}>
-                <div style={{ textAlign: 'center', padding: '16px 0' }}>
-                  <Text type="secondary">Loyalty Points</Text>
-                  <Title level={4} style={{ margin: '8px 0 0', color: '#722ed1' }}>1,250</Title>
+                  <Text type="secondary">Gas Rewards</Text>
+                  <Title level={3} style={{ margin: '8px 0 0', color: '#fa8c16' }}>4.5 M³</Title>
+                  <Text type="secondary" style={{ fontSize: 12 }}>Cubic Meters</Text>
                 </div>
               </Col>
             </Row>
