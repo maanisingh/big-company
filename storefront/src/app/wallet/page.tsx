@@ -1,246 +1,476 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { ArrowDownCircle, ArrowUpCircle, Clock, Check } from 'lucide-react';
-import { walletApi } from '@/lib/api';
-import { useWalletStore } from '@/lib/store';
+import { useRouter } from 'next/navigation';
+import {
+  Wallet,
+  CreditCard,
+  TrendingUp,
+  Plus,
+  RefreshCw,
+  Loader2,
+  AlertCircle,
+  DollarSign,
+  FileText,
+  ArrowUpRight,
+  ArrowDownRight,
+  Download
+} from 'lucide-react';
+import { walletApi, loansApi } from '@/lib/api';
+import { useAuthStore, useWalletStore } from '@/lib/store';
 
-const predefinedAmounts = [300, 500, 1000, 2000, 5000, 10000];
-const paymentMethods = [
-  { id: 'mtn_momo' as const, name: 'MTN Mobile Money', color: 'bg-yellow-500' },
-  { id: 'airtel_money' as const, name: 'Airtel Money', color: 'bg-red-500' },
-];
+interface Transaction {
+  id: string;
+  type: 'top_up' | 'gas_payment' | 'order_payment' | 'refund' | 'credit_payment' | 'loan_disbursement';
+  amount: number;
+  balance_type: 'dashboard' | 'credit';
+  created_at: string;
+  description: string;
+  reference?: string;
+}
+
+interface RefundRequest {
+  amount: number;
+  phoneNumber: string;
+  reason: string;
+}
 
 export default function WalletPage() {
-  const searchParams = useSearchParams();
-  const initialAction = searchParams.get('action');
-  const initialAmount = searchParams.get('amount');
-
+  const router = useRouter();
+  const { isAuthenticated } = useAuthStore();
   const { balance, setBalance } = useWalletStore();
+
   const [loading, setLoading] = useState(true);
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [showTopup, setShowTopup] = useState(initialAction === 'topup');
-  const [selectedAmount, setSelectedAmount] = useState<number | null>(
-    initialAmount ? parseInt(initialAmount) : null
-  );
-  const [selectedPayment, setSelectedPayment] = useState<'mtn_momo' | 'airtel_money' | null>(null);
-  const [phone, setPhone] = useState('');
-  const [processing, setProcessing] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [dashboardBalance, setDashboardBalance] = useState(0);
+  const [creditBalance, setCreditBalance] = useState(0);
+  const [availableBalance, setAvailableBalance] = useState(0);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [showTopUpModal, setShowTopUpModal] = useState(false);
+  const [showRefundModal, setShowRefundModal] = useState(false);
+  const [showRequestLoanModal, setShowRequestLoanModal] = useState(false);
+  const [topUpAmount, setTopUpAmount] = useState('');
+  const [refundRequest, setRefundRequest] = useState<RefundRequest>({
+    amount: 0,
+    phoneNumber: '',
+    reason: ''
+  });
+  const [loanAmount, setLoanAmount] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
+  // Redirect if not authenticated
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [balanceData, transactionsData] = await Promise.all([
-          walletApi.getBalance(),
-          walletApi.getTransactions(),
-        ]);
-        setBalance(balanceData.balance);
-        setTransactions(transactionsData.transactions || []);
-      } catch (error) {
-        console.error('Failed to fetch wallet data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [setBalance]);
+    if (!isAuthenticated) {
+      router.push('/auth/login?redirect=/wallet');
+    }
+  }, [isAuthenticated, router]);
 
-  const handleTopup = async () => {
-    if (!selectedAmount || !selectedPayment || !phone) return;
-
-    setProcessing(true);
+  // Fetch wallet data
+  const fetchWalletData = async () => {
+    setLoading(true);
     try {
-      await walletApi.topUp(selectedAmount, selectedPayment, phone);
-      setSuccess(true);
-      setTimeout(() => {
-        setShowTopup(false);
-        setSuccess(false);
-        setSelectedAmount(null);
-        setSelectedPayment(null);
-        setPhone('');
-      }, 3000);
+      const [walletData, transactionsData] = await Promise.all([
+        walletApi.getBalance(),
+        walletApi.getTransactions()
+      ]);
+
+      const dashboard = walletData.dashboardBalance || 0;
+      const credit = walletData.creditBalance || 0;
+
+      setDashboardBalance(dashboard);
+      setCreditBalance(credit);
+      setAvailableBalance(dashboard + credit);
+      setBalance(dashboard + credit);
+      setTransactions(transactionsData.transactions || []);
     } catch (error) {
-      console.error('Top-up failed:', error);
-      alert('Top-up failed. Please try again.');
+      console.error('Failed to fetch wallet data:', error);
     } finally {
-      setProcessing(false);
+      setLoading(false);
     }
   };
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchWalletData();
+    }
+  }, [isAuthenticated]);
+
+  // Handle top up
+  const handleTopUp = async () => {
+    const amount = parseFloat(topUpAmount);
+    if (!amount || amount <= 0) {
+      alert('Please enter a valid amount');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await walletApi.topUpDashboard(amount);
+      await fetchWalletData();
+      setShowTopUpModal(false);
+      setTopUpAmount('');
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Failed to top up');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Handle refund request
+  const handleRefundRequest = async () => {
+    if (!refundRequest.amount || !refundRequest.phoneNumber || !refundRequest.reason) {
+      alert('Please fill all fields');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await walletApi.requestRefund(refundRequest);
+      setShowRefundModal(false);
+      setRefundRequest({ amount: 0, phoneNumber: '', reason: '' });
+      alert('Refund request submitted successfully');
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Failed to submit refund request');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Handle loan request
+  const handleLoanRequest = async () => {
+    const amount = parseFloat(loanAmount);
+    if (!amount || amount <= 0) {
+      alert('Please enter a valid amount');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await loansApi.requestLoan(amount);
+      setShowRequestLoanModal(false);
+      setLoanAmount('');
+      alert('Loan request submitted successfully');
+      router.push('/loans');
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Failed to submit loan request');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Format price
+  const formatPrice = (amount: number) => {
+    return `${amount.toLocaleString()} RWF`;
+  };
+
+  // Format date
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-RW', {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-lg mx-auto p-4 space-y-6">
-      {/* Balance Card */}
-      <div className="card bg-gradient-to-br from-green-500 to-green-600 text-white">
-        <p className="text-sm opacity-80">Available Balance</p>
-        <p className="text-4xl font-bold mt-2">
-          {loading ? '...' : `${balance.toLocaleString()} RWF`}
-        </p>
-        <div className="mt-6 flex gap-3">
+    <div className="min-h-screen bg-gray-50 pb-24">
+      {/* Header */}
+      <div className="bg-white sticky top-14 z-40 border-b border-gray-200">
+        <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
+          <h1 className="text-xl font-semibold">Wallet & Cards</h1>
           <button
-            onClick={() => setShowTopup(true)}
-            className="flex-1 bg-white text-green-700 py-3 rounded-lg font-medium hover:bg-white/90 transition-colors flex items-center justify-center gap-2"
+            onClick={fetchWalletData}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            <ArrowDownCircle className="w-5 h-5" />
-            Top Up
-          </button>
-          <button
-            disabled
-            className="flex-1 bg-white/20 py-3 rounded-lg font-medium flex items-center justify-center gap-2 opacity-60"
-          >
-            <ArrowUpCircle className="w-5 h-5" />
-            Withdraw
+            <RefreshCw className="w-5 h-5" />
           </button>
         </div>
       </div>
 
-      {/* Top-up Modal */}
-      {showTopup && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
-          <div className="bg-white w-full rounded-t-2xl p-6 max-h-[90vh] overflow-y-auto">
-            {success ? (
-              <div className="text-center py-8">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Check className="w-8 h-8 text-green-600" />
-                </div>
-                <h2 className="text-xl font-semibold">Payment Request Sent!</h2>
-                <p className="text-gray-600 mt-2">
-                  Please approve the payment on your phone.
-                </p>
+      <div className="max-w-lg mx-auto p-4 space-y-4">
+        {/* Available Balance (No Top Up) */}
+        <div className="bg-gradient-to-br from-primary-600 to-primary-700 rounded-2xl p-6 text-white shadow-lg">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm opacity-90">Available Balance</span>
+            <Wallet className="w-5 h-5 opacity-90" />
+          </div>
+          <h2 className="text-3xl font-bold mb-1">{formatPrice(availableBalance)}</h2>
+          <p className="text-xs opacity-75">Dashboard + Credit Balance</p>
+        </div>
+
+        {/* Dashboard Balance (Replaced "Linked NFC Cards") */}
+        <div className="bg-white rounded-xl p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Wallet className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Dashboard Balance</h3>
+                <p className="text-xs text-gray-500">Main wallet</p>
+              </div>
+            </div>
+            <span className="text-2xl font-bold text-blue-600">{formatPrice(dashboardBalance)}</span>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowTopUpModal(true)}
+              className="flex-1 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
+            >
+              <Plus className="w-4 h-4" />
+              Top Up
+            </button>
+            <button
+              onClick={() => setShowRefundModal(true)}
+              className="flex-1 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+            >
+              Request Refund
+            </button>
+          </div>
+        </div>
+
+        {/* Credit Balance (Replaced "This Month's Spending") */}
+        <div className="bg-white rounded-xl p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <CreditCard className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Credit Balance</h3>
+                <p className="text-xs text-gray-500">Available credit</p>
+              </div>
+            </div>
+            <span className="text-2xl font-bold text-green-600">{formatPrice(creditBalance)}</span>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowRequestLoanModal(true)}
+              className="flex-1 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center gap-1"
+            >
+              <Plus className="w-4 h-4" />
+              Request Loan
+            </button>
+            <button
+              onClick={() => router.push('/loans')}
+              className="flex-1 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+            >
+              View Details
+            </button>
+          </div>
+        </div>
+
+        {/* Recent Transactions (ALL: NFC + Credit) */}
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-gray-100">
+            <h2 className="font-semibold">Recent Transactions</h2>
+            <p className="text-xs text-gray-500">Dashboard & Credit transactions</p>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {transactions.length === 0 ? (
+              <div className="p-8 text-center text-gray-500">
+                <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No transactions yet</p>
               </div>
             ) : (
-              <>
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-semibold">Top Up Wallet</h2>
-                  <button
-                    onClick={() => setShowTopup(false)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    Cancel
-                  </button>
-                </div>
-
-                {/* Amount Selection */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Select Amount
-                  </label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {predefinedAmounts.map((amount) => (
-                      <button
-                        key={amount}
-                        onClick={() => setSelectedAmount(amount)}
-                        className={`amount-btn ${
-                          selectedAmount === amount
-                            ? 'amount-btn-selected'
-                            : 'amount-btn-unselected'
-                        }`}
-                      >
-                        {amount.toLocaleString()}
-                      </button>
-                    ))}
+              transactions.slice(0, 10).map((txn) => {
+                const isIncoming = ['top_up', 'refund', 'loan_disbursement'].includes(txn.type);
+                return (
+                  <div key={txn.id} className="p-4 flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                      isIncoming ? 'bg-green-100' : 'bg-red-100'
+                    }`}>
+                      {isIncoming ? (
+                        <ArrowDownRight className={`w-5 h-5 text-green-600`} />
+                      ) : (
+                        <ArrowUpRight className={`w-5 h-5 text-red-600`} />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm">{txn.description}</p>
+                      <p className="text-xs text-gray-500">
+                        {formatDate(txn.created_at)} • {txn.balance_type === 'dashboard' ? 'Dashboard' : 'Credit'}
+                      </p>
+                    </div>
+                    <span className={`font-semibold ${isIncoming ? 'text-green-600' : 'text-red-600'}`}>
+                      {isIncoming ? '+' : '-'}{formatPrice(txn.amount)}
+                    </span>
                   </div>
-                </div>
-
-                {/* Payment Method */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Payment Method
-                  </label>
-                  <div className="space-y-2">
-                    {paymentMethods.map((method) => (
-                      <button
-                        key={method.id}
-                        onClick={() => setSelectedPayment(method.id)}
-                        className={`w-full p-4 border-2 rounded-lg flex items-center gap-3 transition-all ${
-                          selectedPayment === method.id
-                            ? 'border-primary-600 bg-primary-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <div className={`${method.color} w-10 h-10 rounded-lg`} />
-                        <span className="font-medium">{method.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Phone Number */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="078XXXXXXX"
-                    className="input"
-                  />
-                </div>
-
-                {/* Submit */}
-                <button
-                  onClick={handleTopup}
-                  disabled={!selectedAmount || !selectedPayment || !phone || processing}
-                  className="btn-primary w-full py-3"
-                >
-                  {processing
-                    ? 'Processing...'
-                    : `Top Up ${selectedAmount?.toLocaleString() || ''} RWF`}
-                </button>
-              </>
+                );
+              })
             )}
+          </div>
+          {transactions.length > 10 && (
+            <div className="p-4 border-t border-gray-100">
+              <button className="w-full text-primary-600 text-sm font-medium hover:underline">
+                View All Transactions
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Top Up Modal */}
+      {showTopUpModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg overflow-hidden">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold">Top Up Dashboard Balance</h2>
+              <p className="text-sm text-gray-600 mt-1">Add funds to your wallet</p>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Amount (RWF)</label>
+                <input
+                  type="number"
+                  value={topUpAmount}
+                  onChange={(e) => setTopUpAmount(e.target.value)}
+                  placeholder="Enter amount"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setShowTopUpModal(false);
+                    setTopUpAmount('');
+                  }}
+                  className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleTopUp}
+                  disabled={submitting}
+                  className="flex-1 py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors disabled:opacity-50"
+                >
+                  {submitting ? 'Processing...' : 'Top Up'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Transaction History */}
-      <section>
-        <h2 className="text-lg font-semibold mb-3">Recent Transactions</h2>
-        <div className="card space-y-4">
-          {transactions.length === 0 ? (
-            <p className="text-gray-500 text-center py-4">No transactions yet</p>
-          ) : (
-            transactions.slice(0, 10).map((tx: any, index: number) => (
-              <div
-                key={index}
-                className="flex items-center justify-between py-2 border-b last:border-0"
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`p-2 rounded-full ${
-                      tx.type === 'credit' ? 'bg-green-100' : 'bg-red-100'
-                    }`}
-                  >
-                    {tx.type === 'credit' ? (
-                      <ArrowDownCircle className="w-5 h-5 text-green-600" />
-                    ) : (
-                      <ArrowUpCircle className="w-5 h-5 text-red-600" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">{tx.description}</p>
-                    <p className="text-xs text-gray-500 flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {new Date(tx.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-                <span
-                  className={`font-semibold ${
-                    tx.type === 'credit' ? 'text-green-600' : 'text-red-600'
-                  }`}
-                >
-                  {tx.type === 'credit' ? '+' : '-'}
-                  {tx.amount.toLocaleString()}
-                </span>
+      {/* Refund Request Modal */}
+      {showRefundModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg overflow-hidden">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold">Request Refund</h2>
+              <p className="text-sm text-gray-600 mt-1">Request a refund from your dashboard balance</p>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Amount (RWF)</label>
+                <input
+                  type="number"
+                  value={refundRequest.amount || ''}
+                  onChange={(e) => setRefundRequest({...refundRequest, amount: parseFloat(e.target.value)})}
+                  placeholder="Enter amount"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
               </div>
-            ))
-          )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                <input
+                  type="tel"
+                  value={refundRequest.phoneNumber}
+                  onChange={(e) => setRefundRequest({...refundRequest, phoneNumber: e.target.value})}
+                  placeholder="Phone number linked to account"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+                <p className="text-xs text-gray-500 mt-1">Must be the number linked to your account</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Reason for Refund</label>
+                <textarea
+                  value={refundRequest.reason}
+                  onChange={(e) => setRefundRequest({...refundRequest, reason: e.target.value})}
+                  placeholder="Explain why you need a refund..."
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                  rows={3}
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setShowRefundModal(false);
+                    setRefundRequest({ amount: 0, phoneNumber: '', reason: '' });
+                  }}
+                  className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleRefundRequest}
+                  disabled={submitting}
+                  className="flex-1 py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors disabled:opacity-50"
+                >
+                  {submitting ? 'Submitting...' : 'Submit Request'}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      </section>
+      )}
+
+      {/* Request Loan Modal */}
+      {showRequestLoanModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg overflow-hidden">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold">Request Loan</h2>
+              <p className="text-sm text-gray-600 mt-1">Apply for a credit loan</p>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Loan Amount (RWF)</label>
+                <input
+                  type="number"
+                  value={loanAmount}
+                  onChange={(e) => setLoanAmount(e.target.value)}
+                  placeholder="Enter loan amount"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+              </div>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-blue-700">
+                  <AlertCircle className="w-4 h-4 inline mr-1" />
+                  Your loan application will be reviewed by our team
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setShowRequestLoanModal(false);
+                    setLoanAmount('');
+                  }}
+                  className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleLoanRequest}
+                  disabled={submitting}
+                  className="flex-1 py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors disabled:opacity-50"
+                >
+                  {submitting ? 'Submitting...' : 'Submit Request'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
