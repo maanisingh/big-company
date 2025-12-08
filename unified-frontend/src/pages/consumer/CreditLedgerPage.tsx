@@ -333,15 +333,61 @@ const CreditLedgerPage: React.FC = () => {
           </Col>
         </Row>
 
+        {/* Prominent Date Display */}
         <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
-          <Col xs={12} sm={6}>
-            <Space direction="vertical" size={0}>
-              <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12 }}>Disbursed</Text>
-              <Text style={{ color: 'white', fontWeight: 500 }}>
-                {new Date(loan.disbursed_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-              </Text>
-            </Space>
+          <Col xs={24} sm={12}>
+            <Card
+              size="small"
+              style={{
+                background: 'rgba(255,255,255,0.15)',
+                border: 'none',
+                borderRadius: 12,
+              }}
+            >
+              <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12 }}>
+                  <CalendarOutlined style={{ marginRight: 6 }} />
+                  Current Loan Date Given
+                </Text>
+                <Title level={4} style={{ color: 'white', margin: 0 }}>
+                  {new Date(loan.disbursed_date).toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })}
+                </Title>
+              </Space>
+            </Card>
           </Col>
+          <Col xs={24} sm={12}>
+            <Card
+              size="small"
+              style={{
+                background: 'rgba(255,76,79,0.3)',
+                border: '2px solid rgba(255,255,255,0.3)',
+                borderRadius: 12,
+              }}
+            >
+              <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12 }}>
+                  <ClockCircleOutlined style={{ marginRight: 6 }} />
+                  Next Payment Deadline
+                </Text>
+                <Title level={4} style={{ color: 'white', margin: 0 }}>
+                  {new Date(loan.next_payment_date).toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })}
+                </Title>
+              </Space>
+            </Card>
+          </Col>
+        </Row>
+
+        <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
           <Col xs={12} sm={6}>
             <Space direction="vertical" size={0}>
               <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12 }}>Frequency</Text>
@@ -360,6 +406,14 @@ const CreditLedgerPage: React.FC = () => {
             <Space direction="vertical" size={0}>
               <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12 }}>Total Amount</Text>
               <Text style={{ color: 'white', fontWeight: 500 }}>{loan.total_amount.toLocaleString()} RWF</Text>
+            </Space>
+          </Col>
+          <Col xs={12} sm={6}>
+            <Space direction="vertical" size={0}>
+              <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12 }}>Time Remaining</Text>
+              <Text style={{ color: countdown === 'Payment Overdue' ? '#ff7875' : '#52c41a', fontWeight: 600 }}>
+                {countdown}
+              </Text>
             </Space>
           </Col>
         </Row>

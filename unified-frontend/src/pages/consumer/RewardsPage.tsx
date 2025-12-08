@@ -45,11 +45,6 @@ const { TabPane } = Tabs;
 interface RewardsBalance {
   points: number;
   lifetime_points: number;
-  tier: 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM';
-  tier_progress: number;
-  next_tier?: string;
-  points_to_next_tier?: number;
-  multiplier: number;
 }
 
 interface RewardTransaction {
@@ -76,40 +71,6 @@ interface LeaderboardEntry {
   is_current_user: boolean;
 }
 
-const tierConfig = {
-  BRONZE: {
-    color: '#CD7F32',
-    bgColor: '#FFF4E6',
-    icon: '🥉',
-    gradient: 'linear-gradient(135deg, #CD7F32 0%, #B8732E 100%)',
-    min: 0,
-    multiplier: 1.0,
-  },
-  SILVER: {
-    color: '#C0C0C0',
-    bgColor: '#F5F5F5',
-    icon: '🥈',
-    gradient: 'linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%)',
-    min: 1000,
-    multiplier: 1.25,
-  },
-  GOLD: {
-    color: '#FFD700',
-    bgColor: '#FFFBEA',
-    icon: '🥇',
-    gradient: 'linear-gradient(135deg, #FFD700 0%, #FFC700 100%)',
-    min: 5000,
-    multiplier: 1.5,
-  },
-  PLATINUM: {
-    color: '#E5E4E2',
-    bgColor: '#F9F9FF',
-    icon: '💎',
-    gradient: 'linear-gradient(135deg, #B9B6E5 0%, #8B5CF6 100%)',
-    min: 15000,
-    multiplier: 2.0,
-  },
-};
 
 const transactionTypeConfig = {
   earned: { color: 'success', icon: '+', label: 'Earned' },
@@ -141,11 +102,6 @@ export const RewardsPage: React.FC = () => {
       const mockBalance: RewardsBalance = {
         points: 2500,
         lifetime_points: 8750,
-        tier: 'SILVER',
-        tier_progress: 50,
-        next_tier: 'GOLD',
-        points_to_next_tier: 2500,
-        multiplier: 1.25,
       };
 
       const mockTransactions: RewardTransaction[] = [
@@ -209,11 +165,6 @@ export const RewardsPage: React.FC = () => {
       setBalance({
         points: 2500,
         lifetime_points: 8750,
-        tier: 'SILVER',
-        tier_progress: 50,
-        next_tier: 'GOLD',
-        points_to_next_tier: 2500,
-        multiplier: 1.25,
       });
       setTransactions([]);
       setReferralCode('BIG' + Math.random().toString(36).substr(2, 6).toUpperCase());

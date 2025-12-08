@@ -205,16 +205,61 @@ export const GasPage: React.FC = () => {
     }
   };
 
+  // State for auto-fill meter info
+  const [meterLookupLoading, setMeterLookupLoading] = useState(false);
+  const [meterInfo, setMeterInfo] = useState<{
+    owner_name: string;
+    id_number: string;
+    phone_number: string;
+  } | null>(null);
+
+  const handleMeterLookup = async (meterNumber: string) => {
+    if (!meterNumber || meterNumber.length < 6) {
+      setMeterInfo(null);
+      return;
+    }
+
+    setMeterLookupLoading(true);
+    try {
+      // TODO: Replace with real API call to gas meter provider
+      // const response = await fetch(`/api/gas/meter-info/${meterNumber}`);
+      // const data = await response.json();
+
+      // Simulate API call - auto-fill meter information
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      // Mock auto-fill data from gas provider API
+      const mockMeterInfo = {
+        owner_name: 'Jean Paul Niyonzima',
+        id_number: '1198780123456789',
+        phone_number: '+250788123456',
+      };
+
+      setMeterInfo(mockMeterInfo);
+      message.success('Meter information retrieved successfully!');
+    } catch (error) {
+      message.error('Failed to retrieve meter information. Please check the meter ID.');
+      setMeterInfo(null);
+    } finally {
+      setMeterLookupLoading(false);
+    }
+  };
+
   const handleAddMeter = async (values: any) => {
+    if (!meterInfo) {
+      message.error('Please enter a valid meter ID to auto-fill owner information');
+      return;
+    }
+
     setProcessing(true);
     try {
       const newMeter: GasMeter = {
         id: Date.now().toString(),
         meter_number: values.meter_number,
         alias: values.alias,
-        owner_name: values.owner_name,
-        id_number: values.id_number,
-        phone_number: values.phone_number,
+        owner_name: meterInfo.owner_name,
+        id_number: meterInfo.id_number,
+        phone_number: meterInfo.phone_number,
         customer_id: 'current-user',
         created_at: new Date().toISOString(),
       };
@@ -222,6 +267,7 @@ export const GasPage: React.FC = () => {
       message.success('Meter added successfully!');
       setShowAddMeter(false);
       addMeterForm.resetFields();
+      setMeterInfo(null);
     } catch (error: any) {
       message.error('Failed to add meter');
     } finally {
@@ -622,13 +668,14 @@ export const GasPage: React.FC = () => {
         onCancel={() => {
           setShowAddMeter(false);
           addMeterForm.resetFields();
+          setMeterInfo(null);
         }}
         footer={null}
         width={500}
       >
         <Alert
           message="Meter Registration"
-          description="Enter all details exactly as registered with the gas provider"
+          description="Enter the meter ID and nickname. Owner information will be automatically retrieved from the gas provider."
           type="info"
           showIcon
           style={{ marginBottom: 16 }}
@@ -640,22 +687,28 @@ export const GasPage: React.FC = () => {
         >
           <Form.Item
             name="meter_number"
-            label="Meter Number"
+            label="Meter ID"
             rules={[
-              { required: true, message: 'Please enter meter number' },
-              { min: 6, message: 'Meter number must be at least 6 characters' },
+              { required: true, message: 'Please enter meter ID' },
+              { min: 6, message: 'Meter ID must be at least 6 characters' },
             ]}
           >
-            <Input
+            <Input.Search
               prefix={<FireOutlined />}
-              placeholder="MTR-001234"
+              placeholder="Enter meter ID (e.g., MTR-001234)"
               size="large"
+              enterButton="Lookup"
+              loading={meterLookupLoading}
+              onSearch={handleMeterLookup}
+              onChange={(e) => {
+                if (meterInfo) setMeterInfo(null);
+              }}
             />
           </Form.Item>
           <Form.Item
             name="alias"
-            label="Meter Alias/Nickname"
-            rules={[{ required: true, message: 'Please enter an alias' }]}
+            label="Nickname"
+            rules={[{ required: true, message: 'Please enter a nickname for this meter' }]}
           >
             <Input
               prefix={<EditOutlined />}
@@ -663,55 +716,61 @@ export const GasPage: React.FC = () => {
               size="large"
             />
           </Form.Item>
-          <Form.Item
-            name="owner_name"
-            label="Registered Owner Name"
-            rules={[{ required: true, message: 'Please enter owner name' }]}
-          >
-            <Input
-              prefix={<UserOutlined />}
-              placeholder="Full name as registered"
-              size="large"
+
+          {/* Auto-filled Information Display */}
+          {meterInfo && (
+            <Card
+              size="small"
+              style={{
+                marginBottom: 16,
+                background: '#f6ffed',
+                borderColor: '#b7eb8f',
+              }}
+              title={
+                <Space>
+                  <CheckCircleOutlined style={{ color: '#52c41a' }} />
+                  <span style={{ color: '#52c41a' }}>Owner Information (Auto-filled)</span>
+                </Space>
+              }
+            >
+              <Descriptions column={1} size="small">
+                <Descriptions.Item label={<><UserOutlined /> Owner Name</>}>
+                  <Text strong>{meterInfo.owner_name}</Text>
+                </Descriptions.Item>
+                <Descriptions.Item label={<><IdcardOutlined /> ID Number</>}>
+                  <Text strong>{meterInfo.id_number}</Text>
+                </Descriptions.Item>
+                <Descriptions.Item label={<><PhoneOutlined /> Phone Number</>}>
+                  <Text strong>{meterInfo.phone_number}</Text>
+                </Descriptions.Item>
+              </Descriptions>
+            </Card>
+          )}
+
+          {!meterInfo && !meterLookupLoading && (
+            <Alert
+              message="Enter meter ID and click 'Lookup' to auto-fill owner information"
+              type="warning"
+              showIcon
+              style={{ marginBottom: 16 }}
             />
-          </Form.Item>
-          <Form.Item
-            name="id_number"
-            label="ID Number"
-            rules={[
-              { required: true, message: 'Please enter ID number' },
-              { len: 16, message: 'ID number must be 16 digits' },
-            ]}
-          >
-            <Input
-              prefix={<IdcardOutlined />}
-              placeholder="1198780123456789"
-              maxLength={16}
-              size="large"
-            />
-          </Form.Item>
-          <Form.Item
-            name="phone_number"
-            label="Phone Number"
-            rules={[
-              { required: true, message: 'Please enter phone number' },
-              { pattern: /^\+250\d{9}$/, message: 'Enter valid Rwanda phone (+250...)'  },
-            ]}
-          >
-            <Input
-              prefix={<PhoneOutlined />}
-              placeholder="+250788123456"
-              size="large"
-            />
-          </Form.Item>
+          )}
+
           <Form.Item>
             <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
               <Button onClick={() => {
                 setShowAddMeter(false);
                 addMeterForm.resetFields();
+                setMeterInfo(null);
               }}>
                 Cancel
               </Button>
-              <Button type="primary" htmlType="submit" loading={processing}>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={processing}
+                disabled={!meterInfo}
+              >
                 Add Meter
               </Button>
             </Space>
@@ -864,17 +923,6 @@ export const GasPage: React.FC = () => {
                     size="large"
                   />
                 </Form.Item>
-                <Form.Item
-                  name="meter_id_for_rewards"
-                  label="Meter ID for Gas Rewards"
-                  rules={[{ required: true, message: 'Please enter meter ID' }]}
-                >
-                  <Input
-                    prefix={<FireOutlined />}
-                    placeholder={selectedMeter?.meter_number}
-                    size="large"
-                  />
-                </Form.Item>
                 <Alert
                   message="You will receive a notification on your phone to confirm payment"
                   type="info"
@@ -887,17 +935,6 @@ export const GasPage: React.FC = () => {
             {/* Wallet PIN */}
             {paymentMethod === 'wallet' && (
               <>
-                <Form.Item
-                  name="meter_id_for_rewards"
-                  label="Meter ID for Gas Rewards"
-                  rules={[{ required: true, message: 'Please enter meter ID' }]}
-                >
-                  <Input
-                    prefix={<FireOutlined />}
-                    placeholder={selectedMeter?.meter_number}
-                    size="large"
-                  />
-                </Form.Item>
                 <Form.Item
                   name="pin"
                   label="Enter PIN to Confirm"

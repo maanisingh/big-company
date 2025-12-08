@@ -100,7 +100,7 @@ const menuItems: Record<UserRole, { key: string; icon: React.ReactNode; label: s
 
 // Mobile bottom nav items (limited to 5 most important items per role)
 const mobileBottomNavItems: Record<UserRole, string[]> = {
-  consumer: ['shop', 'gas', 'rewards', 'wallet', 'profile'],
+  consumer: ['shop', 'orders', 'gas', 'wallet', 'profile'],
   employee: ['dashboard', 'attendance', 'projects', 'payslips', 'profile'],
   retailer: ['dashboard', 'pos', 'orders', 'wallet', 'inventory'],
   wholesaler: ['dashboard', 'orders', 'retailers', 'credit', 'analytics'],

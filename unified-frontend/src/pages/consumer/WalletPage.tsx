@@ -1414,82 +1414,141 @@ const ConsumerWalletPage: React.FC = () => {
           setSelectedCard(null);
         }}
         footer={null}
-        width={800}
+        width={900}
       >
-        {selectedCard && cardOrders[selectedCard.id] && cardOrders[selectedCard.id].length > 0 ? (
+        {selectedCard && (
           <div>
-            <Alert
-              message={`${cardOrders[selectedCard.id].length} order${cardOrders[selectedCard.id].length > 1 ? 's' : ''} found`}
-              type="info"
-              showIcon
-              style={{ marginBottom: 16 }}
-            />
-            <Space direction="vertical" style={{ width: '100%' }} size={12}>
-              {cardOrders[selectedCard.id].map((order) => (
-                <Card
-                  key={order.id}
+            {/* Card Info Header */}
+            <Card
+              size="small"
+              style={{
+                marginBottom: 16,
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              }}
+            >
+              <Row gutter={16} align="middle">
+                <Col>
+                  <CreditCardOutlined style={{ fontSize: 32, color: 'white' }} />
+                </Col>
+                <Col flex={1}>
+                  <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12 }}>Card ID</Text>
+                  <div>
+                    <Text strong style={{ color: 'white', fontSize: 16, letterSpacing: 1 }}>
+                      {selectedCard.uid}
+                    </Text>
+                  </div>
+                </Col>
+                <Col>
+                  <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12 }}>Card Number</Text>
+                  <div>
+                    <Text strong style={{ color: 'white' }}>{selectedCard.card_number}</Text>
+                  </div>
+                </Col>
+              </Row>
+            </Card>
+
+            {cardOrders[selectedCard.id] && cardOrders[selectedCard.id].length > 0 ? (
+              <>
+                <Alert
+                  message={`${cardOrders[selectedCard.id].length} order${cardOrders[selectedCard.id].length > 1 ? 's' : ''} made with this card`}
+                  type="info"
+                  showIcon
+                  style={{ marginBottom: 16 }}
+                />
+                <Table
+                  dataSource={cardOrders[selectedCard.id]}
+                  rowKey="id"
                   size="small"
-                  style={{ background: '#f9f0ff', borderColor: '#d3adf7' }}
-                >
-                  <Row gutter={[16, 8]}>
-                    <Col span={12}>
-                      <Space direction="vertical" size={4}>
-                        <Text type="secondary" style={{ fontSize: 12 }}>Order Number</Text>
-                        <Text strong style={{ color: '#722ed1' }}>{order.order_number}</Text>
-                      </Space>
-                    </Col>
-                    <Col span={12} style={{ textAlign: 'right' }}>
-                      <Space direction="vertical" size={4} style={{ alignItems: 'flex-end' }}>
-                        <Text type="secondary" style={{ fontSize: 12 }}>Amount</Text>
-                        <Text strong style={{ fontSize: 16, color: '#52c41a' }}>
-                          {order.amount.toLocaleString()} RWF
+                  pagination={{
+                    pageSize: 5,
+                    showSizeChanger: false,
+                    showTotal: (total) => `${total} orders`,
+                  }}
+                  columns={[
+                    {
+                      title: 'Card ID',
+                      key: 'card_id',
+                      width: 120,
+                      render: () => (
+                        <Text code style={{ fontSize: 11 }}>
+                          {selectedCard.uid.substring(0, 11)}...
                         </Text>
-                      </Space>
-                    </Col>
-                  </Row>
-                  <Divider style={{ margin: '8px 0' }} />
-                  <Row gutter={[16, 8]}>
-                    <Col span={24}>
-                      <Space>
-                        <ShoppingOutlined style={{ color: '#722ed1' }} />
-                        <div>
-                          <Text strong>{order.shop_name}</Text>
-                          <br />
-                          <Text type="secondary" style={{ fontSize: 12 }}>
-                            <EnvironmentOutlined /> {order.shop_location}
+                      ),
+                    },
+                    {
+                      title: 'Order ID',
+                      dataIndex: 'order_number',
+                      key: 'order_number',
+                      width: 130,
+                      render: (orderNumber: string) => (
+                        <Text strong style={{ color: '#722ed1' }}>{orderNumber}</Text>
+                      ),
+                    },
+                    {
+                      title: 'Shop Name',
+                      key: 'shop',
+                      render: (_, record: CardOrder) => (
+                        <Space direction="vertical" size={0}>
+                          <Text strong>{record.shop_name}</Text>
+                          <Text type="secondary" style={{ fontSize: 11 }}>
+                            <EnvironmentOutlined /> {record.shop_location}
                           </Text>
-                        </div>
-                      </Space>
-                    </Col>
-                  </Row>
-                  <Divider style={{ margin: '8px 0' }} />
-                  <Row gutter={[16, 8]} align="middle">
-                    <Col span={12}>
-                      <Text type="secondary" style={{ fontSize: 12 }}>
-                        {order.items_count} item{order.items_count > 1 ? 's' : ''}
-                      </Text>
-                    </Col>
-                    <Col span={12} style={{ textAlign: 'right' }}>
-                      <Text type="secondary" style={{ fontSize: 12 }}>
-                        {new Date(order.date).toLocaleDateString('en-RW', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </Text>
-                    </Col>
-                  </Row>
-                </Card>
-              ))}
-            </Space>
+                        </Space>
+                      ),
+                    },
+                    {
+                      title: 'Amount',
+                      dataIndex: 'amount',
+                      key: 'amount',
+                      width: 120,
+                      align: 'right',
+                      render: (amount: number) => (
+                        <Text strong style={{ color: '#52c41a' }}>
+                          {amount.toLocaleString()} RWF
+                        </Text>
+                      ),
+                    },
+                    {
+                      title: 'Date',
+                      dataIndex: 'date',
+                      key: 'date',
+                      width: 130,
+                      render: (date: string) => (
+                        <Text type="secondary" style={{ fontSize: 12 }}>
+                          {new Date(date).toLocaleDateString('en-RW', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </Text>
+                      ),
+                    },
+                    {
+                      title: 'Invoice',
+                      key: 'invoice',
+                      width: 80,
+                      align: 'center',
+                      render: (_, record: CardOrder) => (
+                        <Button
+                          type="link"
+                          size="small"
+                          icon={<EyeOutlined />}
+                          onClick={() => message.info(`Viewing invoice for ${record.order_number}`)}
+                        >
+                          View
+                        </Button>
+                      ),
+                    },
+                  ]}
+                />
+              </>
+            ) : (
+              <Empty
+                image={<ShoppingOutlined style={{ fontSize: 64, color: '#ccc' }} />}
+                description="No orders found for this card"
+              />
+            )}
           </div>
-        ) : (
-          <Empty
-            image={<ShoppingOutlined style={{ fontSize: 64, color: '#ccc' }} />}
-            description="No orders found for this card"
-          />
         )}
       </Modal>
     </div>
