@@ -332,13 +332,13 @@ export const RewardsPage: React.FC = () => {
           <Col flex={1}>
             <Space direction="vertical" size={4}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <GiftOutlined style={{ fontSize: 32 }} />
+                <FireOutlined style={{ fontSize: 32 }} />
                 <div>
                   <Title level={4} style={{ color: 'white', margin: 0 }}>
-                    Rewards Points
+                    Gas Rewards
                   </Title>
                   <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12 }}>
-                    Earn gas rewards with every purchase
+                    Earn free gas with every purchase
                   </Text>
                 </div>
               </div>
@@ -347,13 +347,13 @@ export const RewardsPage: React.FC = () => {
           <Col>
             <div style={{ textAlign: 'right' }}>
               <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12 }}>
-                Available Points
+                Available Gas Rewards
               </Text>
               <Title level={2} style={{ color: 'white', margin: '8px 0 0 0' }}>
-                {balance?.points.toLocaleString()}
+                {((balance?.points || 0) * 0.01).toFixed(2)} M³
               </Title>
               <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12 }}>
-                ≈ {((balance?.points || 0) * 10).toLocaleString()} RWF value
+                Cubic Meters
               </Text>
             </div>
           </Col>
@@ -368,7 +368,7 @@ export const RewardsPage: React.FC = () => {
             marginTop: 12,
           }}
         >
-          Lifetime: {balance?.lifetime_points.toLocaleString()} points earned
+          Lifetime: {((balance?.lifetime_points || 0) * 0.01).toFixed(2)} M³ earned
         </Text>
       </div>
 

@@ -944,23 +944,80 @@ const ConsumerWalletPage: React.FC = () => {
                         </Col>
                       </Row>
                       <Divider />
-                      <Row gutter={16}>
-                        <Col span={12}>
+                      <Row gutter={16} align="middle">
+                        <Col span={8}>
+                          <Text type="secondary">Current Loan Date: </Text>
+                          <Text strong>{new Date('2024-11-25').toLocaleDateString()}</Text>
+                        </Col>
+                        <Col span={8}>
+                          <Text type="secondary">Next Payment Due: </Text>
+                          <Text strong style={{ color: '#fa8c16' }}>
+                            {creditInfo.next_payment_date ? new Date(creditInfo.next_payment_date).toLocaleDateString() : 'N/A'}
+                          </Text>
+                          <Text type="secondary"> - </Text>
+                          <Text strong style={{ color: '#ff4d4f' }}>
+                            {creditInfo.next_payment_amount?.toLocaleString()} RWF
+                          </Text>
+                        </Col>
+                        <Col span={8} style={{ textAlign: 'right' }}>
+                          <Button
+                            type="primary"
+                            danger
+                            icon={<DollarOutlined />}
+                            onClick={() => {
+                              Modal.confirm({
+                                title: 'Pay Loan',
+                                content: (
+                                  <div>
+                                    <Text>Outstanding Balance: <strong>{creditInfo.outstanding_balance.toLocaleString()} RWF</strong></Text>
+                                    <Divider />
+                                    <Text type="secondary">Select Payment Method:</Text>
+                                    <div style={{ marginTop: 16 }}>
+                                      <Radio.Group defaultValue="dashboard" style={{ width: '100%' }}>
+                                        <Space direction="vertical" style={{ width: '100%' }}>
+                                          <Radio value="dashboard">
+                                            <Space>
+                                              <WalletOutlined style={{ color: '#1890ff' }} />
+                                              <span>Dashboard Balance ({balance?.dashboardBalance?.toLocaleString()} RWF available)</span>
+                                            </Space>
+                                          </Radio>
+                                          <Radio value="mtn">
+                                            <Space>
+                                              <MobileOutlined style={{ color: '#ffcc00' }} />
+                                              <span>MTN Mobile Money</span>
+                                            </Space>
+                                          </Radio>
+                                          <Radio value="airtel">
+                                            <Space>
+                                              <MobileOutlined style={{ color: '#ff0000' }} />
+                                              <span>Airtel Money</span>
+                                            </Space>
+                                          </Radio>
+                                        </Space>
+                                      </Radio.Group>
+                                    </div>
+                                  </div>
+                                ),
+                                okText: 'Pay Now',
+                                cancelText: 'Cancel',
+                                onOk: () => {
+                                  message.success('Loan payment initiated! Check your phone to confirm.');
+                                },
+                              });
+                            }}
+                          >
+                            Pay Loan
+                          </Button>
+                        </Col>
+                      </Row>
+                      <Divider style={{ margin: '12px 0' }} />
+                      <Row>
+                        <Col span={24}>
                           <Text type="secondary">Payment Status: </Text>
                           <Tag color={creditInfo.payment_status === 'current' ? 'success' : creditInfo.payment_status === 'overdue' ? 'error' : 'warning'}>
                             {creditInfo.payment_status.toUpperCase()}
                           </Tag>
                         </Col>
-                        {creditInfo.next_payment_date && (
-                          <Col span={12}>
-                            <Text type="secondary">Next Payment: </Text>
-                            <Text strong>{new Date(creditInfo.next_payment_date).toLocaleDateString()}</Text>
-                            <Text type="secondary"> - </Text>
-                            <Text strong style={{ color: '#ff4d4f' }}>
-                              {creditInfo.next_payment_amount?.toLocaleString()} RWF
-                            </Text>
-                          </Col>
-                        )}
                       </Row>
                     </Card>
                   )}
