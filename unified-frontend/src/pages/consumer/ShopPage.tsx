@@ -791,7 +791,7 @@ export const ShopPage: React.FC = () => {
             </Col>
             <Col>
               <Button type="link" onClick={() => setShowRetailerModal(true)}>
-                Change Store
+                Explore another store
               </Button>
             </Col>
           </Row>
