@@ -72,10 +72,11 @@ const { Title, Text, Paragraph } = Typography;
 interface DashboardStats {
   totalOrders: number;
   pendingOrders: number;
-  totalRevenue: number;
+  totalRevenue: number; // Capital + Profit wallet combined
   inventoryItems: number;
   lowStockItems: number;
-  walletBalance: number;
+  capitalWallet: number; // Inventory value at wholesaler price
+  profitWallet: number; // Profit margin from sales
   creditLimit: number;
   todaySales?: number;
   customersToday?: number;
@@ -83,6 +84,12 @@ interface DashboardStats {
     orders: number;
     revenue: number;
   };
+  // Payment method breakdown
+  dashboardWalletRevenue?: number;
+  creditWalletRevenue?: number;
+  mobileMoneyRevenue?: number;
+  gasRewardsGiven?: number; // in M³
+  gasRewardsValue?: number; // in RWF
 }
 
 // Animation variants
@@ -135,10 +142,10 @@ const weeklyData = [
 ];
 
 const paymentMethods = [
-  { name: 'Mobile Money', value: 45, color: '#1890ff' },
-  { name: 'NFC Card', value: 30, color: '#52c41a' },
-  { name: 'Cash', value: 20, color: '#fa8c16' },
-  { name: 'Credit', value: 5, color: '#722ed1' },
+  { name: 'Mobile Money', value: 40, color: '#ffcc00' },
+  { name: 'Dashboard Wallet', value: 35, color: '#1890ff' },
+  { name: 'Credit Wallet', value: 20, color: '#722ed1' },
+  { name: 'Gas Rewards', value: 5, color: '#fa541c' },
 ];
 
 const topProducts = [
@@ -193,14 +200,21 @@ export const RetailerDashboard: React.FC = () => {
       setStats({
         totalOrders: 156,
         pendingOrders: 8,
-        totalRevenue: 2450000,
+        totalRevenue: 2450000, // Capital + Profit combined
         inventoryItems: 89,
         lowStockItems: 12,
-        walletBalance: 150000,
+        capitalWallet: 1850000, // Inventory value at wholesaler price
+        profitWallet: 600000, // Profit margin from sales
         creditLimit: 500000,
         todaySales: 1250000,
         customersToday: 85,
         growth: { orders: 12.5, revenue: 18.3 },
+        // Payment method revenue breakdown
+        dashboardWalletRevenue: 875000, // 35% of today's sales
+        creditWalletRevenue: 500000, // 20% of today's sales
+        mobileMoneyRevenue: 1000000, // 40% of today's sales
+        gasRewardsGiven: 2.5, // M³ given as rewards today
+        gasRewardsValue: 125000, // 5% equivalent value
       });
       setRecentOrders([
         { id: 'RET-001', customer: 'John Doe', items: 5, total: 15000, status: 'completed', date: '2024-11-30T14:30:00', payment: 'momo' },
@@ -432,27 +446,30 @@ export const RetailerDashboard: React.FC = () => {
             growth: stats?.growth?.revenue,
           },
           {
-            title: 'Inventory',
-            value: stats?.inventoryItems || 0,
+            title: 'Capital Wallet',
+            value: stats?.capitalWallet || 0,
             icon: <InboxOutlined />,
             color: '#722ed1',
-            suffix: <Text type="danger" style={{ fontSize: 12 }}><WarningOutlined /> {stats?.lowStockItems || 0} low stock</Text>,
+            formatter: formatCurrency,
+            suffix: <Text type="secondary" style={{ fontSize: 11 }}>Inventory value at wholesaler price</Text>,
+            extra: (
+              <div style={{ marginTop: 4 }}>
+                <Text type="secondary" style={{ fontSize: 11 }}>{stats?.inventoryItems || 0} products • <Text type="danger">{stats?.lowStockItems || 0} low stock</Text></Text>
+              </div>
+            ),
           },
           {
-            title: 'Wallet Balance',
-            value: stats?.walletBalance || 0,
+            title: 'Profit Wallet',
+            value: stats?.profitWallet || 0,
             icon: <CreditCardOutlined />,
             color: '#fa8c16',
             formatter: formatCurrency,
+            suffix: <Text type="secondary" style={{ fontSize: 11 }}>Profit margin from sales</Text>,
             extra: (
-              <div style={{ marginTop: 8 }}>
-                <Text type="secondary" style={{ fontSize: 11 }}>Credit: {formatCurrency(stats?.creditLimit || 0)}</Text>
-                <Progress
-                  percent={Math.round(((stats?.walletBalance || 0) / (stats?.creditLimit || 1)) * 100)}
-                  size="small"
-                  strokeColor="#fa8c16"
-                  showInfo={false}
-                />
+              <div style={{ marginTop: 4 }}>
+                <Text type="secondary" style={{ fontSize: 11 }}>
+                  <FireOutlined style={{ color: '#fa541c' }} /> Gas rewards: {stats?.gasRewardsGiven?.toFixed(2) || 0} M³
+                </Text>
               </div>
             ),
           },

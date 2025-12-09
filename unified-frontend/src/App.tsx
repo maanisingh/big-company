@@ -45,10 +45,9 @@ import { InventoryPage as RetailerInventoryPage } from './pages/retailer/Invento
 import { OrdersPage as RetailerOrdersPage } from './pages/retailer/OrdersPage';
 import POSPage from './pages/retailer/POSPage';
 import { WalletPage } from './pages/retailer/WalletPage';
-import NFCCardsPage from './pages/retailer/NFCCardsPage';
+import AddStockPage from './pages/retailer/AddStockPage';
+import ManagementPage from './pages/retailer/ManagementPage';
 import RetailerAnalyticsPage from './pages/retailer/AnalyticsPage';
-import RetailerEmployeeManagementPage from './pages/retailer/EmployeeManagementPage';
-import RetailerVendorManagementPage from './pages/retailer/VendorManagementPage';
 
 // Wholesaler Pages
 import { WholesalerDashboard } from './pages/wholesaler/WholesalerDashboard';
@@ -164,14 +163,13 @@ function App() {
             >
               <Route index element={<Navigate to="/retailer/dashboard" replace />} />
               <Route path="dashboard" element={<RetailerDashboard />} />
+              <Route path="pos" element={<POSPage />} />
+              <Route path="add-stock" element={<AddStockPage />} />
               <Route path="inventory" element={<RetailerInventoryPage />} />
               <Route path="orders" element={<RetailerOrdersPage />} />
-              <Route path="pos" element={<POSPage />} />
               <Route path="wallet" element={<WalletPage />} />
-              <Route path="nfc-cards" element={<NFCCardsPage />} />
+              <Route path="management" element={<ManagementPage />} />
               <Route path="analytics" element={<RetailerAnalyticsPage />} />
-              <Route path="employees" element={<RetailerEmployeeManagementPage />} />
-              <Route path="vendors" element={<RetailerVendorManagementPage />} />
               <Route path="profile" element={<ProfileSettingsPage />} />
             </Route>
 

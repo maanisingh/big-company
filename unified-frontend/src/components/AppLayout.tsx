@@ -59,13 +59,12 @@ const menuItems: Record<UserRole, { key: string; icon: React.ReactNode; label: s
   retailer: [
     { key: 'dashboard', icon: <DashboardOutlined />, label: 'Dashboard', path: '/retailer/dashboard', mobileLabel: 'Home' },
     { key: 'pos', icon: <ScanOutlined />, label: 'POS', path: '/retailer/pos', mobileLabel: 'POS' },
+    { key: 'add-stock', icon: <ShoppingCartOutlined />, label: 'Add Stock', path: '/retailer/add-stock', mobileLabel: 'Add Stock' },
     { key: 'inventory', icon: <InboxOutlined />, label: 'Inventory', path: '/retailer/inventory', mobileLabel: 'Stock' },
     { key: 'orders', icon: <ShoppingCartOutlined />, label: 'Orders', path: '/retailer/orders', mobileLabel: 'Orders' },
     { key: 'wallet', icon: <DollarOutlined />, label: 'Wallet & Credit', path: '/retailer/wallet', mobileLabel: 'Wallet' },
-    { key: 'nfc-cards', icon: <CreditCardOutlined />, label: 'NFC Cards', path: '/retailer/nfc-cards', mobileLabel: 'Cards' },
+    { key: 'management', icon: <CreditCardOutlined />, label: 'My Management', path: '/retailer/management', mobileLabel: 'Manage' },
     { key: 'analytics', icon: <BarChartOutlined />, label: 'Analytics', path: '/retailer/analytics', mobileLabel: 'Stats' },
-    { key: 'employees', icon: <TeamOutlined />, label: 'Employees', path: '/retailer/employees', mobileLabel: 'Staff' },
-    { key: 'vendors', icon: <ShopOutlined />, label: 'Vendors', path: '/retailer/vendors', mobileLabel: 'Vendors' },
     { key: 'profile', icon: <UserOutlined />, label: 'Profile', path: '/retailer/profile', mobileLabel: 'Profile' },
   ],
   wholesaler: [
@@ -103,7 +102,7 @@ const menuItems: Record<UserRole, { key: string; icon: React.ReactNode; label: s
 const mobileBottomNavItems: Record<UserRole, string[]> = {
   consumer: ['shop', 'orders', 'wallet', 'gas', 'profile'],
   employee: ['dashboard', 'attendance', 'projects', 'payslips', 'profile'],
-  retailer: ['dashboard', 'pos', 'orders', 'wallet', 'inventory'],
+  retailer: ['dashboard', 'pos', 'orders', 'wallet', 'management'],
   wholesaler: ['dashboard', 'orders', 'retailers', 'credit', 'analytics'],
   admin: ['dashboard', 'employees', 'payroll', 'accounts', 'customers'],
 };
